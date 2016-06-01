@@ -1,1 +1,1 @@
-set of programes for my research project
+set of programs for my research project
