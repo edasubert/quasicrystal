@@ -15,7 +15,7 @@
 // generates all tiles for "any" window
 
 typedef betaSet numberType;
-typedef circle windowType;
+typedef rhombus windowType;
 
 int main( int argc, char ** argv )
 {
@@ -117,7 +117,7 @@ int main( int argc, char ** argv )
       //delone.filterByVoronoi();
       //std::cout << delone.size() << std::endl;
       delones.push_back(delone);
-      delone.svg(std::cout);
+      //delone.svg(std::cout);
     }
     // FILTER DUPLICATES
     delones.sort();

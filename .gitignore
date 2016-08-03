@@ -1,1 +1,6 @@
 /quasicrystal.geany
+/CR/*
+/output/*
+/*
+!/*.cpp
+!/SUPPORT/*.cpp
