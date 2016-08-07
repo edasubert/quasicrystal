@@ -35,7 +35,7 @@ betaSet::betaSet(number I_a, number I_b, number I_c)
   b = I_b;
   c = I_c;
   
-  simplify();
+  this->simplify();
 }
 
 void betaSet::set(number I_a, number I_b, number I_c)
@@ -44,7 +44,7 @@ void betaSet::set(number I_a, number I_b, number I_c)
   b = I_b;
   c = I_c;
   
-  simplify();
+  this->simplify();
 }
 
 betaSet betaSet::get(number I_a, number I_b)
@@ -86,6 +86,9 @@ betaSet betaSet::betaK( int k )
       Output /= betaSet::get(0,1);
     }
   }
+  
+  Output.simplify();
+  
   return Output;
 }
 
@@ -137,8 +140,9 @@ betaSet betaSet::star()const
 betaSet betaSet::operator + ( const betaSet &Input )const
 {
   betaSet Output;
-  Output.a = a*Input.c + Input.a*c;
-  Output.b = b*Input.c + Input.b*c;
+  
+  Output.a = (a*Input.c + Input.a*c);
+  Output.b = (b*Input.c + Input.b*c);
   Output.c = Input.c*c;
   
   Output.simplify();
@@ -149,8 +153,9 @@ betaSet betaSet::operator + ( const betaSet &Input )const
 betaSet betaSet::operator - ( const betaSet &Input )const
 {
   betaSet Output;
-  Output.a = a*Input.c - Input.a*c;
-  Output.b = b*Input.c - Input.b*c;
+  
+  Output.a = (a*Input.c - Input.a*c);
+  Output.b = (b*Input.c - Input.b*c);
   Output.c = Input.c*c;
   
   Output.simplify();
@@ -186,22 +191,26 @@ betaSet betaSet::operator / ( const betaSet &Input )const
 
 betaSet& betaSet::operator += ( const betaSet &Input )
 {
-  a = a*Input.c + Input.a*c;
-  b = b*Input.c + Input.b*c;
-  c = Input.c*c;
+  number tmp = gcd(c, Input.c);
   
-  simplify();
+  a = (a*Input.c + Input.a*c)/tmp;
+  b = (b*Input.c + Input.b*c)/tmp;
+  c = Input.c*c/tmp;
+  
+  this->simplify();
   
   return *this;
 }
 
 betaSet& betaSet::operator -= ( const betaSet &Input )
 {
-  a = a*Input.c - Input.a*c;
-  b = b*Input.c - Input.b*c;
-  c = Input.c*c;
+  number tmp = gcd(c, Input.c);
   
-  simplify();
+  a = (a*Input.c - Input.a*c)/tmp;
+  b = (b*Input.c - Input.b*c)/tmp;
+  c = Input.c*c/tmp;
+  
+  this->simplify();
   
   return *this;
 }
@@ -213,7 +222,7 @@ betaSet& betaSet::operator *= ( const betaSet &Input )
   a = cache;
   c = Input.c*c;
   
-  simplify();
+  this->simplify();
   
   return *this;
 }
@@ -225,7 +234,7 @@ betaSet& betaSet::operator /= ( const betaSet &Input )
   a = cache;
   c = (Input.a*Input.a + 4*Input.a*Input.b + Input.b*Input.b)*c;
   
-  simplify();
+  this->simplify();
   
   return *this;
 }
@@ -378,14 +387,14 @@ bool betaSet::operator > ( const betaSet &Input )const
   return false;
 }
 
-bool betaSet::operator <= ( const betaSet &Input )const
+bool betaSet::operator <= (const betaSet &Input)const
 {
-  return ( (*this == Input) || (*this < Input) );
+  return ((*this == Input) || (*this < Input));
 }
 
 bool betaSet::operator >= ( const betaSet &Input )const
 {
-  return ( (*this == Input) || (*this > Input) );
+  return ((*this == Input) || (*this > Input));
 }
 
 betaSet::operator double() const
@@ -402,6 +411,8 @@ betaSet betaSet::abs() const
     Output.b = -b;
   }
   Output.c = ( c < 0 ) ? -c : c;
+  
+  Output.simplify();
   
   return Output;
 }
@@ -752,14 +763,42 @@ number gcd( number a, number b )
 {
   a = ( a > 0 ) ? a : -a;
   b = ( b > 0 ) ? b : -b;
-  number tmp;
-  while ( b != 0 )
+  
+  if (a == 0) 
+    return b;
+  if (b == 0)
+    return a;
+  
+  int shift;
+  for (shift = 0; ((a | b) & 1) == 0; ++shift)
   {
-    tmp = b;
-    b = a % b;
-    a = tmp;
+    a >>= 1;
+    b >>= 1;
   }
-  return a;
+  
+  while ((a & 1) == 0)
+  {
+    a >>= 1;
+  }
+  
+  do 
+  {
+    while ((b & 1) == 0)
+    {
+      b >>= 1;
+    }
+    
+    if (a > b)
+    {
+      number tmp = a;
+      a = b;
+      b = tmp;
+    }
+    
+    b = b - a;
+  } while (b != 0);
+  //std::cout << "gcd: " << a << shift << std::endl;
+  return a << shift;
 }
 
 number sign( number a )

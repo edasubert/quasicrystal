@@ -11,6 +11,9 @@
 #include <iterator>
 #include <cctype>
 #include <math.h> 
+#include <fstream>
+#include <sstream>
+
 
 #include "betaSet.h"
 
@@ -164,6 +167,7 @@ class CpointSet : public virtual Cfigure<numberType>
     void svg( std::ostream& out, double a, double b, double c, double d ) const;
     
     void save( std::ostream& out ) const;
+    std::string save() const;
     void load( std::istream& in );
     
     CpointSet<numberType> star()const;
@@ -197,6 +201,7 @@ class CdeloneSet : public CpointSet<numberType>, public virtual Cfigure<numberTy
     void svg( std::ostream& out, double a, double b, double c, double d ) const;
     
     void save( std::ostream& out ) const;
+    std::string save() const;
     void load( std::istream& in );
     
     CdeloneSet<numberType>& operator + ( const Cpoint<numberType>& point );
@@ -251,6 +256,7 @@ class CvoronoiCell : public virtual Cfigure<numberType>
     void svg( std::ostream& out, double a, double b, double c, double d ) const;
     
     void save( std::ostream& out ) const;
+    std::string save()const;
     void load( std::istream& in );
     
     double value() const;
@@ -969,6 +975,20 @@ void CpointSet<numberType>::save( std::ostream& out ) const
 }
 
 template <typename numberType>
+std::string CpointSet<numberType>::save() const
+{
+  std::ostringstream str;
+  for ( typename std::list<Cpoint<numberType> >::iterator it = points->begin(); it != points->end(); ++it )
+  {
+    print(str, it->getX());
+    str << ",";
+    print(str, it->getY());
+    str << " ";
+  }
+  return str.str().c_str();
+}
+
+template <typename numberType>
 void CpointSet<numberType>::load( std::istream& in )
 {
   std::string line;
@@ -1025,7 +1045,7 @@ void CpointSet<numberType>::filterDistanceOrigin(const numberType dist)
   for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); )
   {
     std::cout << std::distance(this->points->begin(), it) << " - " << std::distance(it, this->points->end()) << std::flush << std::endl;
-    if (euklid<numberType>(origin,*it) > dist )
+    if (euklid2<numberType>(origin,*it) > dist*dist )
     {
       it = this->removePoint( it );
     }
@@ -1122,7 +1142,7 @@ void CdeloneSet<numberType>::setPackingR()
 {
   typename std::list<Cpoint<numberType> >::iterator tmp = this->points->begin();
   
-  double radius = euklid( *(++tmp), *tmp );
+  double radius = euklid2( *(++tmp), *tmp );
   double swap;
   
   for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); ++it )
@@ -1132,12 +1152,12 @@ void CdeloneSet<numberType>::setPackingR()
     
     for ( typename std::list<Cpoint<numberType> >::iterator ot = tmp; ot != this->points->end(); ++ot )
     {
-      swap = euklid( *it, *ot );
+      swap = euklid2( *it, *ot );
       radius = (radius > swap) ? swap : radius;
     }
   }
   
-  PackingR = radius/2;
+  PackingR = sqrt(radius)/2;
 }
 
 template <typename numberType>
@@ -1154,18 +1174,18 @@ void CdeloneSet<numberType>::setCoveringR()
     tmp = it;
     ++tmp;
     
-    closest = euklid( *it, *tmp );
+    closest = euklid2( *it, *tmp );
     
     for ( typename std::list<Cpoint<numberType> >::iterator ot = tmp; ot != this->points->end(); ++ot )
     {
-      swap = euklid( *it, *ot );
+      swap = euklid2( *it, *ot );
       closest = (closest > swap) ? swap : closest;
     }
     
     radius = (radius < closest) ? closest : radius;
   }
   
-  CoveringR = radius;
+  CoveringR = sqrt(radius);
 }
 
 template <typename numberType>
@@ -1214,6 +1234,20 @@ void CdeloneSet<numberType>::save( std::ostream& out ) const
     it->save( out );
   }
   out << "END" << std::endl;
+}
+
+template <typename numberType>
+std::string CdeloneSet<numberType>::save() const
+{
+  std::ostringstream str;
+  for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); ++it )
+  {
+    print(str, it->getX());
+    str << ",";
+    print(str, it->getY());
+    str << " ";
+  }
+  return str.str().c_str();
 }
 
 template <typename numberType>
@@ -1319,7 +1353,7 @@ void CdeloneSet<numberType>::filterDistanceOrigin(const numberType dist)
   Cpoint<numberType> origin(0, 0);
   for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); )
   {
-    if (euklid<numberType>(origin,*it) > dist )
+    if (euklid2<numberType>(origin,*it) > dist*dist )
     {
       it = this->removePoint( it );
     }
@@ -1482,7 +1516,7 @@ bool CvoronoiCell<numberType>::constructCut( typename std::list<Cpoint<numberTyp
   
   typename std::list<Cpoint<numberType> >::iterator it = add;
   
-  if ( ( euklid( *it, Center ) > CarrierSet->getCoveringR() ) || ( *it == Center ) )
+  if ( ( euklid2( *it, Center ) > CarrierSet->getCoveringR()*CarrierSet->getCoveringR() ) || ( *it == Center ) )
   {
     return false;
   }
@@ -1657,6 +1691,12 @@ void CvoronoiCell<numberType>::save( std::ostream& out ) const
   out << "CELL" << std::endl;
   Cell->save( out );
   out << "END" << std::endl;
+}
+
+template <typename numberType>
+std::string CvoronoiCell<numberType>::save() const
+{
+  return CarrierSet->save();
 }
 
 template <typename numberType>

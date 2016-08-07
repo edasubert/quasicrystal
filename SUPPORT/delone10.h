@@ -16,7 +16,7 @@
 
 
 template <typename numberType>
-class CdeloneSet10 : public CdeloneSet<numberType>, public virtual Cfigure<numberType>
+class CdeloneSet10 : public CdeloneSet<numberType>//, public virtual Cfigure<numberType>
 {
   protected:
     std::list<Cpoint<numberType> > potential;

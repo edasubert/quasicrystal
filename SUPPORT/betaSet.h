@@ -5,7 +5,7 @@
 #include <iostream>
 #include <cstdio>
 
-typedef long long number;
+typedef long long int number;
 
 class betaSet
 {
@@ -18,7 +18,6 @@ class betaSet
         betaSet(number I_a);
         betaSet(number I_a, number I_b);
         betaSet(number I_a, number I_b, number I_c);
-        //~betaSet();
         
         betaSet static get(number I_a, number I_b);
         betaSet static get(number I_a, number I_b, number I_c);
