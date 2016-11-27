@@ -15,7 +15,7 @@
 // generates all tiles for "any" window
 
 typedef betaSet numberType;
-typedef rhombus windowType;
+typedef circle windowType;
 
 int main( int argc, char ** argv )
 {
@@ -74,7 +74,7 @@ int main( int argc, char ** argv )
   }
   while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
   
-  wordLength = 10;
+  //wordLength = 10;
   
   std::cout << "hypercrystal: ";
   print( std::cout, circ->Xwindow().l() );
@@ -99,9 +99,9 @@ int main( int argc, char ** argv )
   // construct delone sets with 1 0 marks
   std::list<CdeloneSet10<numberType> > delones;
   
-  for ( std::list<std::string>::iterator it = lang.begin(); it != lang.end(); ++it )
+  for ( std::list<std::string>::iterator it = lang.begin(); it != ++lang.begin(); ++it )
   {
-    for ( std::list<std::string>::iterator ot = lang.begin(); ot != lang.end(); ++ot )
+    for ( std::list<std::string>::iterator ot = lang.begin(); ot != ++lang.begin(); ++ot )
     {
       //std::cout << *it << std::endl << std::flush;
       //std::cout << *ot << std::endl << std::endl << std::flush;
@@ -139,11 +139,11 @@ int main( int argc, char ** argv )
     //std::cout << "loop" << std::endl;
     std::cout << cells.size() << " - " << delones.size() << std::endl << std::flush;
     
-    it->filterPotentialByWindow(win);
+    //it->filterPotentialByWindow(win);
     
     while (it->isPotential()) // there is an element with '0' => split into two and append
     {
-      //std::cout << "there is potential!" << std::endl << std::flush;
+      std::cout << "there is potential! " << it->sizePotential() << std::endl << std::flush;
       
       Cpoint<numberType> cache = it->popPotential();
       

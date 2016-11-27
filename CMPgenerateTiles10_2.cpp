@@ -104,7 +104,8 @@ int main( int argc, char ** argv )
   
   //CREATE SUPERSET (use 1 0 marks) & CREATE VORONOI CELLS
    
-  std::list<CvoronoiCell<numberType> > cells;
+  //std::list<CvoronoiCell<numberType> > cells;
+  std::list<std::string> cells;
   int cellCount = 0;
    
   for (std::list<CdeloneSet10<numberType> >::iterator it = delones.begin(); it != delones.end(); it = delones.begin())
@@ -139,7 +140,11 @@ int main( int argc, char ** argv )
     voronoi.construct();
     voronoi.filterSet();
     
-    cells.push_back( voronoi );
+    
+    std::ostringstream toString;
+    toString << voronoi.save();
+    
+    cells.push_back( toString.str() );
     
     delones.erase(it);
     
@@ -152,9 +157,10 @@ int main( int argc, char ** argv )
   }
   
   std::ofstream output(argv[1]);
-  for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
+  
+  for ( std::list<std::string>::iterator it = cells.begin(); it != cells.end(); ++it )
   {
-    output << it->save();
+    output << *it << std::endl;
   }
   output.close();
   

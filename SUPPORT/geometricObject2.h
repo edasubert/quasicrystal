@@ -168,6 +168,7 @@ class CpointSet : public virtual Cfigure<numberType>
     
     void save( std::ostream& out ) const;
     std::string save() const;
+    void load( std::string in );
     void load( std::istream& in );
     
     CpointSet<numberType> star()const;
@@ -202,6 +203,7 @@ class CdeloneSet : public CpointSet<numberType>, public virtual Cfigure<numberTy
     
     void save( std::ostream& out ) const;
     std::string save() const;
+    void load( std::string in );
     void load( std::istream& in );
     
     CdeloneSet<numberType>& operator + ( const Cpoint<numberType>& point );
@@ -225,7 +227,8 @@ class CvoronoiCell : public virtual Cfigure<numberType>
 {
   protected: 
     bool constructCut( typename std::list<Cpoint<numberType> >::iterator add );
-    bool filterPoint( typename std::list<Cpoint<numberType> >::iterator add );
+    bool filterPoint( Cpoint<numberType> add );
+    bool filterPointAny( Cpoint<numberType> add );
   public:
     CdeloneSet<numberType> *CarrierSet;
     CpointSet<numberType> *Cell;
@@ -246,6 +249,7 @@ class CvoronoiCell : public virtual Cfigure<numberType>
     void construct();
     bool constructAdd( const Cpoint<numberType> add );
     void filterSet();
+    void filterSetPotential( std::list<Cpoint<numberType> >* points );
     
     CvoronoiCell<numberType>& operator = ( const CvoronoiCell<numberType>& I_VoronoiCell );
     
@@ -257,6 +261,7 @@ class CvoronoiCell : public virtual Cfigure<numberType>
     
     void save( std::ostream& out ) const;
     std::string save()const;
+    void load( std::string in );
     void load( std::istream& in );
     
     double value() const;
@@ -989,6 +994,18 @@ std::string CpointSet<numberType>::save() const
 }
 
 template <typename numberType>
+void CpointSet<numberType>::load( std::string in )
+{
+  std::istringstream iss(in);
+  numberType number;
+  
+  while (iss >> number)
+  {
+    std::cout << number << std::endl;
+  }
+}
+
+template <typename numberType>
 void CpointSet<numberType>::load( std::istream& in )
 {
   std::string line;
@@ -1234,6 +1251,24 @@ void CdeloneSet<numberType>::save( std::ostream& out ) const
     it->save( out );
   }
   out << "END" << std::endl;
+}
+
+template <typename numberType>
+void CdeloneSet<numberType>::load( std::string in )
+{
+  this->points->clear();
+  
+  std::istringstream iss(in);
+  numberType a;
+  numberType b;
+  Cpoint<numberType> point;
+  
+  while (iss >> a)
+  {
+    iss >> b;
+    point.set(a, b);
+    this->points->push_back(point);
+  }
 }
 
 template <typename numberType>
@@ -1613,14 +1648,14 @@ bool CvoronoiCell<numberType>::constructAdd( const Cpoint<numberType> add )
 }
 
 template <typename numberType>
-bool CvoronoiCell<numberType>::filterPoint( typename std::list<Cpoint<numberType> >::iterator add )
+bool CvoronoiCell<numberType>::filterPoint( Cpoint<numberType> add )
 {
   // vector from it toward center
-  Cvector<numberType> n = Center - *add;
+  Cvector<numberType> n = Center - add;
   n.setDescription( "n" );
   
   // normal form of axis of center and active point
-  Cvector<numberType> c = n/2 + *add;
+  Cvector<numberType> c = n/2 + add;
   c.setDescription( "c" );
   
   numberType d = (n*c).sum(); // constant for cut line
@@ -1644,15 +1679,61 @@ template <typename numberType>
 void CvoronoiCell<numberType>::filterSet()
 {
   
-  typename std::list<Cpoint<numberType> >::iterator it;
+  //typename std::list<Cpoint<numberType> >::iterator it;
   
   typename std::list<Cpoint<numberType> >::iterator ot = CarrierSet->begin();
   while ( ot != CarrierSet->end() )
   {
     //it = ot++;
-    if ( filterPoint( ot ) )
+    if ( filterPoint( *ot ) )
     {
       ot = CarrierSet->removePoint( ot );
+    }
+    else
+    {
+      ++ot;
+    }
+  }
+  
+}
+
+template <typename numberType>
+bool CvoronoiCell<numberType>::filterPointAny( Cpoint<numberType> add )
+{
+  // vector from it toward center
+  Cvector<numberType> n = Center - add;
+  n.setDescription( "n" );
+  
+  // normal form of axis of center and active point
+  Cvector<numberType> c = n/2 + add;
+  c.setDescription( "c" );
+  
+  numberType d = (n*c).sum(); // constant for cut line
+  
+  typename std::list<Cpoint<numberType> >::iterator old = Cell->end();
+  --old;
+  
+  for ( typename std::list<Cpoint<numberType> >::iterator ot = Cell->begin(); ot != Cell->end(); ++ot )
+  {
+    if ( ( (n*(*ot)).sum() > d ) != ( (n*(*old)).sum() > d ) )
+    {
+      return false;
+    }
+    
+    old = ot;
+  }
+  return true;
+}
+
+template <typename numberType>
+void CvoronoiCell<numberType>::filterSetPotential( std::list<Cpoint<numberType> >* potentialSet )
+{
+  typename std::list<Cpoint<numberType> >::iterator ot = potentialSet->begin();
+  while ( ot != potentialSet->end() )
+  {
+    if ( filterPointAny( *ot ) )
+    {
+      ot = potentialSet->erase( ot );
     }
     else
     {
@@ -1697,6 +1778,13 @@ template <typename numberType>
 std::string CvoronoiCell<numberType>::save() const
 {
   return CarrierSet->save();
+}
+
+
+template <typename numberType>
+void CvoronoiCell<numberType>::load( std::string in )
+{
+  CarrierSet->load(in);
 }
 
 template <typename numberType>

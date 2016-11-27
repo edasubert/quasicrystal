@@ -31,10 +31,13 @@ class CdeloneSet10 : public CdeloneSet<numberType>//, public virtual Cfigure<num
     void filterByVoronoi();
     template <typename windowType>
     void filterPotentialByWindow(windowType win);
+    void clearPotential();
+    std::list<Cpoint<numberType> > getPotential();
     
     CdeloneSet10<numberType>& operator + ( const Cpoint<numberType>& point );
     
     int sizePotential();
+    void sortPotentialByDistance();
     
     void svg( std::ostream& out );
 };
@@ -170,6 +173,18 @@ void CdeloneSet10<numberType>::filterPotentialByWindow(windowType win)
   }
 }
 
+template <typename numberType>
+void CdeloneSet10<numberType>::clearPotential()
+{
+  potential.clear();
+}
+
+template <typename numberType>
+std::list<Cpoint<numberType> > CdeloneSet10<numberType>::getPotential()
+{
+  return potential;
+}
+
 
 template <typename numberType>
 CdeloneSet10<numberType>& CdeloneSet10<numberType>::operator + ( const Cpoint<numberType>& point )
@@ -193,6 +208,13 @@ int CdeloneSet10<numberType>::sizePotential()
   return potential.size();
 }
 
+
+template <typename numberType>
+void CdeloneSet10<numberType>::sortPotentialByDistance()
+{
+  this->potential.sort(distanceComp<betaSet>);
+}
+
 template <typename numberType>
 void CdeloneSet10<numberType>::svg( std::ostream& out ) 
 {
@@ -200,20 +222,20 @@ void CdeloneSet10<numberType>::svg( std::ostream& out )
   {
     out << "<!-- " << this->description << " -->" << std::endl;
   }
-  out << "/*" << this->description << "*/" << std::endl;
   out << "<g id=\"" << this->name << "\">" << std::endl;
   for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); ++it )
   {
     it->setColor( this->fillColor, this->strokeColor, this->strokeWidth );
-    it->svg( out );
+    it->svg(out);
+    out << "YEA" << std::endl;
   }
-  out << "<!-- POTENTIAL -->" << std::endl;
+  out << "<!-- POTENTIAL -->" << this->points->size() << std::endl;
   for ( typename std::list<Cpoint<numberType> >::iterator it = this->potential.begin(); it != this->potential.end(); ++it )
   {
-    it->setColor( this->fillColor, this->strokeColor, this->strokeWidth );
-    it->svg( out );
+    it->setColor( this->fillColor, "#FFEA00", this->strokeWidth );
+    it->svg(out);
   }
-  out << "<g />" << std::endl;
+  out << "</g>" << std::endl;
 }
 
 #endif

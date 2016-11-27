@@ -16,8 +16,10 @@
 
 #define MASTER 0        /* task ID of master task */
 
+#define LIMIT 2
+
 typedef betaSet numberType;
-typedef rhombus windowType;
+typedef circle windowType;
 
 int main (int argc, char* argv[])
 {
@@ -72,6 +74,7 @@ int main (int argc, char* argv[])
     ++wordLength;
   } while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
   
+  wordLength = 6;
   
   
   /* Obtain number of tasks and task ID */
@@ -89,84 +92,93 @@ int main (int argc, char* argv[])
   {
     do 
     {
-      MPI_Probe(MASTER, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      data.clear();
       
+      MPI_Probe(MASTER, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
       MPI_Get_count(&status, MPI_CHAR, &length);
       char *cache = new char[length];
       
       MPI_Recv(cache, length, MPI_CHAR, MASTER, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-      buffer = std::string(cache, length);
+      data.push_back( std::string(cache, length) );
       delete [] cache;
       
-      //std::cout << std::string(4, ' ') << taskid << ": received " << buffer << " status: " << status.MPI_TAG << std::endl;
-      
-      if (status.MPI_TAG == 0)
+      while (status.MPI_TAG == 0)
       {
+        MPI_Probe(MASTER, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Get_count(&status, MPI_CHAR, &length);
+        char *cache = new char[length];
         
-        
-        // process data ------------------------------------------------
-        std::string word1 = buffer.substr(0, buffer.length()/2);
-        std::string word2 = buffer.substr(buffer.length()/2);
-        CdeloneSet10<numberType> delone = quasicrystal2D10(circ->Xwindow(), word1, word2);
-        
-        delone.setPackingR();
-        delone.setCoveringR(numberType::get(2, 0)*coveringR);
-        delone.setDescription(word1+word2);
-        
-        delone.sortByDistance();
-        
-        std::list<CdeloneSet10<numberType> > delones;
-        std::list<CvoronoiCell<numberType> > cells;
-        delones.push_back(delone);
-        
-        for (std::list<CdeloneSet10<numberType> >::iterator it = delones.begin(); it != delones.end(); it = delones.begin())
+        MPI_Recv(cache, length, MPI_CHAR, MASTER, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        data.push_back( std::string(cache, length) );
+        delete [] cache;
+      }
+      
+      std::cout << "  node " << taskid << " data received" << std::endl;
+      
+      std::list<std::string> list;
+      if (status.MPI_TAG == 1)
+      {
+        for (std::list<std::string>::iterator it = data.begin(); it != data.end(); ++it)
         {
-          it->filterPotentialByWindow(win);
+          // process data ------------------------------------------------
+          std::string word1 = it->substr(0, it->length()/2);
+          std::string word2 = it->substr(it->length()/2);
+          CdeloneSet10<numberType> delone = quasicrystal2D10(circ->Xwindow(), word1, word2);
           
-          while (it->isPotential()) 
+          delone.setPackingR();
+          delone.setCoveringR(numberType::get(2, 0)*coveringR);
+          delone.setDescription(word1+word2);
+          
+          delone.sortByDistance();
+          
+          std::list<CdeloneSet10<numberType> > delones;
+          std::list<CvoronoiCell<numberType> > cells;
+          delones.push_back(delone);
+          
+          for (std::list<CdeloneSet10<numberType> >::iterator it = delones.begin(); it != delones.end(); it = delones.begin())
           {
-            Cpoint<numberType> cache = it->popPotential();
+            it->filterPotentialByWindow(win);
             
-            delone = *it;
-            delone << cache;
-            delones.push_back(delone);
+            while (it->isPotential()) 
+            {
+              Cpoint<numberType> cache = it->popPotential();
+              
+              delone = *it;
+              delone << cache;
+              delones.push_back(delone);
+            }
+            
+            CvoronoiCell<numberType> voronoi;
+            
+            *(voronoi.CarrierSet) = *it;
+            voronoi.CarrierSet->sortByDistance();
+            voronoi.CarrierSet->setPackingR();
+            voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
+            voronoi.setCenter(origin);
+            voronoi.construct();
+            voronoi.filterSet();
+            
+            cells.push_back( voronoi );
+            
+            delones.erase(it);
+            
+            delones.sort();
+            delones.unique();
           }
           
-          CvoronoiCell<numberType> voronoi;
+          cells.sort();
+          cells.unique();
           
-          *(voronoi.CarrierSet) = *it;
-          voronoi.CarrierSet->sortByDistance();
-          voronoi.CarrierSet->setPackingR();
-          voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
-          voronoi.setCenter(origin);
-          voronoi.construct();
-          voronoi.filterSet();
+          for (std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it)
+          {
+            list.push_back(it->save());
+          }
           
-          cells.push_back( voronoi );
-          
-          delones.erase(it);
-          
-          delones.sort();
-          delones.unique();
+          list.sort();
+          list.unique();
+          // end ---------------------------------------------------------
         }
-        
-        cells.sort();
-        cells.unique();
-        
-        std::list<std::string> list;
-        
-        for (std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it)
-        {
-          list.push_back(it->save());
-        }
-        
-        list.sort();
-        list.unique();
-        // end ---------------------------------------------------------
-        
-        
-        
-        
+        std::cout << "  node " << taskid << " sending back" << std::endl;
         for (std::list<std::string>::iterator it = list.begin(); it != --list.end(); ++it)
         {
           send_buffer = *it;
@@ -178,7 +190,7 @@ int main (int argc, char* argv[])
         // return result
         MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, MASTER, 1, MPI_COMM_WORLD);
       }
-    } while (status.MPI_TAG == 0); 
+    } while (status.MPI_TAG != 2); 
   }
   else // MASTER -------------------------------------------------------
   {
@@ -194,6 +206,8 @@ int main (int argc, char* argv[])
       }
     }
     
+    std::cout << "tasks: " << data.size() << std::endl;
+    std::cout << "word length: " << wordLength << std::endl;
     
     iterator = data.begin();
     
@@ -201,11 +215,14 @@ int main (int argc, char* argv[])
     std::cout << "Send initial load of data" << std::endl;
     for (int it = 0; it < nodes; ++it)
     {
+      // send data
+      for ( int ot = 0; ot < LIMIT-1; ++ot)
+      {
+        send_buffer = *(iterator++);
+        MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, it+1, 0, MPI_COMM_WORLD);
+      }
       send_buffer = *(iterator++);
-      
-      //std::cout << std::string(4, ' ') << "MASTER sending: " << iterator << "/168" << std::endl;
-      
-      MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, it+1, 0, MPI_COMM_WORLD);
+      MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, it+1, 1, MPI_COMM_WORLD);
     }
     
     // gather data while processing
@@ -221,7 +238,7 @@ int main (int argc, char* argv[])
       delete [] cache;
       
       // save result
-      res.push_back(buffer);
+      //res.push_back(buffer);
       
       while (status.MPI_TAG == 0)
       {
@@ -234,14 +251,25 @@ int main (int argc, char* argv[])
         delete [] cache;
         
         // save result
-        res.push_back(buffer);
+        //res.push_back(buffer);
       }
       
-      //std::cout << std::string(4, ' ') << "MASTER received from: " << status.MPI_SOURCE << " sending: " << iterator << std::endl;
+      // send more data
+      for ( int ot = 0; ot < LIMIT-1; ++ot)
+      {
+        if (iterator != --data.end())
+        {
+          send_buffer = *(iterator++);
+          MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+        }
+      }
+      if (iterator != data.end())
+      {
+        send_buffer = *(iterator++);
+        MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
+      }
       
-      send_buffer = *(iterator++);
-      
-      MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+      std::cout << "processed: " << res.size() << std::endl;
     }
     
     // terminate processes
@@ -263,7 +291,7 @@ int main (int argc, char* argv[])
       
       send_buffer = std::to_string(0);
       
-      rc = MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, it+1, 1, MPI_COMM_WORLD);
+      rc = MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, it+1, 2, MPI_COMM_WORLD);
     }
     
     
