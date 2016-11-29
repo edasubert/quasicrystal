@@ -127,7 +127,7 @@ int main (int argc, char* argv[])
         
         for (std::list<CdeloneSet10<numberType> >::iterator it = delones.begin(); it != delones.end(); it = delones.begin())
         {
-          std::cout << "SIZE POTENTIAL: " << it->sizePotential() << std::endl;
+          //std::cout << "SIZE POTENTIAL: " << it->sizePotential() << std::endl;
           //it->filterPotentialByWindow(win);
           
           CvoronoiCell<numberType> voronoi;
@@ -146,7 +146,7 @@ int main (int argc, char* argv[])
           it->clearPotential();
           it->addPotential(potential);
           
-          std::cout << "SIZE POTENTIAL: " << it->sizePotential() << '\t' << "SIZE DELONES: " << delones.size() << std::endl;
+          //std::cout << "SIZE POTENTIAL: " << it->sizePotential() << '\t' << "SIZE DELONES: " << delones.size() << std::endl;
           
           // deal with potential
           while (it->isPotential()) 
@@ -207,13 +207,11 @@ int main (int argc, char* argv[])
     std::list<std::string> lang = language( insc->Xwindow(), circ->Xwindow(), wordLength );
     for ( std::list<std::string>::iterator it = lang.begin(); it != lang.end(); ++it )
     {
-      for ( std::list<std::string>::iterator ot = lang.begin(); ot != lang.end(); ++ot )
+      for ( std::list<std::string>::iterator ot = lang.begin(); ot != ++lang.begin(); ++ot )
       {
         data.push_back(*it+*ot);
       }
     }
-    
-    
     
     std::cout << "tasks: " << data.size() << std::endl;
     std::cout << "word length: " << wordLength << std::endl;
