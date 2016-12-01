@@ -17,7 +17,7 @@
 #define MASTER 0        /* task ID of master task */
 
 typedef betaSet numberType;
-typedef circle windowType;
+typedef rhombus windowType;
 
 int main (int argc, char* argv[])
 {
@@ -50,13 +50,13 @@ int main (int argc, char* argv[])
   win.center( origin );
   
   // hyperquasicrystal
-  rhombus *circ = dynamic_cast<rhombus*> ( win.circumscribed() );
-  //rhombus *circ = new rhombus(winSize*betaSet::get(4,0,3));
+  //rhombus *circ = dynamic_cast<rhombus*> ( win.circumscribed() );
+  rhombus *circ = new rhombus(winSize*betaSet::get(4,0,3));
   
   
   // hypoquasicrystal
-  rhombus *insc = dynamic_cast<rhombus*> ( win.inscribed() );
-  //rhombus *insc = new rhombus(winSize*betaSet::get(2,0,3));
+  //rhombus *insc = dynamic_cast<rhombus*> ( win.inscribed() );
+  rhombus *insc = new rhombus(winSize*betaSet::get(2,0,3));
   
   betaSet S = circ->Xwindow().Small();
   betaSet L = insc->Xwindow().Large();
