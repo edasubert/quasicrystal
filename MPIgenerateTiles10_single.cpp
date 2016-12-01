@@ -146,7 +146,7 @@ int main (int argc, char* argv[])
           it->clearPotential();
           it->addPotential(potential);
           
-          //std::cout << "SIZE POTENTIAL: " << it->sizePotential() << '\t' << "SIZE DELONES: " << delones.size() << std::endl;
+          std::cout << "SIZE POTENTIAL: " << it->sizePotential() << '\t' << "SIZE DELONES: " << delones.size() << std::endl;
           
           // deal with potential
           while (it->isPotential()) 
@@ -207,7 +207,7 @@ int main (int argc, char* argv[])
     std::list<std::string> lang = language( insc->Xwindow(), circ->Xwindow(), wordLength );
     for ( std::list<std::string>::iterator it = lang.begin(); it != lang.end(); ++it )
     {
-      for ( std::list<std::string>::iterator ot = lang.begin(); ot != ++lang.begin(); ++ot )
+      for ( std::list<std::string>::iterator ot = lang.begin(); ot != lang.end(); ++ot )
       {
         data.push_back(*it+*ot);
       }
