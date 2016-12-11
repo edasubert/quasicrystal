@@ -281,26 +281,143 @@ circle::circle()
   m_R = betaSet::get( 1, 0 );
   m_x = betaSet::get( 0, 0 );
   m_y = betaSet::get( 0, 0 );
-  intersect( this );
+  intersectionList.push_front(*this);
 }
 circle::circle( betaSet R )
 {
   m_R = R;
   m_x = betaSet::get( 0, 0 );
   m_y = betaSet::get( 0, 0 );
-  intersect( this );
+  intersectionList.push_front(*this);
 }
 circle::circle( betaSet R, betaSet x ,betaSet y )
 {
   m_R = R;
   m_x = x;
   m_y = y;
-  intersect( this );
+  intersectionList.push_front(*this);
 }
 
 void circle::svg( std::ostream& out ) const
 {
-  out << "<circle cx=\"" << m_x << "\" cy=\"" << m_y << "\" r=\"" << m_R << "\" " << "style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\" opacity=\"0.5\" />" << std::endl;
+  if (intersectionList.size() == 1)
+  {
+    out << "<circle cx=\"" << m_x << "\" cy=\"" << m_y << "\" r=\"" << m_R << "\" " << "style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.1;\" />" << std::endl;
+  }
+  
+  //for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  //{
+    //out << "<circle cx=\"" << it->m_x << "\" cy=\"" << it->m_y << "\" r=\"" << it->m_R << "\" " << "style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\" opacity=\"0.5\" />" << std::endl;
+  //}
+  
+  CpointSet<double> points;
+  
+  for (std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
+  {
+    double angle01 = 0; //start
+    double angle02 = 4*M_PI; // interval   <--- deliberately larger 
+    
+    double count = 1;
+    
+    for (std::list<circle>::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+    {
+      if (it == ot)
+        continue;
+      
+      double tmp01 = atan2(ot->m_y-it->m_y, ot->m_x-it->m_x);
+      double tmp02 = acos(sqrt( (ot->m_x-it->m_x)*(ot->m_x-it->m_x) + (ot->m_y-it->m_y)*(ot->m_y-it->m_y) )/(2*m_R));
+      
+      double new_angle01 = tmp01 - tmp02;
+      double new_angle02 = 2*tmp02;
+      
+      if (new_angle01 < 0)
+      {
+        new_angle01+= 2*M_PI;
+      }
+      
+      // a starts first
+      double a1, a2, b1, b2;
+      if (angle01 < new_angle01)
+      {
+        a1 = angle01;
+        a2 = angle02;
+        b1 = new_angle01;
+        b2 = new_angle02;
+      }
+      else
+      {
+        b1 = angle01;
+        b2 = angle02;
+        a1 = new_angle01;
+        a2 = new_angle02;
+      }
+      
+      //std::cout.precision(3);
+      //std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
+      
+      // solve wrap around
+      if ((a1+a2 < b1) && (b1+b2 > 2*M_PI+a1))
+      {
+        a1+= 2*M_PI;
+      }
+      
+      //std::cout.precision(3);
+      //std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
+      
+      // intersection
+      angle01 = std::max(a1,b1);
+      angle02 = std::min(a1+a2,b1+b2) - angle01;
+      
+      if (angle01 > 2*M_PI)
+      {
+        angle01-= 2*M_PI;
+      }
+      
+      //std::cout.precision(3);
+      //std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << angle01 << " " << angle01+angle02 << std::endl;
+      
+      //if (angle02 > 0)
+      //{
+      //out << "<line x1=\"" << it->m_x << "\" y1=\"" << it->m_y << "\" x2=\"" << cos(tmp01)*m_R + it->m_x << "\" y2=\"" << sin(tmp01)*m_R + it->m_y << "\" stroke=\"#607D8B\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blueGrey
+        
+      //out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
+          //<< "fill=\"none\" stroke=\"#FF1744\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // red
+      //out << "<path d=\" M" << cos(a1)*m_R + it->m_x << "," << sin(a1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(a1+a2)*m_R + it->m_x << " " << sin(a1+a2)*m_R + it->m_y << "\" " 
+          //<< "fill=\"none\" stroke=\"#FFEB3B\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // yellow
+      //out << "<path d=\" M" << cos(b1)*m_R + it->m_x << "," << sin(b1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(b1+b2)*m_R + it->m_x << " " << sin(b1+b2)*m_R + it->m_y << "\" " 
+          //<< "fill=\"none\" stroke=\"#0288D1\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blue
+      //count++;
+      //}
+    }
+    
+    //std::cout << angle01 << " " << angle01+angle02 << std::endl;
+    //std::cout << std::endl;
+    if (angle02 > 0)
+    {
+      //out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
+          //<< "fill=\"none\" stroke=\"#3F51B5\" stroke-width=\"" << m_strokeWidth << "\" />" << std::endl; // indigo
+      points << Cpoint<double>(cos(angle01+angle02)*m_R + it->m_x, sin(angle01+angle02)*m_R + it->m_y);
+    }
+  }
+  
+  // background
+  points.sortClockwise();
+  
+  //out << "<polygon points=\"";
+  //for (std::list<Cpoint<double> >::iterator it = points.begin(); it != points.end(); ++it)
+  //{
+    //out << it->getX() << "," << it->getY() << " ";
+  //}
+  //out << "\" fill=\"#FFEB3B\" fill-opacity=\"0.2\" fill-rule=\"nonzero\" />" << std::endl; // yellow
+  
+  // curve
+  out << "<path d=\" M" << points.begin()->getX() << "," << points.begin()->getY();
+  for (std::list<Cpoint<double> >::iterator it = ++points.begin(); it != points.end(); ++it)
+  {
+    out << " A" << m_R << " " << m_R << ", 0, 0,1, " << it->getX() << " " << it->getY();
+  }
+  out << " A" << m_R << " " << m_R << ", 0, 0,1, " << points.begin()->getX() << " " << points.begin()->getY();
+  out << " \" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.1;\" />" << std::endl; // light blue, green
 }
 
 void circle::setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth )
@@ -324,7 +441,7 @@ bool circle::in( Cpoint<betaSet> star )const
 
 void circle::intersect( circle* win )
 {
-  if ( m_R == win->m_R )
+  if ((m_R == win->m_R) && ((m_x != win->m_x) || (m_y != win->m_y)))
   {
     intersectionList.push_front( *win );
   }
@@ -363,6 +480,7 @@ void circle::center( Cpoint<betaSet> center )
 void circle::emptyIntersectionList()
 {
   intersectionList.clear();
+  intersectionList.push_front(*this);
 }
 
 bool circle::empty() 
@@ -432,6 +550,34 @@ bool circle::empty()
   }
   
   return true;
+}
+
+betaSet circle::centerX()const
+{
+  betaSet x = m_x;
+  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  {
+    x+= it->m_x;
+  }
+  
+  return x/betaSet::get(intersectionList.size()+1,0);
+}
+
+betaSet circle::centerY()const
+{
+  betaSet y = m_y;
+  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  {
+    y+= it->m_y;
+  }
+  
+  return y/betaSet::get(intersectionList.size()+1,0);
+}
+
+
+bool diff(circle& larger, circle smaller)
+{
+  
 }
 
 // DODECAGON_TIP -----------------------------------------------------------

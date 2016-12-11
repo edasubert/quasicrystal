@@ -13,6 +13,7 @@
 // creates diagram of "any" window
 
 typedef betaSet numberType;
+typedef rhombus winType;
 
 int main( int argc, char ** argv )
 {
@@ -20,10 +21,10 @@ int main( int argc, char ** argv )
   std::cout << "------------------------------" << std::endl << std::flush;
   
   // intervel of the quasicrystal
-  numberType x1(-150,0);
-  numberType x2( 150,0);
-  numberType y1(-45,0);
-  numberType y2( 45,0);
+  numberType x1(-160,0);
+  numberType x2( 160,0);
+  numberType y1(-90,0);
+  numberType y2( 90,0);
   
   int winId = 1;
   
@@ -46,7 +47,7 @@ int main( int argc, char ** argv )
     //Cpoint<numberType> awayFromZero( numberType::get(120,10), numberType::get(244,20) );
     
     //rhombus win( winSize, winSize );
-    rhombus win( winSize );
+    winType win( winSize );
     win.center( origin );
     
     // control with hyperquasicrystal

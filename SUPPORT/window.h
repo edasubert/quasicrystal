@@ -93,6 +93,11 @@ class circle : public window2D {
     void emptyIntersectionList();
     
     bool empty();
+    
+    betaSet centerX()const;
+    betaSet centerY()const;
+    
+    friend bool diff(circle& larger, circle smaller);
 };
 
 class dodecagonTip : public window2D {

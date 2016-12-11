@@ -173,6 +173,8 @@ class CpointSet : public virtual Cfigure<numberType>
     
     CpointSet<numberType> star()const;
     void filterDistanceOrigin(const numberType dist);
+    
+    void sortClockwise();
 };
 
 template <typename numberType>
@@ -283,6 +285,9 @@ double euklid2( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
 
 template <typename numberType>
 bool distanceComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
+
+template <typename numberType>
+bool clockwiseComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
 
 
 // FIGURE ==============================================================
@@ -1073,6 +1078,23 @@ void CpointSet<numberType>::filterDistanceOrigin(const numberType dist)
   }
 }
 
+
+template <typename numberType>
+void CpointSet<numberType>::sortClockwise()
+{
+  Cpoint<numberType> center;
+  for (std::list<Cpoint<double> >::iterator it = this->points->begin(); it != this->points->end(); ++it)
+  {
+    center.set(center.getX()+it->getX(), center.getY()+it->getY());
+  }
+  center.set(center.getX()/this->points->size(), center.getY()/this->points->size());
+  *this-= center;
+  
+  this->points->sort(clockwiseComp<numberType>);
+  
+  *this+= center;
+}
+
 // DELONE SET ==========================================================
 template <typename numberType>
 CdeloneSet<numberType>::CdeloneSet() : CpointSet<numberType>()
@@ -1408,7 +1430,7 @@ void CdeloneSet<numberType>::sort()
 template <typename numberType>
 void CdeloneSet<numberType>::sortByDistance()
 {
-  this->points->sort(distanceComp<betaSet>);
+  this->points->sort(distanceComp<numberType>);
 }
 
 template <typename numberType>
@@ -2059,7 +2081,7 @@ CvoronoiCell<numberType> CvoronoiCell<numberType>::rotate( int n ) const
   {
     for ( int i = 1; i <= n; ++i )
     {
-      it->set( it->getX()*betaSet::get(-2,1,2) + it->getY()*betaSet::get(-1,0,2), it->getX()*betaSet::get(1,0,2) + it->getY()*betaSet::get(-2,1,2) );
+      it->set( it->getX()*numberType::get(-2,1,2) + it->getY()*numberType::get(-1,0,2), it->getX()*numberType::get(1,0,2) + it->getY()*numberType::get(-2,1,2) );
     }
   }
   
@@ -2100,6 +2122,12 @@ template <typename numberType>
 bool distanceComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b )
 {
   return ( (a.getX()*a.getX()+a.getY()*a.getY() < b.getX()*b.getX()+b.getY()*b.getY()) || ( (a.getX()*a.getX()+a.getY()*a.getY() < b.getX()*b.getX()+b.getY()*b.getY()) && (( a.getX() < b.getX() ) || (( a.getX() == b.getX() ) && ( a.getY() < b.getY() )))));
+}
+
+template <typename numberType>
+bool clockwiseComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b )
+{
+  return atan2(a.getY(), a.getX()) < atan2(b.getY(), b.getX());
 }
 
 #endif
