@@ -43,8 +43,10 @@ int main (int argc, char* argv[])
   
   
   // initialize
-  numberType winSize(-10, 3, 2);
+  numberType winSize(1, 0, 2);
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
+  
+  std::string clipTileStr = "(0+1*beta)/2,(-1+2*beta)/2 (0+0*beta)/2,(0+1*beta)/1 (-1+2*beta)/2,(0+1*beta)/2 (0-1*beta)/2,(-1+2*beta)/2 (0+1*beta)/1,(0+0*beta)/4 (1-2*beta)/2,(0+1*beta)/2 (0+0*beta)/4,(0+0*beta)/4 (-1+2*beta)/2,(0-1*beta)/2 (0-1*beta)/1,(0+0*beta)/4 (0+1*beta)/2,(1-2*beta)/2 (1-2*beta)/2,(0-1*beta)/2 (0+0*beta)/2,(0-1*beta)/1 (0-1*beta)/2,(1-2*beta)/2 ";
   
   windowType win( winSize );
   win.center( origin );
@@ -90,6 +92,9 @@ int main (int argc, char* argv[])
   
   if (taskid != MASTER) // NODE ----------------------------------------
   {
+    CvoronoiCell<numberType> clipTile;
+    clipTile.load(clipTileStr);
+    
     do 
     {
       MPI_Probe(MASTER, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -113,6 +118,8 @@ int main (int argc, char* argv[])
         std::string word1 = buffer.substr(0, buffer.length()/2);
         std::string word2 = buffer.substr(buffer.length()/2);
         CdeloneSet10<numberType> delone = quasicrystal2D10(circ->Xwindow(), word1, word2);
+        
+        delone << *clipTile.CarrierSet;
         
         delone.setPackingR();
         delone.setCoveringR(numberType::get(2, 0)*coveringR);

@@ -138,6 +138,7 @@ class CpointSet : public virtual Cfigure<numberType>
     typename std::list<Cpoint<numberType> >::iterator removePoint( typename std::list<Cpoint<numberType> >::iterator removal );
     
     CpointSet& operator << ( Cpoint<numberType> addition );
+    CpointSet& operator << ( CpointSet<numberType> addition );
     CpointSet& operator = ( const CpointSet& I_PointSet );
     
     typename std::list<Cpoint<numberType> >::iterator begin();
@@ -793,6 +794,17 @@ CpointSet<numberType>& CpointSet<numberType>::operator << ( Cpoint<numberType> a
   }
   
   points->push_front( addition );
+  
+  return *this;
+}
+
+template <typename numberType>
+CpointSet<numberType>& CpointSet<numberType>::operator << ( CpointSet<numberType> addition )
+{
+  for ( typename std::list< Cpoint<numberType> >::iterator it = addition.begin(); it != addition.end(); ++it )
+  {
+    *this << *it;
+  }
   
   return *this;
 }
