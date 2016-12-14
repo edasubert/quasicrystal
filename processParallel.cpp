@@ -47,8 +47,13 @@ int main (int argc, char* argv[])
     }
     myfile.close();
   }
-  else std::cout << "Unable to open file"; 
+  else std::cout << "Unable to open file" << std::endl; 
   
+  
+  cells.sort();
+  cells.unique();
+  
+  std::cout << "cells: " << cells.size() << std::endl; 
   
   std::string fillColor = "#689F38";
   std::string strokeColor = "#263238";
