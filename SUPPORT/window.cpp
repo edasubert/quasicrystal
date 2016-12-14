@@ -517,81 +517,81 @@ void circle::createPolygon()
 bool diff(circle& larger, circle smaller)
 {
   
-  // establish zero (for double equality)
-  double ZERO = 1;
-  for (std::list<Cpoint<double> >::iterator it = larger.polygon.begin(); it != --larger.polygon.end(); it )
-  {
-    Cpoint<double> tmp = *it++;
-    ZERO = std::min(ZERO, euklid(tmp, *it));
-  }
-  ZERO*= 0.001;
+  //// establish zero (for double equality)
+  //double ZERO = 1;
+  //for (std::list<Cpoint<double> >::iterator it = larger.polygon.begin(); it != --larger.polygon.end(); it )
+  //{
+    //Cpoint<double> tmp = *it++;
+    //ZERO = std::min(ZERO, euklid(tmp, *it));
+  //}
+  //ZERO*= 0.001;
   
   
-  bool samePoint = false;
-  std::list<int>::iterator it_sweep = larger.sweep.begin();
-  std::list<Cpoint<double> >::iterator it;
-  std::list<Cpoint<double> >::iterator ot;
-  // find cutting area
-  for (it = larger.polygon.begin(); it != larger.polygon.end(); ++it)
-  {
-    for (ot = smaller.polygon.begin(); ot != smaller.polygon.end(); ++ot)
-    {
-      if (euklid(*it, *ot) < ZERO)
-      {
-        samePoint = true;
-        break;
-      }
-    }
+  //bool samePoint = false;
+  //std::list<int>::iterator it_sweep = larger.sweep.begin();
+  //std::list<Cpoint<double> >::iterator it;
+  //std::list<Cpoint<double> >::iterator ot;
+  //// find cutting area
+  //for (it = larger.polygon.begin(); it != larger.polygon.end(); ++it)
+  //{
+    //for (ot = smaller.polygon.begin(); ot != smaller.polygon.end(); ++ot)
+    //{
+      //if (euklid(*it, *ot) < ZERO)
+      //{
+        //samePoint = true;
+        //break;
+      //}
+    //}
     
-    if (samePoint)
-      break;
+    //if (samePoint)
+      //break;
     
-    ++it_sweep;
-  }
+    //++it_sweep;
+  //}
   
-  // no cut available
-  if (!samePoint)
-    return false;
+  //// no cut available
+  //if (!samePoint)
+    //return false;
   
-  // CUT
-  std::list<Cpoint<double> >::iterator first = ot;
+  //// CUT
+  //std::list<Cpoint<double> >::iterator first = ot;
   
-  *it_sweep = 0;
+  //*it_sweep = 0;
   
-  ++it;
-  ++it_sweep;
-  ++ot;
+  //++it;
+  //++it_sweep;
+  //++ot;
   
-  std::list<Cpoint<double> >::iterator it_first = it;
-  std::list<int>::iterator it_sweep_first = it_sweep;
+  //std::list<Cpoint<double> >::iterator it_first = it;
+  //std::list<int>::iterator it_sweep_first = it_sweep;
   
-  while ((euklid(*it, *ot) < ZERO) && (ot != first))
-  {
-    ++it;
-    ++it_sweep;
-    ++ot;
-    std::cout << "loop" << std::endl;
-  }
+  //while ((euklid(*it, *ot) < ZERO) && (ot != first))
+  //{
+    //++it;
+    //++it_sweep;
+    //++ot;
+    //std::cout << "loop" << std::endl;
+  //}
   
-  // if there is stuff to erase, erase it
-  if (ot == first)
-  {
-    larger.polygon.points->clear();
-    return true;
-  }
+  //// if there is stuff to erase, erase it
+  //if (ot == first)
+  //{
+    //larger.polygon.points->clear();
+    //return true;
+  //}
   
-  if (it != it_first)
-  {
-    // back up to the last common point
-    --it;
-    --it_sweep;
-    --ot;
+  //if (it != it_first)
+  //{
+    //// back up to the last common point
+    //--it;
+    //--it_sweep;
+    //--ot;
     
-    std::cout << "erasing !!!!" << std::endl;
-    larger.polygon.points->erase(it_first, it);
-    larger.sweep.erase(it_sweep_first, it_sweep);
-  }
-  return true;
+    //std::cout << "erasing !!!!" << std::endl;
+    //larger.polygon.points->erase(it_first, it);
+    //larger.sweep.erase(it_sweep_first, it_sweep);
+  //}
+  //return true;
 }
 
 // DODECAGON_TIP -----------------------------------------------------------

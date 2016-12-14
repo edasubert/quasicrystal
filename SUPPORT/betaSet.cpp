@@ -104,6 +104,12 @@ betaSet& betaSet::operator = ( const int &Input )
 
 int betaSet::simplify()
 {
+  if ((a == 0) && (b == 0))
+  {
+    c = 1;
+    return 1;
+  }
+  
   number cache;
   if ( ( ( cache = gcd(a,b) ) != 0 ) && ( ( cache = gcd(cache,c) ) != 0 ) && ( cache > 1 ) )
   {
