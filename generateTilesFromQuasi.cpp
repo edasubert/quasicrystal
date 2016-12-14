@@ -22,7 +22,7 @@ int main( int argc, char ** argv )
   std::cout << "---------------------------------" << std::endl << std::flush;
   
   // intervel of the quasicrystal
-  numberType x(300,0);
+  numberType x(30,0);
   
   
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
@@ -31,7 +31,7 @@ int main( int argc, char ** argv )
   numberType winSize;
   //while (std::cin >> winSize)
   
-  winSize = numberType::get(1,0);
+  winSize = numberType::get(1,0,2);
   
   std::string folder = argv[1];
   std::string fileName = argv[2];

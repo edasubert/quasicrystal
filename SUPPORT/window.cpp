@@ -1,6 +1,8 @@
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <list>
+#include <cstdlib>
 
 #include "betaSet.h"
 #include "geometricObject2.h"
@@ -298,19 +300,126 @@ circle::circle( betaSet R, betaSet x ,betaSet y )
   intersectionList.push_front(*this);
 }
 
-void circle::svg( std::ostream& out ) const
+void circle::svg( std::ostream& out )
 {
   if (intersectionList.size() == 1)
   {
     out << "<circle cx=\"" << m_x << "\" cy=\"" << m_y << "\" r=\"" << m_R << "\" " << "style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.1;\" />" << std::endl;
+    return;
   }
   
-  //for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
-  //{
-    //out << "<circle cx=\"" << it->m_x << "\" cy=\"" << it->m_y << "\" r=\"" << it->m_R << "\" " << "style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\" opacity=\"0.5\" />" << std::endl;
-  //}
+  std::list<int>::iterator ot = sweep.begin();
   
-  CpointSet<double> points;
+  out << "<path d=\" M" << polygon.begin()->getX() << "," << polygon.begin()->getY();
+  for (std::list<Cpoint<double> >::iterator it = ++polygon.begin(); it != polygon.end(); ++it)
+  {
+    out << " A" << m_R << " " << m_R << ", 0, 0," << *ot++ << ", " << it->getX() << " " << it->getY();
+  }
+  out << " A" << m_R << " " << m_R << ", 0, 0," << *ot << ", " << polygon.begin()->getX() << " " << polygon.begin()->getY();
+  out << " \" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.1;\" />" << std::endl; // light blue, green
+
+}
+
+void circle::setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth )
+{
+  m_fillColor = fillColor;
+  m_strokeColor = strokeColor;
+  m_strokeWidth = strokeWidth;
+}
+
+bool circle::in( Cpoint<betaSet> star )const
+{
+  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  {
+    if ( euklid2( star, Cpoint<betaSet>( it->m_x, it->m_y ) ) > m_R*m_R )
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+void circle::intersect( circle* win )
+{
+  if ((m_R == win->m_R) && ((m_x != win->m_x) || (m_y != win->m_y)))
+  {
+    intersectionList.push_front( *win );
+  }
+  createPolygon();
+}
+
+void circle::intersect( Cpoint<betaSet> center )
+{
+  circle moving = *this;
+  moving.center(center);
+  this->intersect(&moving);
+}
+
+rhombus* circle::inscribed() const
+{
+  betaSet size = betaSet::get( 15, -3, 4 )*m_R;
+  
+  rhombus* insc = new rhombus( size, size, m_x, m_y );
+  insc->center( Cpoint<betaSet>( m_x, m_y ) );
+  return insc;
+}
+rhombus* circle::circumscribed() const
+{
+  betaSet size = m_R*betaSet::get( 4, 0 );
+  
+  rhombus* circ = new rhombus( size, size, m_x, m_y );
+  circ->center( Cpoint<betaSet>( m_x, m_y ) );
+  return circ;
+}
+
+void circle::center( Cpoint<betaSet> center )
+{
+  m_x = center.getX();
+  m_y = center.getY();
+}
+
+void circle::emptyIntersectionList()
+{
+  intersectionList.clear();
+  intersectionList.push_front(*this);
+}
+
+bool circle::empty() 
+{
+  if (intersectionList.size() == 1)
+  {
+    return 0;
+  }
+  
+  return polygon.size() < 2;
+}
+
+betaSet circle::centerX()const
+{
+  betaSet x = m_x;
+  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  {
+    x+= it->m_x;
+  }
+  
+  return x/betaSet::get(intersectionList.size()+1,0);
+}
+
+betaSet circle::centerY()const
+{
+  betaSet y = m_y;
+  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  {
+    y+= it->m_y;
+  }
+  
+  return y/betaSet::get(intersectionList.size()+1,0);
+}
+
+
+void circle::createPolygon()
+{
+  polygon.clear();
   
   for (std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
   {
@@ -389,195 +498,100 @@ void circle::svg( std::ostream& out ) const
       //count++;
       //}
     }
-    
     //std::cout << angle01 << " " << angle01+angle02 << std::endl;
     //std::cout << std::endl;
     if (angle02 > 0)
     {
       //out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
           //<< "fill=\"none\" stroke=\"#3F51B5\" stroke-width=\"" << m_strokeWidth << "\" />" << std::endl; // indigo
-      points << Cpoint<double>(cos(angle01+angle02)*m_R + it->m_x, sin(angle01+angle02)*m_R + it->m_y);
+      polygon << Cpoint<double>(cos(angle01+angle02)*m_R + it->m_x, sin(angle01+angle02)*m_R + it->m_y);
+      sweep.push_back(1);
     }
   }
   
-  // background
-  points.sortClockwise();
-  
-  //out << "<polygon points=\"";
-  //for (std::list<Cpoint<double> >::iterator it = points.begin(); it != points.end(); ++it)
-  //{
-    //out << it->getX() << "," << it->getY() << " ";
-  //}
-  //out << "\" fill=\"#FFEB3B\" fill-opacity=\"0.2\" fill-rule=\"nonzero\" />" << std::endl; // yellow
-  
-  // curve
-  out << "<path d=\" M" << points.begin()->getX() << "," << points.begin()->getY();
-  for (std::list<Cpoint<double> >::iterator it = ++points.begin(); it != points.end(); ++it)
-  {
-    out << " A" << m_R << " " << m_R << ", 0, 0,1, " << it->getX() << " " << it->getY();
-  }
-  out << " A" << m_R << " " << m_R << ", 0, 0,1, " << points.begin()->getX() << " " << points.begin()->getY();
-  out << " \" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.1;\" />" << std::endl; // light blue, green
+  polygon.sortClockwise();
 }
 
-void circle::setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth )
-{
-  m_fillColor = fillColor;
-  m_strokeColor = strokeColor;
-  m_strokeWidth = strokeWidth;
-}
-
-bool circle::in( Cpoint<betaSet> star )const
-{
-  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
-  {
-    if ( euklid2( star, Cpoint<betaSet>( it->m_x, it->m_y ) ) > m_R*m_R )
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-void circle::intersect( circle* win )
-{
-  if ((m_R == win->m_R) && ((m_x != win->m_x) || (m_y != win->m_y)))
-  {
-    intersectionList.push_front( *win );
-  }
-}
-
-void circle::intersect( Cpoint<betaSet> center )
-{
-  circle moving = *this;
-  moving.center(center);
-  this->intersect(&moving);
-}
-
-rhombus* circle::inscribed() const
-{
-  betaSet size = betaSet::get( 15, -3, 4 )*m_R;
-  
-  rhombus* insc = new rhombus( size, size, m_x, m_y );
-  insc->center( Cpoint<betaSet>( m_x, m_y ) );
-  return insc;
-}
-rhombus* circle::circumscribed() const
-{
-  betaSet size = m_R*betaSet::get( 4, 0 );
-  
-  rhombus* circ = new rhombus( size, size, m_x, m_y );
-  circ->center( Cpoint<betaSet>( m_x, m_y ) );
-  return circ;
-}
-
-void circle::center( Cpoint<betaSet> center )
-{
-  m_x = center.getX();
-  m_y = center.getY();
-}
-
-void circle::emptyIntersectionList()
-{
-  intersectionList.clear();
-  intersectionList.push_front(*this);
-}
-
-bool circle::empty() 
-{
-  circle circumwindow( m_R );
-  Cpoint<betaSet> circumcenter( m_x, m_y );
-  
-  // two points circumscribed
-  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it ) // first point
-  {
-    for ( std::list<circle>::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot ) // second point
-    {
-      circumcenter.set( ( it->m_x + ot->m_x )*betaSet::get(1,0,2), ( it->m_y + ot->m_y )*betaSet::get(1,0,2) );
-      circumwindow.center( circumcenter );
-      bool test = true;
-      
-      for ( std::list<circle>::const_iterator ut = intersectionList.begin(); ut != intersectionList.end(); ++ut ) // in-test
-      {
-        Cpoint<betaSet> testCenter( ut->m_x, ut->m_y );
-        if ( !circumwindow.in( testCenter ) )
-        {
-          test = false;
-        }
-      }
-      
-      if ( test )
-      {
-        return false;
-      }
-    }
-  }
-  
-  // three points circumscribed
-  for ( std::list<circle>::const_iterator at = intersectionList.begin(); at != intersectionList.end(); ++at ) // first point
-  {
-    for ( std::list<circle>::const_iterator bt = intersectionList.begin(); bt != intersectionList.end(); ++bt ) // second point
-    {
-      for ( std::list<circle>::const_iterator ct = intersectionList.begin(); ct != intersectionList.end(); ++ct ) // second point
-      {
-        betaSet U_x = ( ( at->m_x*at->m_x + at->m_y*at->m_y )*( bt->m_y -ct->m_y ) 
-                      + ( bt->m_x*bt->m_x + bt->m_y*bt->m_y )*( ct->m_y -at->m_y ) 
-                      + ( ct->m_x*ct->m_x + ct->m_y*ct->m_y )*( at->m_y -bt->m_y ) );
-        betaSet U_y = ( ( at->m_x*at->m_x + at->m_y*at->m_y )*( ct->m_x -bt->m_x ) 
-                      + ( bt->m_x*bt->m_x + bt->m_y*bt->m_y )*( at->m_x -ct->m_x ) 
-                      + ( ct->m_x*ct->m_x + ct->m_y*ct->m_y )*( bt->m_x -at->m_x ) );
-        betaSet D   = betaSet::get(2,0)*( at->m_x*( bt->m_y - ct->m_y ) + bt->m_x*( ct->m_y - at->m_y ) + ct->m_x*( at->m_y - bt->m_y ) );
-        
-        circumcenter.set( U_x/D, U_y/D );
-        circumwindow.center( circumcenter );
-        bool test = true;
-        
-        for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it ) // in-test
-        {
-          Cpoint<betaSet> testCenter( it->m_x, it->m_y );
-          if ( !circumwindow.in( testCenter ) )
-          {
-            test = false;
-          }
-        }
-        
-        if ( test )
-        {
-          return false;
-        }
-      }
-    }
-  }
-  
-  return true;
-}
-
-betaSet circle::centerX()const
-{
-  betaSet x = m_x;
-  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
-  {
-    x+= it->m_x;
-  }
-  
-  return x/betaSet::get(intersectionList.size()+1,0);
-}
-
-betaSet circle::centerY()const
-{
-  betaSet y = m_y;
-  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
-  {
-    y+= it->m_y;
-  }
-  
-  return y/betaSet::get(intersectionList.size()+1,0);
-}
 
 
 bool diff(circle& larger, circle smaller)
 {
   
+  // establish zero (for double equality)
+  double ZERO = 1;
+  for (std::list<Cpoint<double> >::iterator it = larger.polygon.begin(); it != --larger.polygon.end(); it )
+  {
+    Cpoint<double> tmp = *it++;
+    ZERO = std::min(ZERO, euklid(tmp, *it));
+  }
+  ZERO*= 0.001;
+  
+  
+  bool samePoint = false;
+  std::list<int>::iterator it_sweep = larger.sweep.begin();
+  std::list<Cpoint<double> >::iterator it;
+  std::list<Cpoint<double> >::iterator ot;
+  // find cutting area
+  for (it = larger.polygon.begin(); it != larger.polygon.end(); ++it)
+  {
+    for (ot = smaller.polygon.begin(); ot != smaller.polygon.end(); ++ot)
+    {
+      if (euklid(*it, *ot) < ZERO)
+      {
+        samePoint = true;
+        break;
+      }
+    }
+    
+    if (samePoint)
+      break;
+    
+    ++it_sweep;
+  }
+  
+  // no cut available
+  if (!samePoint)
+    return false;
+  
+  // CUT
+  std::list<Cpoint<double> >::iterator first = ot;
+  
+  *it_sweep = 0;
+  
+  ++it;
+  ++it_sweep;
+  ++ot;
+  
+  std::list<Cpoint<double> >::iterator it_first = it;
+  std::list<int>::iterator it_sweep_first = it_sweep;
+  
+  while ((euklid(*it, *ot) < ZERO) && (ot != first))
+  {
+    ++it;
+    ++it_sweep;
+    ++ot;
+    std::cout << "loop" << std::endl;
+  }
+  
+  // if there is stuff to erase, erase it
+  if (ot == first)
+  {
+    larger.polygon.points->clear();
+    return true;
+  }
+  
+  if (it != it_first)
+  {
+    // back up to the last common point
+    --it;
+    --it_sweep;
+    --ot;
+    
+    std::cout << "erasing !!!!" << std::endl;
+    larger.polygon.points->erase(it_first, it);
+    larger.sweep.erase(it_sweep_first, it_sweep);
+  }
+  return true;
 }
 
 // DODECAGON_TIP -----------------------------------------------------------

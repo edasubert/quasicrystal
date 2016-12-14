@@ -148,7 +148,7 @@ int main (int argc, char* argv[])
   
   
   
-  // CUT WINDOW SECTIONS
+  // CUT WINDOW SECTIONS -----------------------------------------------
   std::map<std::string, windowType> windowParts;
   
   for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
@@ -160,7 +160,10 @@ int main (int argc, char* argv[])
       moving.center(origin-ot->star());
       intersect.intersect(&moving);
     }
-    windowParts[it->getDescription()] = intersect;
+    if (!intersect.empty())
+    {
+      windowParts[it->getDescription()] = intersect;
+    }
   }
   
   // deal with overlap
@@ -197,31 +200,20 @@ int main (int argc, char* argv[])
   count = 1;
   for ( std::list<CvoronoiCell<numberType> >::iterator ot = cells.begin(); ot != cells.end(); ++ot )
   {
-    //std::ostringstream oss;
-    //oss << folder << '/' << fileName << std::setfill('0') << std::setw(3) << count++ << ".svg";// << " " << it->size();
-    //std::ofstream myfile ( oss.str().c_str() );
-    
-    //myfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
-    //myfile << "<svg width=\"2800\" height=\"840\" viewBox=\"" << -1*winSize << " " << -0.3*winSize << " " << 2*winSize << " " << 0.6*winSize << "\">\n" << std::endl;
-    //myfile << "<rect x=\"-50%\" y=\"-50%\" width=\"100%\" height=\"100%\" fill=\"white\" />" << std::endl;
-    //myfile << "<g transform=\"scale(1,-1)\">" << std::endl;
-    
     for ( std::list<windowType>::iterator it = toCut[ot->getDescription()].begin(); it != toCut[ot->getDescription()].end(); ++it )
     {
-      //it->setColor(windowfillColor, windowstrokeColor, windowstrokeWidth);
-      //it->svg(myfile);
       windowType intersection = *it;
       intersection.intersect(&windowParts[ot->getDescription()]);
-      //intersection.setColor("#FF5722", windowstrokeColor, windowstrokeWidth);
-      //intersection.svg(myfile);
       diff(windowParts[ot->getDescription()], intersection);
+      
+      if (windowParts[ot->getDescription()].empty())
+      {
+        std::list<CvoronoiCell<numberType> >::iterator tmp = ot;
+        --ot;
+        cells.erase(tmp);
+        break;
+      }
     }
-    //windowParts[ot->getDescription()].setColor("#03A9F4", windowstrokeColor, windowstrokeWidth);
-    //windowParts[ot->getDescription()].svg(myfile);
-    
-    //myfile << "</g>" << std::endl;
-    //myfile << "</svg>" << std::endl;
-    //myfile.close();
   }
   
   std::ostringstream tmp02;

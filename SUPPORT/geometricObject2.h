@@ -152,7 +152,7 @@ class CpointSet : public virtual Cfigure<numberType>
     const Cpoint<numberType>& back() const;
     
     void clear();
-    int size();
+    int size() const;
     void unique();
     void reverse();
     
@@ -839,7 +839,7 @@ void CpointSet<numberType>::clear()
 }
 
 template <typename numberType>
-int CpointSet<numberType>::size()
+int CpointSet<numberType>::size() const
 {
   return points->size();
 }

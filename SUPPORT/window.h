@@ -75,11 +75,13 @@ class circle : public window2D {
     std::string m_strokeWidth;
     
     std::list<circle> intersectionList;
+    CpointSet<double> polygon;
+    std::list<int> sweep; // svg sweep-flag
   public:
     circle();
     circle( betaSet R );
     circle( betaSet R, betaSet x ,betaSet y );
-    void svg( std::ostream& out ) const;
+    void svg( std::ostream& out );
     void setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth );
     
     bool in( Cpoint<betaSet> star )const;
@@ -96,6 +98,8 @@ class circle : public window2D {
     
     betaSet centerX()const;
     betaSet centerY()const;
+    
+    void createPolygon();
     
     friend bool diff(circle& larger, circle smaller);
 };
