@@ -94,7 +94,7 @@ int main (int argc, char* argv[])
   {
     CvoronoiCell<numberType> clipTile;
     clipTile.load(clipTileStr);
-    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType(0,1);
+    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType(0,1,10);
     
     do 
     {
@@ -304,6 +304,8 @@ int main (int argc, char* argv[])
     std::ofstream output(argv[1]);
     res.sort();
     res.unique();
+    
+    print(output, winSize);
     for (std::list<std::string>::iterator it = res.begin(); it != res.end(); ++it)
     {
       output << *it << std::endl;

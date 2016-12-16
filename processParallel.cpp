@@ -101,6 +101,11 @@ int main (int argc, char* argv[])
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   
   
+  cells.sort();
+  cells.unique();
+  
+  std::cout << "cells after unique: " << cells.size() << std::endl; 
+  
   
   // OUTPUT
   std::ostringstream tmp;
