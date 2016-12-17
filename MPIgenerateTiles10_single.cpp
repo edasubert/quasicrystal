@@ -94,7 +94,7 @@ int main (int argc, char* argv[])
   {
     CvoronoiCell<numberType> clipTile;
     clipTile.load(clipTileStr);
-    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType(0,1,10);
+    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType(0,1,4);
     
     do 
     {
@@ -141,6 +141,10 @@ int main (int argc, char* argv[])
           CvoronoiCell<numberType> voronoi;
           
           *(voronoi.CarrierSet) = *it;
+          
+          voronoi.CarrierSet->sort();
+          voronoi.CarrierSet->unique();
+          
           voronoi.CarrierSet->sortByDistance();
           voronoi.CarrierSet->setPackingR();
           voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
@@ -306,6 +310,7 @@ int main (int argc, char* argv[])
     res.unique();
     
     print(output, winSize);
+    output << std::endl;
     for (std::list<std::string>::iterator it = res.begin(); it != res.end(); ++it)
     {
       output << *it << std::endl;
