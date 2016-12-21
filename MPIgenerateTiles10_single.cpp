@@ -77,7 +77,7 @@ int main (int argc, char* argv[])
     ++wordLength;
   } while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
   
-  //wordLength = 10;
+  //wordLength = 5;
   
   /* Obtain number of tasks and task ID */
   MPI_Init(&argc,&argv);
@@ -94,7 +94,7 @@ int main (int argc, char* argv[])
   {
     CvoronoiCell<numberType> clipTile;
     clipTile.load(clipTileStr);
-    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType(0,1,4);
+    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType(0,1);
     
     do 
     {
@@ -158,7 +158,7 @@ int main (int argc, char* argv[])
           it->clearPotential();
           it->addPotential(potential);
           
-          std::cout << "SIZE POTENTIAL: " << it->sizePotential() << '\t' << "SIZE DELONES: " << delones.size() << std::endl;
+          //std::cout << "SIZE POTENTIAL: " << it->sizePotential() << '\t' << "SIZE DELONES: " << delones.size() << std::endl;
           
           // deal with potential
           while (it->isPotential()) 
@@ -196,7 +196,7 @@ int main (int argc, char* argv[])
         // end ---------------------------------------------------------
         
         
-        std::cout << "  node " << taskid << " sending back: " << list.size() << std::endl;
+        //std::cout << "  node " << taskid << " sending back: " << list.size() << std::endl;
         
         for (std::list<std::string>::iterator it = list.begin(); it != --list.end(); ++it)
         {
@@ -230,6 +230,7 @@ int main (int argc, char* argv[])
     
     iterator = data.begin();
     
+    int count = 0;
     // send initial load of data
     std::cout << "Send initial load of data" << std::endl;
     for (int it = 0; it < nodes; ++it)
@@ -239,13 +240,14 @@ int main (int argc, char* argv[])
       //std::cout << std::string(4, ' ') << "MASTER sending: " << iterator << "/168" << std::endl;
       
       MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, it+1, 0, MPI_COMM_WORLD);
+      count++;
     }
     
     // gather data while processing
     std::cout << "distribute the rest on demand" << std::endl;
     while (iterator != data.end())
     {
-      std::cout << "waiting" << std::endl;
+      //std::cout << "waiting" << std::endl;
       MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
       
       MPI_Get_count(&status, MPI_CHAR, &length);
@@ -256,7 +258,7 @@ int main (int argc, char* argv[])
       
       // save result
       res.push_back(buffer);
-      std::cout << "finished: " << res.size() << std::endl;
+      //std::cout << "finished: " << res.size() << std::endl;
       
       while (status.MPI_TAG == 0)
       {
@@ -270,7 +272,7 @@ int main (int argc, char* argv[])
         
         // save result
         res.push_back(buffer);
-        std::cout << "finished: " << res.size() << std::endl;
+        //std::cout << "finished: " << res.size() << std::endl;
       }
       
       //std::cout << std::string(4, ' ') << "MASTER received from: " << status.MPI_SOURCE << " sending: " << iterator << std::endl;
@@ -278,6 +280,12 @@ int main (int argc, char* argv[])
       send_buffer = *(iterator++);
       
       MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+      
+      count++;
+      if ((20*count)%data.size() == 0)
+      {
+        std::cout << "processed " << count << "/" << data.size() << " <=> " << 10*count/data.size() << "0%" << std::endl;
+      }
     }
     
     // terminate processes
@@ -305,7 +313,11 @@ int main (int argc, char* argv[])
     
     
     // write to file
-    std::ofstream output(argv[1]);
+    std::ostringstream convert;
+    convert << argv[1] << "_";
+    print(convert, winSize);
+    
+    std::ofstream output(convert.str());
     res.sort();
     res.unique();
     
