@@ -77,7 +77,7 @@ int main (int argc, char* argv[])
     ++wordLength;
   } while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
   
-  wordLength = 5;
+  //wordLength = 5;
   
   /* Obtain number of tasks and task ID */
   MPI_Init(&argc,&argv);
