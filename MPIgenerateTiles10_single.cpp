@@ -77,7 +77,7 @@ int main (int argc, char* argv[])
     ++wordLength;
   } while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
   
-  //wordLength = 5;
+  wordLength = 5;
   
   /* Obtain number of tasks and task ID */
   MPI_Init(&argc,&argv);
@@ -314,10 +314,10 @@ int main (int argc, char* argv[])
     
     // write to file
     std::ostringstream convert;
-    convert << argv[1] << "_";
-    print(convert, winSize);
+    convert << argv[1] << "_" << wordLength << "_";
+    printFile(convert, winSize);
     
-    std::ofstream output(convert.str());
+    std::ofstream output(convert.str().c_str());
     res.sort();
     res.unique();
     
