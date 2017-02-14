@@ -212,7 +212,7 @@ int CdeloneSet10<numberType>::sizePotential()
 template <typename numberType>
 void CdeloneSet10<numberType>::sortPotentialByDistance()
 {
-  this->potential.sort(distanceComp<betaSet>);
+  this->potential.sort(distanceComp<numberType>);
 }
 
 template <typename numberType>
