@@ -110,6 +110,13 @@ int betaSet::simplify()
     return 1;
   }
   
+  if (c < 0)
+  {
+    a = -a;
+    b = -b;
+    c = -c;
+  }
+  
   number cache;
   if ( ( ( cache = gcd(a,b) ) != 0 ) && ( ( cache = gcd(cache,c) ) != 0 ) && ( cache > 1 ) )
   {
@@ -460,308 +467,180 @@ std::istream& operator >> ( std::istream & stream, betaSet& Input )
   return stream;
 }
 
-// WINDOW --------------------------------------------------------------
-
-window::window()
+betaSet betaSet::coveringR()
 {
-  m_c = betaSet::get( 0, 0 );
-  m_d = betaSet::get( 1, 0 );
-  m_k = 0;
-  
-  m_L = betaSet::get( 0, 0 );
-  m_M = betaSet::get( 0, 1 );
-  m_S = betaSet::get( -1, 1 );
-  
-  m_Lchar = '0';
-  m_Mchar = 'D';
-  m_Schar = 'E';
-  
-  m_a = betaSet::get( -3, 1 );
-  m_b = betaSet::get( -3, 1 );
+  return betaSet::get(161,-43);
 }
 
-window::window( betaSet l )
+betaSet betaSet::circumscribedRhombusToCircle()
 {
-  m_c = betaSet::get( 0, 0 );
-  m_d = l;
-  
-  assign();
+  return betaSet::get(4, 0);
 }
 
-window::window( betaSet c, betaSet d )
+betaSet betaSet::inscribedRhombusToCircle()
 {
-  m_c = c;
-  m_d = d;
-  
-  assign();
+  return betaSet::get(15, -3, 4);
 }
 
-void window::assign()
+betaSet betaSet::transformA()
 {
-  betaSet tmp = betaSet::get( 1, 0 );
-  m_k = 0;
-  
-  while ( tmp*m_d - tmp*m_c <= betaSet::get( 4, -1 ) ) {
-    tmp*= betaSet::get( 0, 1 );
-    m_k++;
-  }
-  while ( tmp*m_d - tmp*m_c > betaSet::get( 1, 0 ) ) {
-    tmp*= betaSet::get( 4, -1 ); // 1/beta
-    m_k--;
-  }
-  
-  if ( tmp*m_d - tmp*m_c < betaSet::get( -7, 2 ) )
+  return betaSet::get(1,0);
+}
+
+betaSet betaSet::transformB()
+{
+  return betaSet::get(2,-1,2);
+}
+
+betaSet betaSet::transformC()
+{
+  return betaSet::get(0,0);
+}
+
+betaSet betaSet::transformD()
+{
+  return betaSet::get(1,0,2);
+}
+
+
+betaSet betaSet::windowA()
+{
+  return betaSet::get(1,0);
+}
+
+betaSet betaSet::windowB()
+{
+  return betaSet::get(-2,1,2);
+}
+
+betaSet betaSet::windowC()
+{
+  return betaSet::get(0,0);
+}
+
+betaSet betaSet::windowD()
+{
+  return betaSet::get(1,0,2);
+}
+
+betaSet betaSet::assign_L(const betaSet c, const betaSet d, const int k)
+{
+  if ( d - c < betaSet::get( -7, 2 ) )
   {
-    m_L = betaSet::get( -1, 4 )*tmp;
-    m_M = betaSet::get( -1, 3 )*tmp;
-    m_S = betaSet::get( 0, 1 )*tmp;
-    
-    m_Lchar = 'A';
-    m_Mchar = 'B';
-    m_Schar = 'D';
-    
-    m_a = m_d + betaSet::get( -4, 1 )/tmp;
-    m_b = m_c + betaSet::get( -11, 3 )/tmp;
+    return betaSet::get( -1, 4 );
   }
-  else if ( tmp*m_d - tmp*m_c == betaSet::get( -7, 2 ) ) // equal
+  else if ( d - c == betaSet ::get( -7, 2 ) ) // equal
   {
-    m_L = betaSet::get( 0, 0 )*tmp;
-    m_M = betaSet::get( -1, 3 )*tmp;
-    m_S = betaSet::get( 0, 1 )*tmp;
-    
-    m_Lchar = '0';
-    m_Mchar = 'B';
-    m_Schar = 'D';
-    
-    m_a = m_d + betaSet::get( -4, 1 )/tmp;
-    m_b = m_c + betaSet::get( -11, 3 )/tmp;
+    return betaSet ::get( 0, 0 );
   }
-  else if ( tmp*m_d - tmp*m_c < betaSet::get( -3, 1 ) )
+  else if ( d - c < betaSet ::get( -3, 1 ) )
   {
-    m_L = betaSet::get( -1, 3 )*tmp;
-    m_M = betaSet::get( -1, 2 )*tmp;
-    m_S = betaSet::get( 0, 1 )*tmp;
-    
-    m_Lchar = 'B';
-    m_Mchar = 'C';
-    m_Schar = 'D';
-    
-    m_a = m_d + betaSet::get( -4, 1 )/tmp;
-    m_b = m_c + betaSet::get( -7, 2 )/tmp;
+    return betaSet ::get( -1, 3 );
   }
-  else if ( tmp*m_d - tmp*m_c == betaSet::get( -3, 1 ) ) // equal
+  else if ( d - c == betaSet ::get( -3, 1 ) ) // equal
   {
-    m_L = betaSet::get( 0, 0 )*tmp;
-    m_M = betaSet::get( -1, 2 )*tmp;
-    m_S = betaSet::get( 0, 1 )*tmp;
-    
-    m_Lchar = '0';
-    m_Mchar = 'C';
-    m_Schar = 'D';
-    
-    m_a = m_d + betaSet::get( -4, 1 )/tmp;
-    m_b = m_c + betaSet::get( -7, 2 )/tmp;
+    return betaSet ::get( 0, 0 );
   }
-  else if ( tmp*m_d - tmp*m_c < betaSet::get( 1, 0 ) )
+  else if ( d - c < betaSet ::get( 1, 0 ) )
   {
-    m_L = betaSet::get( -1, 2 )*tmp;
-    m_M = betaSet::get( -1, 1 )*tmp;
-    m_S = betaSet::get( 0, 1 )*tmp;
-    
-    m_Lchar = 'C';
-    m_Mchar = 'E';
-    m_Schar = 'D';
-    
-    m_a = m_d + betaSet::get( -4, 1 )/tmp;
-    m_b = m_c + betaSet::get( -3, 1 )/tmp;
+    return betaSet ::get( -1, 2 );
   }
   else // equal 1
   {
-    m_L = betaSet::get( 0, 0 )*tmp;
-    m_M = betaSet::get( -1, 1 )*tmp;
-    m_S = betaSet::get( 0, 1 )*tmp;
-    
-    m_Lchar = '0';
-    m_Mchar = 'E';
-    m_Schar = 'D';
-    
-    m_a = m_d + betaSet::get( -4, 1 )/tmp;
-    m_b = m_c + betaSet::get( -3, 1 )/tmp;
+    return betaSet ::get( 0, 0 );
   }
 }
 
-betaSet window::L() const
+betaSet betaSet::assign_M(const betaSet c, const betaSet d, const int k)
 {
-  return m_L;
-}
-betaSet window::M() const
-{
-  return m_M;
-}
-betaSet window::S() const
-{
-  return m_S;
-}
-
-betaSet window::Small() const
-{
-  if ( ( m_S < m_M ) && ( ( m_S < m_L ) || ( m_L == betaSet::get(0,0) ) ) )
+  if ( d - c <= betaSet::get( -7, 2 ) )
   {
-    return m_S;
+    return betaSet ::get( -1, 3 );
   }
-  else if ( ( m_M < m_L ) || ( m_L == betaSet::get(0,0) ) )
+  else if ( d - c <= betaSet ::get( -3, 1 ) )
   {
-    return m_M;
+    return betaSet ::get( -1, 2 );
   }
-  return m_L;
-}
-betaSet window::Large() const
-{
-  if ( ( m_L > m_M ) && ( m_L > m_S ) )
+  else if ( d - c <= betaSet ::get( 1, 0 ) )
   {
-    return m_L;
-  }
-  else if ( m_M > m_S )
-  {
-    return m_M;
-  }
-  return m_S;
-}
-
-char window::Lchar() const
-{
-  return m_Lchar;
-}
-char window::Mchar() const
-{
-  return m_Mchar;
-}
-char window::Schar() const
-{
-  return m_Schar;
-}
-
-betaSet window::c() const
-{
-  return m_c;
-}
-betaSet window::d() const
-{
-  return m_d;
-}
-betaSet window::a() const
-{
-  return m_a;
-}
-betaSet window::b() const
-{
-  return m_b;
-}
-betaSet window::l() const
-{
-  return m_d-m_c;
-}
-int window::k() const
-{
-  return m_k;
-}
-
-betaSet window::char2space( char letter ) const
-{
-  if ( letter == m_Lchar )
-  {
-    return m_L;
-  }
-  else if ( letter == m_Mchar )
-  {
-    return m_M;
-  }
-  else if ( letter == m_Schar )
-  {
-    return m_S;
-  }
-  else
-  {
-    return betaSet::get( 0, 0 );
+    return betaSet ::get( -1, 1 );
   }
 }
 
-betaSet window::step( betaSet xStar, bool leftLimit )
+betaSet betaSet::assign_S(const betaSet c, const betaSet d, const int k)
 {
-  if ( ( m_c <= xStar && xStar < m_a ) || ( ( xStar == m_a ) && leftLimit ) )
+  return betaSet ::get( 0, 1 );
+}
+
+betaSet betaSet::assign_Lchar(const betaSet c, const betaSet d, const int k)
+{
+  if ( d - c < betaSet::get( -7, 2 ) )
   {
-    return xStar + m_S.star();
+    return 'A';
   }
-  else if ( ( m_a <= xStar && xStar < m_b ) || ( ( xStar == m_b ) && leftLimit ) )
+  else if ( d - c == betaSet ::get( -7, 2 ) ) // equal
   {
-    return xStar + m_L.star();
+    return '0';
   }
-  else if ( ( m_b <= xStar && xStar < m_d ) || ( ( xStar == m_d ) && leftLimit ) )
+  else if ( d - c < betaSet ::get( -3, 1 ) )
   {
-    return xStar + m_M.star();
+    return 'B';
+  }
+  else if ( d - c == betaSet ::get( -3, 1 ) ) // equal
+  {
+    return '0';
+  }
+  else if ( d - c < betaSet ::get( 1, 0 ) )
+  {
+    return 'C';
+  }
+  else // equal 1
+  {
+    return '0';
   }
 }
 
-betaSet window::stepBack( betaSet xStar )
+betaSet betaSet::assign_Mchar(const betaSet c, const betaSet d, const int k)
 {
-  if ( ( m_c <= xStar && xStar < m_c + m_d - m_b ) )
+  if ( d - c <= betaSet::get( -7, 2 ) )
   {
-    return xStar - m_M.star();
+    return 'B';
   }
-  else if ( ( m_c + m_d - m_b <= xStar && xStar < m_c + m_d - m_a) )
+  else if ( d - c <= betaSet ::get( -3, 1 ) )
   {
-    return xStar - m_L.star();
+    return 'C';
   }
-  else if ( ( m_c + m_d - m_a <= xStar && xStar < m_d ) )
+  else if ( d - c <= betaSet ::get( 1, 0 ) )
   {
-    return xStar - m_S.star();
+    return 'E';
   }
 }
 
-void window::var_dump( std::ostream& out ) const
+betaSet betaSet::assign_Schar(const betaSet c, const betaSet d, const int k)
 {
-  out << "WWWWWWWWWWWWWWWWWWWW" << std::endl;
-  
-  out << "c = ";
-  print( out, m_c );
-  out << std::endl;
-  
-  out << "a = ";
-  print( out, m_a );
-  out << std::endl;
-  
-  out << "b = ";
-  print( out, m_b );
-  out << std::endl;
-  
-  out << "d = ";
-  print( out, m_d );
-  out << std::endl;
-  
-  out << "k = ";
-  print( out, m_k );
-  out << std::endl;out << std::endl;
-  
-  out << m_Schar << ": ";
-  print( out, m_S );
-  out << std::endl;
-  
-  out << m_Mchar << ": ";
-  print( out, m_M );
-  out << std::endl;
-  
-  out << m_Lchar << ": ";
-  print( out, m_L );
-  out << std::endl;
-  
-  out << "WWWWWWWWWWWWWWWWWWWW" << std::endl;
+  return 'D';
 }
 
-betaSet window::seed() const
+betaSet betaSet::assign_a(const betaSet c, const betaSet d, const int k)
 {
-  return ( ( m_c + m_d )*betaSet::get(1,0,2) ).star();
+  return d + betaSet ::get( -4, 1 );
 }
 
+betaSet betaSet::assign_b(const betaSet c, const betaSet d, const int k)
+{
+  if ( d - c <= betaSet::get( -7, 2 ) )
+  {
+    return c + betaSet::get( -11, 3 );
+  }
+  else if ( d - c <= betaSet ::get( -3, 1 ) )
+  {
+    return c + betaSet ::get( -7, 2 );
+  }
+  else if ( d - c <= betaSet ::get( 1, 0 ) )
+  {
+    return c + betaSet ::get( -3, 1 );
+  }
+}
 
 
 //SUPORT FUNCTIONS

@@ -12,7 +12,7 @@
 
 #include "betaSet.h"
 #include "geometricObject2.h"
-#include "window.h"
+#include "window2.h"
 
 
 template <typename numberType>

@@ -1,8 +1,12 @@
-#include "SUPPORT/generate2.h"
-#include "SUPPORT/window.h"
-#include "SUPPORT/geometricObject2.h"
-#include "SUPPORT/delone10.h"
+#define _ERROR_
+#define _IMG_
+
 #include "SUPPORT/betaSet.h"
+#include "SUPPORT/alphaSet.h"
+#include "SUPPORT/delone10.h"
+#include "SUPPORT/window2.h"
+#include "SUPPORT/generate3.h"
+#include "SUPPORT/geometricObject2.h"
 
 #include <iostream>
 #include <iomanip>
@@ -10,12 +14,11 @@
 #include <sstream>
 #include <cstdlib>
 
-#define _ERROR_
 
 // generates all tiles for "any" window
 
-typedef betaSet numberType;
-typedef circle windowType;
+typedef alphaSet numberType;
+typedef rhombus<numberType> windowType;
 
 int main( int argc, char ** argv )
 {
@@ -25,7 +28,7 @@ int main( int argc, char ** argv )
   
   
   // window definition
-  numberType winSize(-10, 3, 2);
+  numberType winSize(1, 0, 4);
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
   
@@ -45,24 +48,22 @@ int main( int argc, char ** argv )
   convert << 0.001/winSize;
   std::string windowstrokeWidth = convert.str();
   
-  //rhombus win( winSize, winSize );
-  //rhombus win( winSize );
   windowType win( winSize );
   win.center( origin );
   
   // hyperquasicrystal
-  rhombus *circ = dynamic_cast<rhombus*> ( win.circumscribed() );
+  rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> ( win.circumscribed() );
   
   // hypoquasicrystal
-  rhombus *insc = dynamic_cast<rhombus*> ( win.inscribed() );
+  rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
   
-  betaSet S = circ->Xwindow().Small();
-  betaSet L = insc->Xwindow().Large();
+  numberType S = circ->Xwindow().Small();
+  numberType L = insc->Xwindow().Large();
   
-  betaSet coveringR = numberType::get(161, -43)*L;
+  numberType coveringR = numberType::coveringR()*L;
   
   // size of rhumbus circumscribed to covering radius disc
-  betaSet lengthToCover = numberType::get(8, 0)*coveringR;
+  numberType lengthToCover = numberType::get(8, 0)*coveringR;
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   
@@ -99,9 +100,9 @@ int main( int argc, char ** argv )
   // construct delone sets with 1 0 marks
   std::list<CdeloneSet10<numberType> > delones;
   
-  for ( std::list<std::string>::iterator it = lang.begin(); it != ++lang.begin(); ++it )
+  for ( std::list<std::string>::iterator it = lang.begin(); it != lang.end(); ++it )
   {
-    for ( std::list<std::string>::iterator ot = lang.begin(); ot != ++lang.begin(); ++ot )
+    for ( std::list<std::string>::iterator ot = lang.begin(); ot != lang.end(); ++ot )
     {
       //std::cout << *it << std::endl << std::flush;
       //std::cout << *ot << std::endl << std::endl << std::flush;
@@ -193,7 +194,7 @@ int main( int argc, char ** argv )
       std::ofstream windowfile ( tmp02.str().c_str() );
       
       windowfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
-      windowfile << "<svg width=\"1400\" height=\"420\" viewBox=\"" << -1*winSize << " " << -0.3*winSize << " " << 2*winSize << " " << 0.6*winSize << "\">\n" << std::endl;
+      windowfile << "<svg width=\"2000\" height=\"2000\" viewBox=\"" << -1*winSize << " " << -1*winSize << " " << 2*winSize << " " << 2*winSize << "\">\n" << std::endl;
       windowfile << "<g transform=\"scale(1,-1)\">" << std::endl;
       win.setColor(windowfillColor, windowstrokeColor, windowstrokeWidth);
       win.svg(windowfile);
@@ -259,7 +260,7 @@ int main( int argc, char ** argv )
         
         
         tileWindowfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
-        tileWindowfile << "<svg width=\"1400\" height=\"420\" viewBox=\"" << -1*winSize << " " << -0.3*winSize << " " << 2*winSize << " " << 0.6*winSize << "\">\n" << std::endl;
+        tileWindowfile << "<svg width=\"2000\" height=\"2000\" viewBox=\"" << -1*winSize << " " << -1*winSize << " " << 2*winSize << " " << 2*winSize << "\">\n" << std::endl;
         tileWindowfile << "<g transform=\"scale(1,-1)\">" << std::endl;
         win.setColor(windowfillColor, windowstrokeColor, windowstrokeWidth);
         win.svg(tileWindowfile);

@@ -4,7 +4,6 @@
 #include <iostream>
 #include <cmath>
 
-#include "generate2.h"
 #include "geometricObject2.h"
 #include "betaSet.h"
 #include "window.h"

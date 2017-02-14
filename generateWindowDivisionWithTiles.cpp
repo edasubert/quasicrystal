@@ -1,8 +1,12 @@
-#include "SUPPORT/generate2.h"
-#include "SUPPORT/window.h"
-#include "SUPPORT/geometricObject2.h"
-#include "SUPPORT/delone10.h"
+#define _ERROR_
+#define _IMG_
+
 #include "SUPPORT/betaSet.h"
+#include "SUPPORT/alphaSet.h"
+#include "SUPPORT/delone10.h"
+#include "SUPPORT/window2.h"
+#include "SUPPORT/generate3.h"
+#include "SUPPORT/geometricObject2.h"
 
 #include <iostream>
 #include <iomanip>
@@ -16,8 +20,8 @@
 
 // generates all tiles for "any" window
 
-typedef betaSet numberType;
-typedef rhombus windowType;
+typedef alphaSet numberType;
+typedef circle<numberType> windowType;
 
 int main( int argc, char ** argv )
 {
@@ -31,8 +35,12 @@ int main( int argc, char ** argv )
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
   int winId = 1;
-  while (std::cin >> winSize)
+  //while (std::cin >> winSize)
   {
+    winSize = numberType::get(1,0,1)/numberType::get(0,1,1);
+    winSize = numberType::get(3, -1, 1);
+    
+    
     std::string folder = argv[1];
     std::string fileName = argv[2];
     std::string fillColor = "none";
@@ -61,18 +69,18 @@ int main( int argc, char ** argv )
     win.center( origin );
     
     // hyperquasicrystal
-    rhombus *circ = dynamic_cast<rhombus*> ( win.circumscribed() );
+    rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> ( win.circumscribed() );
     
     // hypoquasicrystal
-    rhombus *insc = dynamic_cast<rhombus*> ( win.inscribed() );
+    rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
     
-    betaSet S = circ->Xwindow().Small();
-    betaSet L = insc->Xwindow().Large();
+    numberType S = circ->Xwindow().Small();
+    numberType L = insc->Xwindow().Large();
     
-    betaSet coveringR = numberType::get(161, -43)*L;
+    numberType coveringR = numberType::coveringR()*L;
     
     // size of rhumbus circumscribed to covering radius disc
-    betaSet lengthToCover = numberType::get(8, 0)*coveringR;
+    numberType lengthToCover = numberType::get(8, 0)*coveringR;
     
     CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
     
@@ -279,7 +287,7 @@ int main( int argc, char ** argv )
     std::ofstream windowfile ( tmp02.str().c_str() );
     
     windowfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
-    windowfile << "<svg width=\"" << 4000 << "\" height=\"" << 1200 << "\" viewBox=\"" << -1*winSize << " " << -0.3*winSize << " " << 2*winSize << " " << 0.6*winSize << "\">\n" << std::endl;
+    windowfile << "<svg width=\"" << 4000 << "\" height=\"" << 4000 << "\" viewBox=\"" << -1*winSize << " " << -1*winSize << " " << 2*winSize << " " << 2*winSize << "\">\n" << std::endl;
     windowfile << "<rect x=\"-50%\" y=\"-50%\" width=\"100%\" height=\"100%\" fill=\"white\" />" << std::endl;
     windowfile << "<g transform=\"scale(1,-1)\">" << std::endl;
     win.setColor(windowfillColor, windowstrokeColor, windowstrokeWidth);

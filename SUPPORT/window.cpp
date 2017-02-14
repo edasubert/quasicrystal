@@ -3,10 +3,335 @@
 #include <iomanip>
 #include <list>
 #include <cstdlib>
+#include <algorithm>
 
 #include "betaSet.h"
 #include "geometricObject2.h"
 #include "window.h"
+
+// window1D ------------------------------------------------------------------------------------------------
+window::window()
+{
+  m_c = numberType ::get( 0, 0 );
+  m_d = numberType ::get( 1, 0 );
+  m_k = 0;
+  
+  m_L = numberType ::get( 0, 0 );
+  m_M = numberType ::get( 0, 1 );
+  m_S = numberType ::get( -1, 1 );
+  
+  m_Lchar = '0';
+  m_Mchar = 'D';
+  m_Schar = 'E';
+  
+  m_a = numberType ::get( -3, 1 );
+  m_b = numberType ::get( -3, 1 );
+}
+
+window::window( numberType  l )
+{
+  m_c = numberType ::get( 0, 0 );
+  m_d = l;
+  
+  assign();
+}
+
+window::window( numberType  c, numberType  d )
+{
+  m_c = c;
+  m_d = d;
+  
+  assign();
+}
+
+void window::assign()
+{
+  numberType  tmp = numberType ::get( 1, 0 );
+  m_k = 0;
+  
+  while ( tmp*m_d - tmp*m_c <= numberType ::get( 4, -1 ) ) {
+    tmp*= numberType ::get( 0, 1 );
+    m_k++;
+  }
+  while ( tmp*m_d - tmp*m_c > numberType ::get( 1, 0 ) ) {
+    tmp*= numberType ::get( 4, -1 ); // 1/beta
+    m_k--;
+  }
+  
+  if ( tmp*m_d - tmp*m_c < numberType ::get( -7, 2 ) )
+  {
+    m_L = numberType ::get( -1, 4 )*tmp;
+    m_M = numberType ::get( -1, 3 )*tmp;
+    m_S = numberType ::get( 0, 1 )*tmp;
+    
+    m_Lchar = 'A';
+    m_Mchar = 'B';
+    m_Schar = 'D';
+    
+    m_a = m_d + numberType ::get( -4, 1 )/tmp;
+    m_b = m_c + numberType ::get( -11, 3 )/tmp;
+  }
+  else if ( tmp*m_d - tmp*m_c == numberType ::get( -7, 2 ) ) // equal
+  {
+    m_L = numberType ::get( 0, 0 )*tmp;
+    m_M = numberType ::get( -1, 3 )*tmp;
+    m_S = numberType ::get( 0, 1 )*tmp;
+    
+    m_Lchar = '0';
+    m_Mchar = 'B';
+    m_Schar = 'D';
+    
+    m_a = m_d + numberType ::get( -4, 1 )/tmp;
+    m_b = m_c + numberType ::get( -11, 3 )/tmp;
+  }
+  else if ( tmp*m_d - tmp*m_c < numberType ::get( -3, 1 ) )
+  {
+    m_L = numberType ::get( -1, 3 )*tmp;
+    m_M = numberType ::get( -1, 2 )*tmp;
+    m_S = numberType ::get( 0, 1 )*tmp;
+    
+    m_Lchar = 'B';
+    m_Mchar = 'C';
+    m_Schar = 'D';
+    
+    m_a = m_d + numberType ::get( -4, 1 )/tmp;
+    m_b = m_c + numberType ::get( -7, 2 )/tmp;
+  }
+  else if ( tmp*m_d - tmp*m_c == numberType ::get( -3, 1 ) ) // equal
+  {
+    m_L = numberType ::get( 0, 0 )*tmp;
+    m_M = numberType ::get( -1, 2 )*tmp;
+    m_S = numberType ::get( 0, 1 )*tmp;
+    
+    m_Lchar = '0';
+    m_Mchar = 'C';
+    m_Schar = 'D';
+    
+    m_a = m_d + numberType ::get( -4, 1 )/tmp;
+    m_b = m_c + numberType ::get( -7, 2 )/tmp;
+  }
+  else if ( tmp*m_d - tmp*m_c < numberType ::get( 1, 0 ) )
+  {
+    m_L = numberType ::get( -1, 2 )*tmp;
+    m_M = numberType ::get( -1, 1 )*tmp;
+    m_S = numberType ::get( 0, 1 )*tmp;
+    
+    m_Lchar = 'C';
+    m_Mchar = 'E';
+    m_Schar = 'D';
+    
+    m_a = m_d + numberType ::get( -4, 1 )/tmp;
+    m_b = m_c + numberType ::get( -3, 1 )/tmp;
+  }
+  else // equal 1
+  {
+    m_L = numberType ::get( 0, 0 )*tmp;
+    m_M = numberType ::get( -1, 1 )*tmp;
+    m_S = numberType ::get( 0, 1 )*tmp;
+    
+    m_Lchar = '0';
+    m_Mchar = 'E';
+    m_Schar = 'D';
+    
+    m_a = m_d + numberType ::get( -4, 1 )/tmp;
+    m_b = m_c + numberType ::get( -3, 1 )/tmp;
+  }
+}
+
+
+void window::assign(numberType c, numberType d, numberType a, numberType b, numberType L, numberType M, numberType S, char Lchar, char Mchar, char Schar, int k)
+{
+  m_a = a;
+  m_b = b;
+  m_c = c;
+  m_d = d;
+  
+  m_L = L;
+  m_M = M;
+  m_S = S;
+  
+  m_Lchar = Lchar;
+  m_Mchar = Mchar;
+  m_Schar = Schar;
+  
+  m_k = k;
+}
+
+
+numberType  window::L() const
+{
+  return m_L;
+}
+numberType  window::M() const
+{
+  return m_M;
+}
+numberType  window::S() const
+{
+  return m_S;
+}
+
+numberType  window::Small() const
+{
+  if ( ( m_S < m_M ) && ( ( m_S < m_L ) || ( m_L == numberType ::get(0,0) ) ) )
+  {
+    return m_S;
+  }
+  else if ( ( m_M < m_L ) || ( m_L == numberType ::get(0,0) ) )
+  {
+    return m_M;
+  }
+  return m_L;
+}
+numberType  window::Large() const
+{
+  if ( ( m_L > m_M ) && ( m_L > m_S ) )
+  {
+    return m_L;
+  }
+  else if ( m_M > m_S )
+  {
+    return m_M;
+  }
+  return m_S;
+}
+
+char window::Lchar() const
+{
+  return m_Lchar;
+}
+char window::Mchar() const
+{
+  return m_Mchar;
+}
+char window::Schar() const
+{
+  return m_Schar;
+}
+
+numberType  window::c() const
+{
+  return m_c;
+}
+numberType  window::d() const
+{
+  return m_d;
+}
+numberType  window::a() const
+{
+  return m_a;
+}
+numberType  window::b() const
+{
+  return m_b;
+}
+numberType  window::l() const
+{
+  return m_d-m_c;
+}
+int window::k() const
+{
+  return m_k;
+}
+
+numberType  window::char2space( char letter ) const
+{
+  if ( letter == m_Lchar )
+  {
+    return m_L;
+  }
+  else if ( letter == m_Mchar )
+  {
+    return m_M;
+  }
+  else if ( letter == m_Schar )
+  {
+    return m_S;
+  }
+  else
+  {
+    return numberType ::get( 0, 0 );
+  }
+}
+
+numberType  window::step( numberType  xStar, bool leftLimit )
+{
+  if ( ( m_c <= xStar && xStar < m_a ) || ( ( xStar == m_a ) && leftLimit ) )
+  {
+    return xStar + m_S.star();
+  }
+  else if ( ( m_a <= xStar && xStar < m_b ) || ( ( xStar == m_b ) && leftLimit ) )
+  {
+    return xStar + m_L.star();
+  }
+  else if ( ( m_b <= xStar && xStar < m_d ) || ( ( xStar == m_d ) && leftLimit ) )
+  {
+    return xStar + m_M.star();
+  }
+}
+
+numberType  window::stepBack( numberType  xStar )
+{
+  if ( ( m_c <= xStar && xStar < m_c + m_d - m_b ) )
+  {
+    return xStar - m_M.star();
+  }
+  else if ( ( m_c + m_d - m_b <= xStar && xStar < m_c + m_d - m_a) )
+  {
+    return xStar - m_L.star();
+  }
+  else if ( ( m_c + m_d - m_a <= xStar && xStar < m_d ) )
+  {
+    return xStar - m_S.star();
+  }
+}
+
+void window::var_dump( std::ostream& out ) const
+{
+  out << "WWWWWWWWWWWWWWWWWWWW" << std::endl;
+  
+  out << "c = ";
+  print( out, m_c );
+  out << std::endl;
+  
+  out << "a = ";
+  print( out, m_a );
+  out << std::endl;
+  
+  out << "b = ";
+  print( out, m_b );
+  out << std::endl;
+  
+  out << "d = ";
+  print( out, m_d );
+  out << std::endl;
+  
+  out << "k = ";
+  out << m_k;
+  out << std::endl;out << std::endl;
+  
+  out << m_Schar << ": ";
+  print( out, m_S );
+  out << std::endl;
+  
+  out << m_Mchar << ": ";
+  print( out, m_M );
+  out << std::endl;
+  
+  out << m_Lchar << ": ";
+  print( out, m_L );
+  out << std::endl;
+  
+  out << "WWWWWWWWWWWWWWWWWWWW" << std::endl;
+}
+
+numberType  window::seed() const
+{
+  return ( ( m_c + m_d )*numberType ::get(1,0,2) ).star();
+}
+
+
+
 
 // window2D ------------------------------------------------------------------------------------------------
 void window2D::intersect( window2D* win ) {}
@@ -304,7 +629,7 @@ void circle::svg( std::ostream& out )
 {
   if (intersectionList.size() == 1)
   {
-    out << "<circle cx=\"" << m_x << "\" cy=\"" << m_y << "\" r=\"" << m_R << "\" " << "style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.1;\" />" << std::endl;
+    out << "<circle cx=\"" << m_x << "\" cy=\"" << m_y << "\" r=\"" << m_R << "\" " << "style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.3;\" />" << std::endl;
     return;
   }
   
@@ -316,7 +641,7 @@ void circle::svg( std::ostream& out )
     out << " A" << m_R << " " << m_R << ", 0, 0," << *ot++ << ", " << it->getX() << " " << it->getY();
   }
   out << " A" << m_R << " " << m_R << ", 0, 0," << *ot << ", " << polygon.begin()->getX() << " " << polygon.begin()->getY();
-  out << " \" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.1;\" />" << std::endl; // light blue, green
+  out << " \" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.3;\" />" << std::endl; // light blue, green
 
 }
 
@@ -329,7 +654,7 @@ void circle::setColor( const std::string fillColor, const std::string strokeColo
 
 bool circle::in( Cpoint<betaSet> star )const
 {
-  for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  for (std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
   {
     if ( euklid2( star, Cpoint<betaSet>( it->m_x, it->m_y ) ) > m_R*m_R )
     {
@@ -341,9 +666,23 @@ bool circle::in( Cpoint<betaSet> star )const
 
 void circle::intersect( circle* win )
 {
-  if ((m_R == win->m_R) && ((m_x != win->m_x) || (m_y != win->m_y)))
+  if (m_R == win->m_R)
   {
-    intersectionList.push_front( *win );
+    for (std::list<circle>::iterator it = win->intersectionList.begin(); it != win->intersectionList.end(); ++it)
+    {
+      bool flag = true;
+      for (std::list<circle>::iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+      {
+        if ((ot->m_x == it->m_x) && (ot->m_y == it->m_y))
+        {
+          flag = false;
+        }
+      }
+      if (flag)
+      {
+        intersectionList.push_back(*it);
+      }
+    }
   }
   createPolygon();
 }
@@ -351,6 +690,7 @@ void circle::intersect( circle* win )
 void circle::intersect( Cpoint<betaSet> center )
 {
   circle moving = *this;
+  moving.emptyIntersectionList();
   moving.center(center);
   this->intersect(&moving);
 }
@@ -376,6 +716,8 @@ void circle::center( Cpoint<betaSet> center )
 {
   m_x = center.getX();
   m_y = center.getY();
+  intersectionList.begin()->m_x = center.getX();
+  intersectionList.begin()->m_y = center.getY();
 }
 
 void circle::emptyIntersectionList()
@@ -388,15 +730,15 @@ bool circle::empty()
 {
   if (intersectionList.size() == 1)
   {
-    return 0;
+    return false;
   }
   
-  return polygon.size() < 2;
+  return polygon.size() < 3;
 }
 
 betaSet circle::centerX()const
 {
-  betaSet x = m_x;
+  betaSet x;
   for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
   {
     x+= it->m_x;
@@ -407,7 +749,7 @@ betaSet circle::centerX()const
 
 betaSet circle::centerY()const
 {
-  betaSet y = m_y;
+  betaSet y;
   for ( std::list<circle>::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
   {
     y+= it->m_y;
@@ -516,82 +858,34 @@ void circle::createPolygon()
 
 bool diff(circle& larger, circle smaller)
 {
+  CpointSet<double> cut = smaller.polygon;
+  bool flag = false;
   
-  //// establish zero (for double equality)
-  //double ZERO = 1;
-  //for (std::list<Cpoint<double> >::iterator it = larger.polygon.begin(); it != --larger.polygon.end(); it )
-  //{
-    //Cpoint<double> tmp = *it++;
-    //ZERO = std::min(ZERO, euklid(tmp, *it));
-  //}
-  //ZERO*= 0.001;
-  
-  
-  //bool samePoint = false;
-  //std::list<int>::iterator it_sweep = larger.sweep.begin();
-  //std::list<Cpoint<double> >::iterator it;
-  //std::list<Cpoint<double> >::iterator ot;
-  //// find cutting area
-  //for (it = larger.polygon.begin(); it != larger.polygon.end(); ++it)
-  //{
-    //for (ot = smaller.polygon.begin(); ot != smaller.polygon.end(); ++ot)
-    //{
-      //if (euklid(*it, *ot) < ZERO)
-      //{
-        //samePoint = true;
-        //break;
-      //}
-    //}
+  // prepair cut points
+  for (std::list<Cpoint<double> >::iterator it = cut.begin(); it != cut.end();)
+  {
+    std::list<Cpoint<double> >::iterator ot = std::find(larger.polygon.begin(), larger.polygon.end(), *it);
     
-    //if (samePoint)
-      //break;
-    
-    //++it_sweep;
-  //}
+    if (ot != larger.polygon.end())
+    {
+      it = cut.removePoint(it);
+      larger.polygon.removePoint(ot);
+      flag = true;
+    }
+    else
+    {
+      ++it;
+    }
+  }
   
-  //// no cut available
-  //if (!samePoint)
-    //return false;
+  // cut
+  for (std::list<Cpoint<double> >::iterator it = cut.begin(); it != cut.end(); ++it)
+  {
+    larger.polygon.addPoint(*it);
+  }
+  larger.polygon.sortClockwise();
   
-  //// CUT
-  //std::list<Cpoint<double> >::iterator first = ot;
-  
-  //*it_sweep = 0;
-  
-  //++it;
-  //++it_sweep;
-  //++ot;
-  
-  //std::list<Cpoint<double> >::iterator it_first = it;
-  //std::list<int>::iterator it_sweep_first = it_sweep;
-  
-  //while ((euklid(*it, *ot) < ZERO) && (ot != first))
-  //{
-    //++it;
-    //++it_sweep;
-    //++ot;
-    //std::cout << "loop" << std::endl;
-  //}
-  
-  //// if there is stuff to erase, erase it
-  //if (ot == first)
-  //{
-    //larger.polygon.points->clear();
-    //return true;
-  //}
-  
-  //if (it != it_first)
-  //{
-    //// back up to the last common point
-    //--it;
-    //--it_sweep;
-    //--ot;
-    
-    //std::cout << "erasing !!!!" << std::endl;
-    //larger.polygon.points->erase(it_first, it);
-    //larger.sweep.erase(it_sweep_first, it_sweep);
-  //}
-  //return true;
+  return flag;
 }
 
 // DODECAGON_TIP -----------------------------------------------------------

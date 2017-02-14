@@ -18,7 +18,6 @@
 #include "betaSet.h"
 
 
-//typedef double numberType;
 //#define _ERROR_
 #define _IMG_OUTPUT_
 
@@ -550,9 +549,14 @@ void Cpoint<numberType>::load( std::istream& in )
 template <typename numberType>
 Cpoint<numberType> Cpoint<numberType>::star() const
 {
+  numberType tmp = numberType::windowA()*numberType::windowD() - numberType::windowB()*numberType::windowC(); // denominator of inverse transform
+  
+  numberType X = (numberType::transformD()/tmp*x - numberType::transformB()/tmp*y);
+  numberType Y = (numberType::transformA()/tmp*y - numberType::transformC()/tmp*x);
+  
   Cpoint<numberType> Output( *this );
-  Output.x = x.star();
-  Output.y = y.star();
+  Output.x = numberType::windowA()*X.star() + numberType::windowB()*Y.star();
+  Output.y = numberType::windowC()*X.star() + numberType::windowD()*Y.star();
   Output.description = "**STARED**\n" + Output.description;
   
   return Output;
@@ -781,7 +785,7 @@ void CpointSet<numberType>::addPoint( Cpoint<numberType> addition )
 template <typename numberType>
 typename std::list<Cpoint<numberType> >::iterator CpointSet<numberType>::removePoint( typename std::list<Cpoint<numberType> >::iterator removal )
 {
-  return this->points->erase( removal );
+  return this->points->erase(removal);
 }
 
 template <typename numberType>
@@ -1568,14 +1572,14 @@ bool CvoronoiCell<numberType>::constructCut( typename std::list<Cpoint<numberTyp
     Cell->clear();
   
     // initialization of polygon
-    Cpoint<numberType> point( Center.getX() + large.operator*(1), Center.getY() + large.operator*(1) );
+    Cpoint<numberType> point( Center.getX() + large, Center.getY() + large );
     point.setDescription( "original" );
     *Cell << point;
-    point.set( Center.getX() + large.operator*(1), Center.getY() - large.operator*(1) );
+    point.set( Center.getX() + large, Center.getY() - large );
     *Cell << point;
-    point.set( Center.getX() - large.operator*(1), Center.getY() - large.operator*(1) );
+    point.set( Center.getX() - large, Center.getY() - large );
     *Cell << point;
-    point.set( Center.getX() - large.operator*(1), Center.getY() + large.operator*(1) );
+    point.set( Center.getX() - large, Center.getY() + large );
     *Cell << point;
   }
   //std::cout << "<g>" << std::endl;
@@ -1592,13 +1596,13 @@ bool CvoronoiCell<numberType>::constructCut( typename std::list<Cpoint<numberTyp
   
   // vector from it toward center
   Cvector<numberType> n = Center - *it;
-  n.setDescription( "n" );
+  n.setDescription("n");
   //n.setColor("#ff0000", "#00ff00", "0.4");
   //n.svg(std::cout);
   
   // normal form of axis of center and active point
   Cpoint<numberType> c = n/2 + *it;
-  c.setDescription( "c" );
+  c.setDescription("c");
   //c.setColor("#00ff00", "#0000ff", "0.4");
   //c.svg(std::cout);
   
@@ -1608,11 +1612,11 @@ bool CvoronoiCell<numberType>::constructCut( typename std::list<Cpoint<numberTyp
   newCell.clear();
   bool position, positionOld;
   typename std::list<Cpoint<numberType> >::iterator old = --Cell->end();
-  position = ( (n*(*old)).sum() > d );
+  position = ((n*(*old)).sum() > d);
   
   bool cut = false;
   
-  for ( typename std::list<Cpoint<numberType> >::iterator ot = Cell->begin(); ot != Cell->end(); ++ot )
+  for (typename std::list<Cpoint<numberType> >::iterator ot = Cell->begin(); ot != Cell->end(); ++ot)
   {
     //print(std::cout, d);
     //std::cout << "\t";
@@ -1624,9 +1628,9 @@ bool CvoronoiCell<numberType>::constructCut( typename std::list<Cpoint<numberTyp
     //std::cout << "\t\t" << ((n*(*old)).sum()<d) << "\t" << ((n*(*ot)).sum()<d) << std::endl;
     //std::cout << "\t\t" << (static_cast<double>((n*(*old)).sum())< static_cast<double>(d)) << "\t" << (static_cast<double>((n*(*ot)).sum()) < static_cast<double>(d)) << std::endl;
     positionOld = position;
-    position = ( (n*(*ot)).sum() > d );
+    position = ((n*(*ot)).sum() > d);
     
-    if ( positionOld != position )  // old and ot are on different sides of cut line
+    if (positionOld != position)  // old and ot are on different sides of cut line
     {
       // vector from old to ot
       Cvector<numberType> u = *ot - *old;
@@ -1634,9 +1638,9 @@ bool CvoronoiCell<numberType>::constructCut( typename std::list<Cpoint<numberTyp
       //u.setColor("#00ffff", "#00ffff", "0.4");
       //u.svg(std::cout);
       
-      numberType t = ( ( n*(c - (*old) )).sum() ) / ( (u*n).sum() ); // ( nx*( cx - old->getX() ) + ny*( cy - old->getY() ) )/( ux*nx + uy*ny );
+      numberType t = ((n*(c - (*old))).sum()) / ((u*n).sum()); // ( nx*( cx - old->getX() ) + ny*( cy - old->getY() ) )/( ux*nx + uy*ny );
       
-      Cpoint<numberType> newPoint( u*t + *old );
+      Cpoint<numberType> newPoint(u*t + *old);
       newPoint.setDescription( "newPoint" );
       //newPoint.setColor("#00ffff", "#00ffff", "0.4");
       //newPoint.svg(std::cout);
@@ -1644,10 +1648,9 @@ bool CvoronoiCell<numberType>::constructCut( typename std::list<Cpoint<numberTyp
       newCell << newPoint;
       
       cut = true;//equality && equalityOld;
-      
     }
     
-    if ( ( position ) && ( *ot != newCell.front() ) ) // ot is on same side of cut line as center
+    if ((position) && (*ot != newCell.front())) // ot is on same side of cut line as center
     {
       newCell << *ot;
     }
@@ -1667,14 +1670,14 @@ void CvoronoiCell<numberType>::construct()
 {
   Cell->clear();
   
-  for ( typename std::list<Cpoint<numberType> >::iterator ot = CarrierSet->begin(); ot != CarrierSet->end(); ++ot )
+  for (typename std::list<Cpoint<numberType> >::iterator ot = CarrierSet->begin(); ot != CarrierSet->end(); ++ot)
   {
     constructCut( ot );
   }
 }
 
 template <typename numberType>
-bool CvoronoiCell<numberType>::constructAdd( const Cpoint<numberType> add )
+bool CvoronoiCell<numberType>::constructAdd(const Cpoint<numberType> add)
 {
   CarrierSet->addPoint( add );
   
@@ -1682,7 +1685,7 @@ bool CvoronoiCell<numberType>::constructAdd( const Cpoint<numberType> add )
 }
 
 template <typename numberType>
-bool CvoronoiCell<numberType>::filterPoint( Cpoint<numberType> add )
+bool CvoronoiCell<numberType>::filterPoint(Cpoint<numberType> add)
 {
   // vector from it toward center
   Cvector<numberType> n = Center - add;
@@ -1697,7 +1700,7 @@ bool CvoronoiCell<numberType>::filterPoint( Cpoint<numberType> add )
   typename std::list<Cpoint<numberType> >::iterator old = Cell->end();
   --old;
   
-  for ( typename std::list<Cpoint<numberType> >::iterator ot = Cell->begin(); ot != Cell->end(); ++ot )
+  for (typename std::list<Cpoint<numberType> >::iterator ot = Cell->begin(); ot != Cell->end(); ++ot)
   {
     if ( ( (n*(*ot)).sum() == d ) && ( (n*(*old)).sum() == d ) )
     {

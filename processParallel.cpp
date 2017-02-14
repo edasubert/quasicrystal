@@ -27,6 +27,10 @@ int main (int argc, char* argv[])
   
   numberType winSize;
   
+  
+  Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
+  
+  
   // input
   std::list<CvoronoiCell<numberType> > cells;
   
@@ -36,6 +40,31 @@ int main (int argc, char* argv[])
   myfile >> winSize;
   getline(myfile, line);
   
+  
+  
+  // initialize
+  windowType win( winSize );
+  win.center( origin );
+  
+  // hyperquasicrystal
+  rhombus *circ = dynamic_cast<rhombus*> ( win.circumscribed() );
+  
+  // hypoquasicrystal
+  rhombus *insc = dynamic_cast<rhombus*> ( win.inscribed() );
+  
+  betaSet S = circ->Xwindow().Small();
+  betaSet L = insc->Xwindow().Large();
+  
+  betaSet coveringR = numberType::get(161, -43)*L;
+  
+  // size of rhumbus circumscribed to covering radius disc
+  betaSet lengthToCover = numberType::get(8, 0)*coveringR;
+  
+  CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
+  
+  
+  std::cout << "Loading data: " << std::endl << std::flush; 
+  
   if (myfile.is_open())
   {
     while ( getline(myfile, line) )
@@ -43,6 +72,10 @@ int main (int argc, char* argv[])
       CvoronoiCell<numberType> voronoi;
       voronoi.load(line);
       voronoi.setDescription(line);
+      voronoi.CarrierSet->setPackingR();
+      voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
+      voronoi.setCenter(origin);
+      voronoi.construct();
       cells.push_back(voronoi);
     }
     myfile.close();
@@ -50,10 +83,12 @@ int main (int argc, char* argv[])
   else std::cout << "Unable to open file" << std::endl; 
   
   
+  std::cout << "cells: " << cells.size() << std::endl << std::flush; 
+  
   cells.sort();
   cells.unique();
   
-  std::cout << "cells: " << cells.size() << std::endl; 
+  std::cout << "cells after unique: " << cells.size() << std::endl << std::endl << std::flush; 
   
   std::string fillColor = "#689F38";
   std::string strokeColor = "#263238";
@@ -78,50 +113,112 @@ int main (int argc, char* argv[])
   
   
   
-  // initialize
-  Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
-  windowType win( winSize );
-  win.center( origin );
-  
-  // hyperquasicrystal
-  rhombus *circ = dynamic_cast<rhombus*> ( win.circumscribed() );
-  
-  // hypoquasicrystal
-  rhombus *insc = dynamic_cast<rhombus*> ( win.inscribed() );
-  
-  betaSet S = circ->Xwindow().Small();
-  betaSet L = insc->Xwindow().Large();
-  
-  betaSet coveringR = numberType::get(161, -43)*L;
-  
-  // size of rhumbus circumscribed to covering radius disc
-  betaSet lengthToCover = numberType::get(8, 0)*coveringR;
-  
-  CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
+  int count;
   
   
+  std::cout << "Cutting window sections" << std::endl << std::flush;
+  
+  // CUT WINDOW SECTIONS -----------------------------------------------
+  std::map<std::string, windowType> windowParts;
+  
+  for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); )
+  {
+    windowType intersect = win;
+    for (std::list<Cpoint<numberType> >::iterator ot = it->CarrierSet->begin(); ot != it->CarrierSet->end(); ++ot)
+    {
+      windowType moving = win;
+      moving.center(origin-ot->star());
+      intersect.intersect(&moving);
+    }
+    if (!intersect.empty())
+    {
+      windowParts[it->getDescription()] = intersect;
+      
+      ++it;
+    }
+    else
+    {
+      it = cells.erase(it);
+    }
+  }
+  
+  std::cout << "cells size: " << cells.size() << std::endl << std::endl << std::flush;
+  std::cout << "Dealing with overlap" << std::endl << std::flush;
+  
+  // deal with overlap
   cells.sort();
-  cells.unique();
+  std::list<CvoronoiCell<numberType> > selection;
   
-  std::cout << "cells after unique: " << cells.size() << std::endl; 
+  selection.push_back(*cells.begin());
+  
+  count = 0;
+  int printCount = 0;
+  bool check;
+  
+  for (std::list<CvoronoiCell<numberType> >::iterator ot = ++cells.begin(); ot != cells.end(); ++ot)
+  {
+    std::list<windowType> toCut;
+    
+    // gather cutting material
+    for ( std::list<CvoronoiCell<numberType> >::iterator it = selection.begin(); it != selection.end(); ++it )
+    {
+      windowType intersection = windowParts[it->getDescription()];
+      intersection.intersect(&windowParts[ot->getDescription()]);
+      if ((!intersection.empty()) && (ot->size() > it->size()))
+      {
+        toCut.push_back(windowParts[it->getDescription()]);
+      }
+    }
+    
+    // do some cutting
+    for ( std::list<windowType>::iterator it = toCut.begin(); it != toCut.end(); ++it )
+    {
+      windowType intersection = *it;
+      intersection.intersect(&windowParts[ot->getDescription()]);
+      diff(windowParts[ot->getDescription()], intersection);
+      
+      if (windowParts[ot->getDescription()].empty())
+        break;
+    }
+    
+    // decide
+    if (!windowParts[ot->getDescription()].empty())
+    {
+      selection.push_back(*ot);
+    }
+    
+    // print progress
+    ++count;
+    ++printCount;
+    if (500*printCount > cells.size())
+    {
+      std::cout << "processed " << count << "/" << cells.size() << " <=> " << 100*count/cells.size() << "%" << "\t| " << "selection size: " << selection.size() << std::endl << std::flush;
+      printCount = 0;
+    }
+  }
+  
+  std::cout << "selection size: " << selection.size() << std::endl << std::endl << std::flush;
+  
+  
+  std::cout << "Output" << std::endl << std::flush; 
+  
+  cells = selection;
+  
+  
+  
   
   
   // OUTPUT
   std::ostringstream tmp;
   
-  int count = 1;
+  count = 1;
   for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
   {
     // construct tiles
-    it->CarrierSet->setPackingR();
-    it->CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
-    it->setCenter(origin);
     it->setColor(fillColor, strokeColor, strokeWidth);
     it->CarrierSet->setColor(fillColor, strokeColor, strokeWidth);
     it->Center.setColor(fillColor, strokeColor, strokeWidth);
-    it->construct();
-    
     
     std::ostringstream oss;
     oss << folder << '/' << fileName << std::setfill('0') << std::setw(3) << count << ".svg";// << " " << it->size();
@@ -158,73 +255,10 @@ int main (int argc, char* argv[])
   
   
   
-  // CUT WINDOW SECTIONS -----------------------------------------------
-  std::map<std::string, windowType> windowParts;
   
-  for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
-  {
-    windowType intersect = win;
-    for (std::list<Cpoint<numberType> >::iterator ot = it->CarrierSet->begin(); ot != it->CarrierSet->end(); ++ot)
-    {
-      windowType moving = win;
-      moving.center(origin-ot->star());
-      intersect.intersect(&moving);
-    }
-    if (!intersect.empty())
-    {
-      windowParts[it->getDescription()] = intersect;
-    }
-  }
   
-  // deal with overlap
-  cells.sort();
-  std::map<std::string, std::list<windowType> > toCut;
   
-  bool check;
-  for ( std::list<CvoronoiCell<numberType> >::iterator ot = cells.begin(); ot != cells.end(); ++ot )
-  {
-    for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
-    {
-      if (it == ot) continue;
-      
-      windowType intersection = windowParts[it->getDescription()];
-      intersection.intersect(&windowParts[ot->getDescription()]);
-      if (!intersection.empty())
-      {
-        if (it->size() > ot->size())
-        {
-          toCut[it->getDescription()].push_back(intersection);//windowParts[ot->getDescription()]);
-          //check+= diff(windowParts[it->getDescription()], intersection);
-        }
-        else
-        {
-          toCut[ot->getDescription()].push_back(intersection);//windowParts[it->getDescription()]);
-          //check+= diff(windowParts[ot->getDescription()], intersection);
-        }
-      }
-    }
-  }
   
-  std::cout << "window parts: " << windowParts.size() << std::endl;
-  
-  count = 1;
-  for ( std::list<CvoronoiCell<numberType> >::iterator ot = cells.begin(); ot != cells.end(); ++ot )
-  {
-    for ( std::list<windowType>::iterator it = toCut[ot->getDescription()].begin(); it != toCut[ot->getDescription()].end(); ++it )
-    {
-      windowType intersection = *it;
-      intersection.intersect(&windowParts[ot->getDescription()]);
-      diff(windowParts[ot->getDescription()], intersection);
-      
-      if (windowParts[ot->getDescription()].empty())
-      {
-        std::list<CvoronoiCell<numberType> >::iterator tmp = ot;
-        --ot;
-        cells.erase(tmp);
-        break;
-      }
-    }
-  }
   
   std::ostringstream tmp02;
   tmp02 << folder << '/' << fileName << "_";
