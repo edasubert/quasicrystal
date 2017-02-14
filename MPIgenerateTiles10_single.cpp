@@ -1,8 +1,12 @@
-#include "SUPPORT/generate2.h"
-#include "SUPPORT/window.h"
-#include "SUPPORT/geometricObject2.h"
-#include "SUPPORT/delone10.h"
+#define _ERROR_
+#define _IMG_
+
 #include "SUPPORT/betaSet.h"
+#include "SUPPORT/alphaSet.h"
+#include "SUPPORT/delone10.h"
+#include "SUPPORT/window2.h"
+#include "SUPPORT/generate3.h"
+#include "SUPPORT/geometricObject2.h"
 
 #include <iostream>
 #include <iomanip>
@@ -17,7 +21,7 @@
 #define MASTER 0        /* task ID of master task */
 
 typedef betaSet numberType;
-typedef rhombus windowType;
+typedef rhombus<numberType> windowType;
 
 int main (int argc, char* argv[])
 {
@@ -53,20 +57,20 @@ int main (int argc, char* argv[])
   
   // hyperquasicrystal
   //rhombus *circ = dynamic_cast<rhombus*> ( win.circumscribed() );
-  rhombus *circ = new rhombus(winSize*betaSet::get(4,0,3));
+  rhombus<numberType> *circ = new rhombus<numberType>(winSize*numberType::get(4,0,3));
   
   
   // hypoquasicrystal
   //rhombus *insc = dynamic_cast<rhombus*> ( win.inscribed() );
-  rhombus *insc = new rhombus(winSize*betaSet::get(2,0,3));
+  rhombus<numberType> *insc = new rhombus<numberType>(winSize*numberType::get(2,0,3));
   
-  betaSet S = circ->Xwindow().Small();
-  betaSet L = insc->Xwindow().Large();
+  numberType S = circ->Xwindow().Small();
+  numberType L = insc->Xwindow().Large();
   
-  betaSet coveringR = numberType::get(161, -43)*L;
+  numberType coveringR = numberType::get(161, -43)*L;
   
   // size of rhumbus circumscribed to covering radius disc
-  betaSet lengthToCover = numberType::get(8, 0)*coveringR;
+  numberType lengthToCover = numberType::get(8, 0)*coveringR;
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   

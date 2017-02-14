@@ -16,8 +16,6 @@
 #include <algorithm>
 #include <map>
 
-#define _ERROR_
-
 // generates all tiles for "any" window
 
 typedef alphaSet numberType;
