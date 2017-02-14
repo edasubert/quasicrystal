@@ -20,7 +20,7 @@
 
 #define MASTER 0        /* task ID of master task */
 
-typedef betaSet numberType;
+typedef alphaSet numberType;
 typedef rhombus<numberType> windowType;
 
 int main (int argc, char* argv[])
