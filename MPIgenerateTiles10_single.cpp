@@ -80,7 +80,7 @@ int main (int argc, char* argv[])
     ++wordLength;
   } while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
   
-  //wordLength = 5;
+  //wordLength = 7;
   
   /* Obtain number of tasks and task ID */
   MPI_Init(&argc,&argv);
@@ -112,7 +112,7 @@ int main (int argc, char* argv[])
       
       //std::cout << std::string(4, ' ') << taskid << ": received " << buffer << " status: " << status.MPI_TAG << std::endl;
       
-      //std::cout << "  node " << taskid << " data received" << std::endl;
+      std::cout << "  node " << taskid << " data received" << std::endl;
       
       if (status.MPI_TAG == 0)
       {
@@ -139,7 +139,7 @@ int main (int argc, char* argv[])
         for (std::list<CdeloneSet10<numberType> >::iterator it = delones.begin(); it != delones.end(); it = delones.begin())
         {
           //std::cout << "SIZE POTENTIAL: " << it->sizePotential() << std::endl;
-          //it->filterPotentialByWindow(win);
+          it->filterPotentialByWindow(win);
           
           CvoronoiCell<numberType> voronoi;
           
@@ -199,7 +199,7 @@ int main (int argc, char* argv[])
         // end ---------------------------------------------------------
         
         
-        //std::cout << "  node " << taskid << " sending back: " << list.size() << std::endl;
+        std::cout << "  node " << taskid << " sending back: " << list.size() << std::endl;
         
         for (std::list<std::string>::iterator it = list.begin(); it != --list.end(); ++it)
         {
@@ -261,7 +261,7 @@ int main (int argc, char* argv[])
       
       // save result
       res.push_back(buffer);
-      //std::cout << "finished: " << res.size() << std::endl;
+      std::cout << "finished: " << res.size() << std::endl;
       
       while (status.MPI_TAG == 0)
       {
@@ -275,7 +275,7 @@ int main (int argc, char* argv[])
         
         // save result
         res.push_back(buffer);
-        //std::cout << "finished: " << res.size() << std::endl;
+        std::cout << "finished: " << res.size() << std::endl;
       }
       
       //std::cout << std::string(4, ' ') << "MASTER received from: " << status.MPI_SOURCE << " sending: " << iterator << std::endl;
