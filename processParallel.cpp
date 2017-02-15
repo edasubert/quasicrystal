@@ -1,8 +1,12 @@
-#include "SUPPORT/generate2.h"
-#include "SUPPORT/window.h"
-#include "SUPPORT/geometricObject2.h"
-#include "SUPPORT/delone10.h"
+#define _ERROR_
+#define _IMG_
+
 #include "SUPPORT/betaSet.h"
+#include "SUPPORT/alphaSet.h"
+#include "SUPPORT/delone10.h"
+#include "SUPPORT/window2.h"
+#include "SUPPORT/generate3.h"
+#include "SUPPORT/geometricObject2.h"
 
 #include <iostream>
 #include <iomanip>
@@ -12,8 +16,8 @@
 #include <list>
 #include <string>
 
-typedef betaSet numberType;
-typedef circle windowType;
+typedef alphaSet numberType;
+typedef rhombus<numberType> windowType;
 
 int main (int argc, char* argv[])
 { 
@@ -47,18 +51,18 @@ int main (int argc, char* argv[])
   win.center( origin );
   
   // hyperquasicrystal
-  rhombus *circ = dynamic_cast<rhombus*> ( win.circumscribed() );
+  rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> ( win.circumscribed() );
   
   // hypoquasicrystal
-  rhombus *insc = dynamic_cast<rhombus*> ( win.inscribed() );
+  rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
   
-  betaSet S = circ->Xwindow().Small();
-  betaSet L = insc->Xwindow().Large();
+  numberType S = circ->Xwindow().Small();
+  numberType L = insc->Xwindow().Large();
   
-  betaSet coveringR = numberType::get(161, -43)*L;
+  numberType coveringR = numberType::coveringR()*L;
   
   // size of rhumbus circumscribed to covering radius disc
-  betaSet lengthToCover = numberType::get(8, 0)*coveringR;
+  numberType lengthToCover = numberType::get(8, 0)*coveringR;
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   
@@ -159,7 +163,6 @@ int main (int argc, char* argv[])
   for (std::list<CvoronoiCell<numberType> >::iterator ot = ++cells.begin(); ot != cells.end(); ++ot)
   {
     std::list<windowType> toCut;
-    
     // gather cutting material
     for ( std::list<CvoronoiCell<numberType> >::iterator it = selection.begin(); it != selection.end(); ++it )
     {

@@ -21,10 +21,11 @@
 #define MASTER 0        /* task ID of master task */
 
 typedef alphaSet numberType;
-typedef rhombus<numberType> windowType;
+typedef circle<numberType> windowType;
 
 int main (int argc, char* argv[])
 {
+  
   // time measuring
   std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
   
@@ -47,7 +48,7 @@ int main (int argc, char* argv[])
   
   
   // initialize
-  numberType winSize(1, 0, 2);
+  numberType winSize(3, -1);
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
   std::string clipTileStr = "(0+1*beta)/2,(-1+2*beta)/2 (0+0*beta)/2,(0+1*beta)/1 (-1+2*beta)/2,(0+1*beta)/2 (0-1*beta)/2,(-1+2*beta)/2 (0+1*beta)/1,(0+0*beta)/4 (1-2*beta)/2,(0+1*beta)/2 (0+0*beta)/4,(0+0*beta)/4 (-1+2*beta)/2,(0-1*beta)/2 (0-1*beta)/1,(0+0*beta)/4 (0+1*beta)/2,(1-2*beta)/2 (1-2*beta)/2,(0-1*beta)/2 (0+0*beta)/2,(0-1*beta)/1 (0-1*beta)/2,(1-2*beta)/2 ";
@@ -56,18 +57,16 @@ int main (int argc, char* argv[])
   win.center( origin );
   
   // hyperquasicrystal
-  //rhombus *circ = dynamic_cast<rhombus*> ( win.circumscribed() );
-  rhombus<numberType> *circ = new rhombus<numberType>(winSize*numberType::get(4,0,3));
+  rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> ( win.circumscribed() );
   
   
   // hypoquasicrystal
-  //rhombus *insc = dynamic_cast<rhombus*> ( win.inscribed() );
-  rhombus<numberType> *insc = new rhombus<numberType>(winSize*numberType::get(2,0,3));
+  rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
   
   numberType S = circ->Xwindow().Small();
   numberType L = insc->Xwindow().Large();
   
-  numberType coveringR = numberType::get(161, -43)*L;
+  numberType coveringR = numberType::coveringR()*L;
   
   // size of rhumbus circumscribed to covering radius disc
   numberType lengthToCover = numberType::get(8, 0)*coveringR;
@@ -124,7 +123,7 @@ int main (int argc, char* argv[])
         std::string word2 = buffer.substr(buffer.length()/2);
         CdeloneSet10<numberType> delone = quasicrystal2D10(circ->Xwindow(), word1, word2);
         
-        delone << *clipTile.CarrierSet;
+        //delone << *clipTile.CarrierSet;
         
         delone.setPackingR();
         delone.setCoveringR(numberType::get(2, 0)*coveringR);
