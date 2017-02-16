@@ -70,7 +70,7 @@ int main (int argc, char* argv[])
   
   // size of rhumbus circumscribed to covering radius disc
   //numberType lengthToCover = numberType::get(8, 0)*coveringR;
-  numberType lengthToCover = numberType::get(4, 0);
+  numberType lengthToCover = numberType::get(8, 0);
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   

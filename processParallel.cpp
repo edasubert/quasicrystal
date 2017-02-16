@@ -75,7 +75,13 @@ int main (int argc, char* argv[])
   {
     while ( getline(myfile, line) )
     {
-      inputData.push_back(line);
+      if (line.size() > 0)
+      {
+        inputData.push_back(line);
+      }
+      
+      if (inputData.size() > 100)
+        break;
     }
     myfile.close();
   }
