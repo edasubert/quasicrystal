@@ -97,7 +97,7 @@ int main (int argc, char* argv[])
   {
     CvoronoiCell<numberType> clipTile;
     clipTile.load(clipTileStr);
-    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType::get(1,0,2);
+    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType::get(3,0,2);
     
     do 
     {
