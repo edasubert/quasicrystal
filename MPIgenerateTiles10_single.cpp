@@ -69,7 +69,8 @@ int main (int argc, char* argv[])
   numberType coveringR = numberType::coveringR()*L;
   
   // size of rhumbus circumscribed to covering radius disc
-  numberType lengthToCover = numberType::get(8, 0)*coveringR;
+  //numberType lengthToCover = numberType::get(8, 0)*coveringR;
+  numberType lengthToCover = numberType::get(4, 0);
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   
@@ -123,7 +124,7 @@ int main (int argc, char* argv[])
         std::string word2 = buffer.substr(buffer.length()/2);
         CdeloneSet10<numberType> delone = quasicrystal2D10(circ->Xwindow(), word1, word2);
         
-        delone << *clipTile.CarrierSet;
+        //delone << *clipTile.CarrierSet;
         
         delone.setPackingR();
         delone.setCoveringR(numberType::get(2, 0)*coveringR);

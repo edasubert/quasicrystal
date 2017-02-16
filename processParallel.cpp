@@ -145,19 +145,17 @@ int main (int argc, char* argv[])
     windowType intersect = win;
     for (std::list<Cpoint<numberType> >::iterator ot = it->CarrierSet->begin(); ot != it->CarrierSet->end(); ++ot)
     {
-      windowType moving = win;
-      moving.center(origin-ot->star());
-      intersect.intersect(&moving);
+      intersect.intersect(origin-ot->star());
     }
     if (!intersect.empty())
     {
       windowParts[it->getDescription()] = intersect;
-      
       ++it;
     }
     else
     {
       it = cells.erase(it);
+      std::cout << "WHAT IS GOING ON?!?!?!" << std::endl << std::flush;
     }
   }
   

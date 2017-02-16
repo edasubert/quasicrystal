@@ -18,7 +18,7 @@
 // generates all tiles for "any" window
 
 typedef alphaSet numberType;
-typedef rhombus<numberType> windowType;
+typedef circle<numberType> windowType;
 
 int main( int argc, char ** argv )
 {
@@ -28,7 +28,7 @@ int main( int argc, char ** argv )
   
   
   // window definition
-  numberType winSize(1, 0, 4);
+  numberType winSize(1, 0);
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
   
@@ -63,7 +63,8 @@ int main( int argc, char ** argv )
   numberType coveringR = numberType::coveringR()*L;
   
   // size of rhumbus circumscribed to covering radius disc
-  numberType lengthToCover = numberType::get(8, 0)*coveringR;
+  //numberType lengthToCover = numberType::get(8, 0)*coveringR;
+  numberType lengthToCover = numberType::get(4, 0);
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   
@@ -89,7 +90,7 @@ int main( int argc, char ** argv )
   std::cout << "S: " << S << std::endl << std::flush;
   
   std::cout << "covering radius < : " << coveringR << std::endl << std::flush;
-  std::cout << "length to cover: " << lengthToCover << std::endl << std::flush;
+  std::cout << "length to cover: " << lengthToCover << " :: " << numberType::get(8, 0)*coveringR << std::endl << std::flush;
   std::cout << "word length: " << wordLength << std::endl << std::flush;
   std::cout << "minimal sequence length: " << minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) << std::endl << std::flush;
   

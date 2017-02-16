@@ -1011,7 +1011,7 @@ bool circle<numberType>::empty()
     return false;
   }
   
-  return polygon.size() < 3;
+  return polygon.size() < 2;
 }
 
 template <typename numberType>
