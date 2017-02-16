@@ -48,7 +48,7 @@ int main (int argc, char* argv[])
   
   
   // initialize
-  numberType winSize(3, -1);
+  numberType winSize(1, 0);
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
   std::string clipTileStr = "(-1+1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(-1+1*alpha)/2 (1-1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(1-1*alpha)/2 (0+0*alpha)/1,(0+0*alpha)/1 (-1-1*alpha)/2,(-1+1*alpha)/2 (-1+1*alpha)/2,(-1-1*alpha)/2 (-1-1*alpha)/2,(1-1*alpha)/2 (1-1*alpha)/2,(-1-1*alpha)/2 ";
