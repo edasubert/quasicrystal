@@ -17,7 +17,7 @@
 #include <string>
 
 typedef alphaSet numberType;
-typedef rhombus<numberType> windowType;
+typedef circle<numberType> windowType;
 
 int main (int argc, char* argv[])
 { 
@@ -67,25 +67,39 @@ int main (int argc, char* argv[])
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   
   
-  std::cout << "Loading data: " << std::endl << std::flush; 
+  std::cout << "Loading data: " << std::endl << std::flush;
+  
+  std::list<std::string> inputData; 
   
   if (myfile.is_open())
   {
     while ( getline(myfile, line) )
     {
-      CvoronoiCell<numberType> voronoi;
-      voronoi.load(line);
-      voronoi.setDescription(line);
-      voronoi.CarrierSet->setPackingR();
-      voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
-      voronoi.setCenter(origin);
-      voronoi.construct();
-      cells.push_back(voronoi);
+      inputData.push_back(line);
     }
     myfile.close();
   }
   else std::cout << "Unable to open file" << std::endl; 
   
+  std::cout << "strings read: " << inputData.size() << std::endl << std::flush; 
+  
+  inputData.sort();
+  inputData.unique();
+  
+  std::cout << "strings after unique: " << inputData.size() << std::endl << std::flush; 
+  
+  
+  for (std::list<std::string>::iterator it = inputData.begin(); it != inputData.end(); ++it)
+  {
+    CvoronoiCell<numberType> voronoi;
+    voronoi.load(*it);
+    voronoi.setDescription(*it);
+    voronoi.CarrierSet->setPackingR();
+    voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
+    voronoi.setCenter(origin);
+    voronoi.construct();
+    cells.push_back(voronoi);
+  }
   
   std::cout << "cells: " << cells.size() << std::endl << std::flush; 
   
@@ -97,7 +111,7 @@ int main (int argc, char* argv[])
   std::string fillColor = "#689F38";
   std::string strokeColor = "#263238";
   std::ostringstream convert;
-  convert << (0.3)*winSize;
+  convert << (0.1)*winSize;
   std::string strokeWidth = convert.str();
   
   
@@ -151,69 +165,78 @@ int main (int argc, char* argv[])
   std::cout << "Dealing with overlap" << std::endl << std::flush;
   
   // deal with overlap
-  cells.sort();
-  std::list<CvoronoiCell<numberType> > selection;
+  //cells.sort();
+  //std::list<CvoronoiCell<numberType> > selection;
   
-  selection.push_back(*cells.begin());
+  //selection.push_back(*cells.begin());
   
-  count = 0;
-  int printCount = 0;
-  bool check;
+  //count = 0;
+  //int printCount = 0;
+  //bool check;
   
-  for (std::list<CvoronoiCell<numberType> >::iterator ot = ++cells.begin(); ot != cells.end(); ++ot)
-  {
-    std::list<windowType> toCut;
-    // gather cutting material
-    for ( std::list<CvoronoiCell<numberType> >::iterator it = selection.begin(); it != selection.end(); ++it )
-    {
-      windowType intersection = windowParts[it->getDescription()];
-      intersection.intersect(&windowParts[ot->getDescription()]);
-      if ((!intersection.empty()) && (ot->size() > it->size()))
-      {
-        toCut.push_back(windowParts[it->getDescription()]);
-      }
-    }
+  //for (std::list<CvoronoiCell<numberType> >::iterator ot = ++cells.begin(); ot != cells.end(); ++ot)
+  //{
+    //std::list<windowType> toCut;
+    //// gather cutting material
+    //for ( std::list<CvoronoiCell<numberType> >::iterator it = selection.begin(); it != selection.end(); ++it )
+    //{
+      //windowType intersection = windowParts[it->getDescription()];
+      //intersection.intersect(&windowParts[ot->getDescription()]);
+      //if ((!intersection.empty()) && (ot->size() > it->size()))
+      //{
+        //toCut.push_back(windowParts[it->getDescription()]);
+      //}
+    //}
     
-    // do some cutting
-    for ( std::list<windowType>::iterator it = toCut.begin(); it != toCut.end(); ++it )
-    {
-      windowType intersection = *it;
-      intersection.intersect(&windowParts[ot->getDescription()]);
-      diff(windowParts[ot->getDescription()], intersection);
+    //// do some cutting
+    //for ( std::list<windowType>::iterator it = toCut.begin(); it != toCut.end(); ++it )
+    //{
+      //windowType intersection = *it;
+      //intersection.intersect(&windowParts[ot->getDescription()]);
+      //diff(windowParts[ot->getDescription()], intersection);
       
-      if (windowParts[ot->getDescription()].empty())
-        break;
-    }
+      //if (windowParts[ot->getDescription()].empty())
+        //break;
+    //}
     
-    // decide
-    if (!windowParts[ot->getDescription()].empty())
-    {
-      selection.push_back(*ot);
-    }
+    //// decide
+    //if (!windowParts[ot->getDescription()].empty())
+    //{
+      //selection.push_back(*ot);
+    //}
     
-    // print progress
-    ++count;
-    ++printCount;
-    if (500*printCount > cells.size())
-    {
-      std::cout << "processed " << count << "/" << cells.size() << " <=> " << 100*count/cells.size() << "%" << "\t| " << "selection size: " << selection.size() << std::endl << std::flush;
-      printCount = 0;
-    }
-  }
+    //// print progress
+    //++count;
+    //++printCount;
+    //if (500*printCount > cells.size())
+    //{
+      //std::cout << "processed " << count << "/" << cells.size() << " <=> " << 100*count/cells.size() << "%" << "\t| " << "selection size: " << selection.size() << std::endl << std::flush;
+      //printCount = 0;
+    //}
+  //}
   
-  std::cout << "selection size: " << selection.size() << std::endl << std::endl << std::flush;
+  //std::cout << "selection size: " << selection.size() << std::endl << std::endl << std::flush;
   
+  //cells = selection;
   
   std::cout << "Output" << std::endl << std::flush; 
-  
-  cells = selection;
-  
   
   
   
   
   // OUTPUT
   std::ostringstream tmp;
+  
+  
+  std::ostringstream tmp02;
+  tmp02 << folder << '/' << fileName << "_overlay";
+  printFile(tmp02, winSize);
+  tmp02 << ".svg";
+  std::ofstream overlayfile ( tmp02.str().c_str() );
+  
+  overlayfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
+  overlayfile << "<svg width=\"3000\" height=\"3000\" viewBox=\"" << -30*8.4 << " " << -30*8.4 << " " << 60*8.4 << " " << 60*8.4 << "\">\n" << std::endl;
+  overlayfile << "<g transform=\"scale(17,-17)\">" << std::endl;
   
   count = 1;
   for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
@@ -247,6 +270,11 @@ int main (int argc, char* argv[])
     it->svg(myfile);
     it->CarrierSet->svg(myfile);
     it->Center.svg(myfile);
+    
+    it->svg(overlayfile);
+    it->CarrierSet->svg(overlayfile);
+    it->Center.svg(overlayfile);
+    
     myfile << "</g>" << std::endl;
     myfile << "</svg>";
     
@@ -256,14 +284,15 @@ int main (int argc, char* argv[])
     ++count;
   }
   
+  overlayfile << "</g>" << std::endl;
+  overlayfile << "</svg>";
+  
+  overlayfile.close();
   
   
   
-  
-  
-  
-  
-  std::ostringstream tmp02;
+  tmp02.clear();
+  tmp02.str(std::string());
   tmp02 << folder << '/' << fileName << "_";
   printFile(tmp02, winSize);
   tmp02 << ".svg";
@@ -280,7 +309,8 @@ int main (int argc, char* argv[])
   count = 1;
   {
     for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
-    { 
+    {
+      windowfile << "<g>" << std::endl;
       // window parts
       windowType intersect = windowParts[it->getDescription()];
       windowfile << "<!--";
@@ -305,6 +335,7 @@ int main (int argc, char* argv[])
       it->CarrierSet->svg(windowfile);
       
       windowfile << "</svg>" << std::endl;
+      windowfile << "</g>" << std::endl;
     }
   }
   windowfile << "</g>" << std::endl;

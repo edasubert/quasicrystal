@@ -152,8 +152,8 @@ class circle : public window2D<numberType>
     
     bool empty();
     
-    numberType  centerX()const;
-    numberType  centerY()const;
+    double  centerX();
+    double  centerY();
     
     void createPolygon();
     
@@ -897,7 +897,7 @@ void circle<numberType>::svg( std::ostream& out )
 {
   if (intersectionList.size() == 1)
   {
-    out << "<circle cx=\"" << m_x << "\" cy=\"" << m_y << "\" r=\"" << m_R << "\" " << "style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.3;\" />" << std::endl;
+    out << "<circle cx=\"" << m_x << "\" cy=\"" << m_y << "\" r=\"" << m_R << "\" " << "style=\"fill:none;stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.3;\" />" << std::endl;
     return;
   }
   
@@ -926,7 +926,7 @@ bool circle<numberType>::in( Cpoint<numberType> star )const
 {
   for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
   {
-    if ( euklid2( star, Cpoint<numberType>( it->m_x, it->m_y ) ) > m_R*m_R )
+    if ( euklid2( star, Cpoint<numberType>( it->m_x, it->m_y ) ) >= m_R*m_R )
     {
       return false;
     }
@@ -1015,27 +1015,37 @@ bool circle<numberType>::empty()
 }
 
 template <typename numberType>
-numberType circle<numberType>::centerX()const
+double circle<numberType>::centerX()
 {
-  numberType x;
-  for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  if (intersectionList.size() == 1)
   {
-    x+= it->m_x;
+    return m_x;
   }
   
-  return x/numberType::get(intersectionList.size()+1,0);
+  double x = 0;
+  for (std::list<Cpoint<double> >::iterator it = polygon.begin(); it != polygon.end(); ++it)
+  {
+    x+= it->getX();
+  }
+  
+  return x/polygon.size();
 }
 
 template <typename numberType>
-numberType circle<numberType>::centerY()const
+double circle<numberType>::centerY()
 {
-  numberType y;
-  for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  if (intersectionList.size() == 1)
   {
-    y+= it->m_y;
+    return m_y;
   }
   
-  return y/numberType::get(intersectionList.size()+1,0);
+  double y = 0;
+  for (std::list<Cpoint<double> >::iterator it = polygon.begin(); it != polygon.end(); ++it)
+  {
+    y+= it->getY();
+  }
+  
+  return y/polygon.size();
 }
 
 

@@ -12,10 +12,6 @@
 template <typename numberType>
 std::list<numberType> quasicrystal1D( window<numberType> win, numberType x, numberType y, numberType start )
 {
-  #ifndef _ERROR_
-  std::cout << "Quasicrystal1D" << std::endl;
-  #endif
-  
   start = win.seed();
   
   while ( start > x ) // get before x
@@ -35,7 +31,9 @@ std::list<numberType> quasicrystal1D( window<numberType> win, numberType x, numb
     start = win.step(start.star()).star();
   }
   
-  std::cout << quasicrystal.size() << std::endl;
+  #ifndef _ERROR_
+  std::cout << "Quasicrystal1D: " << quasicrystal.size() << std::endl;
+  #endif
   
   return quasicrystal;
 }

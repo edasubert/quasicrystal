@@ -284,6 +284,9 @@ template <typename numberType>
 double euklid2( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
 
 template <typename numberType>
+double euklid2( const Cpoint<numberType>& a );
+
+template <typename numberType>
 bool distanceComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
 
 template <typename numberType>
@@ -1938,23 +1941,45 @@ bool CvoronoiCell<numberType>::operator == ( const CvoronoiCell<numberType> &com
 template <typename numberType>
 bool CvoronoiCell<numberType>::operator < ( const CvoronoiCell<numberType> &compare ) const
 {
-  
-  if ( size() < compare.size() )
+  // area of cell
+  if (size() < compare.size())
   {
     return true;
   }
   
-  if ( ( size() == compare.size() ) && ( Cell->size() < compare.Cell->size() ) )
+  // number of vertices of cell
+  if ((size() == compare.size()) && (Cell->size() < compare.Cell->size()))
   {
     return true;
   }
   
-  if ( ( Cell->size() == compare.Cell->size() ) && ( size() == compare.size() ) && ( atan2(middle().getX(), middle().getY()) < atan2(compare.middle().getX(), compare.middle().getY()) ) )
+  // distance of mean of cell vertices from origin
+  if ((size() == compare.size()) && (Cell->size() == compare.Cell->size()) && (euklid2(middle()) < euklid2(compare.middle())))
   {
     return true;
   }
   
-  if ( ( Cell->size() == compare.Cell->size() ) && ( size() == compare.size() ) && ( atan2(middle().getX(), middle().getY()) == atan2(compare.middle().getX(), compare.middle().getY()) ) && ( atan2(middleDomain().getX(), middleDomain().getY()) < atan2(compare.middleDomain().getX(), compare.middleDomain().getY()) ) )
+  // distance of mean of carrier set from origin
+  if ((size() == compare.size()) && (Cell->size() == compare.Cell->size()) && (euklid2(middle()) == euklid2(compare.middle())) \
+                                 && (euklid2(middleDomain()) < euklid2(compare.middleDomain())))
+  {
+    return true;
+  }
+  
+  
+  // angle of mean of cell vertices
+  if ((size() == compare.size()) && (Cell->size() == compare.Cell->size()) && (euklid2(middle()) == euklid2(compare.middle())) \
+                                 && (euklid2(middleDomain()) == euklid2(compare.middleDomain())) \
+                                 && (atan2(middle().getX(), middle().getY()) < atan2(compare.middle().getX(), compare.middle().getY())))
+  {
+    return true;
+  }
+  
+  // angle of mean of carrier set
+  if ((size() == compare.size()) && (Cell->size() == compare.Cell->size()) && (euklid2(middle()) == euklid2(compare.middle())) \
+                                 && (euklid2(middleDomain()) == euklid2(compare.middleDomain())) \
+                                 && (atan2(middle().getX(), middle().getY()) == atan2(compare.middle().getX(), compare.middle().getY())) \
+                                 && (atan2(middleDomain().getX(), middleDomain().getY()) < atan2(compare.middleDomain().getX(), compare.middleDomain().getY())))
   {
     return true;
   }
@@ -2131,6 +2156,12 @@ template <typename numberType>
 double euklid2( const Cpoint<numberType>& a, const Cpoint<numberType>& b )
 {
   return (a.getX()-b.getX())*(a.getX()-b.getX()) + (a.getY()-b.getY())*(a.getY()-b.getY());
+}
+
+template <typename numberType>
+double euklid2(const Cpoint<numberType>& a)
+{
+  return a.getX()*a.getX() + a.getY()*a.getY();
 }
 
 template <typename numberType>

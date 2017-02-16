@@ -14,7 +14,7 @@
 // creates diagram of "any" window
 
 typedef alphaSet numberType;
-typedef rhombus<numberType> winType;
+typedef circle<numberType> winType;
 
 int main( int argc, char ** argv )
 {
@@ -22,10 +22,10 @@ int main( int argc, char ** argv )
   std::cout << "------------------------------" << std::endl << std::flush;
   
   // intervel of the quasicrystal
-  numberType x1(-200,0);
-  numberType x2( 200,0);
-  numberType y1(-200,0);
-  numberType y2( 200,0);
+  numberType x1(-20,0);
+  numberType x2( 20,0);
+  numberType y1(-20,0);
+  numberType y2( 20,0);
   
   int winId = 1;
   
@@ -34,7 +34,7 @@ int main( int argc, char ** argv )
   //while (std::cin >> winSize)
   {
     winSize = numberType::get(1,0,1)/numberType::get(0,1,1);
-    winSize = numberType::get(1, 0, 4);
+    winSize = numberType::get(1, 0);
     Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
     
     

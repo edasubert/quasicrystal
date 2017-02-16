@@ -51,7 +51,7 @@ int main (int argc, char* argv[])
   numberType winSize(3, -1);
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
-  std::string clipTileStr = "(0+1*beta)/2,(-1+2*beta)/2 (0+0*beta)/2,(0+1*beta)/1 (-1+2*beta)/2,(0+1*beta)/2 (0-1*beta)/2,(-1+2*beta)/2 (0+1*beta)/1,(0+0*beta)/4 (1-2*beta)/2,(0+1*beta)/2 (0+0*beta)/4,(0+0*beta)/4 (-1+2*beta)/2,(0-1*beta)/2 (0-1*beta)/1,(0+0*beta)/4 (0+1*beta)/2,(1-2*beta)/2 (1-2*beta)/2,(0-1*beta)/2 (0+0*beta)/2,(0-1*beta)/1 (0-1*beta)/2,(1-2*beta)/2 ";
+  std::string clipTileStr = "(-1+1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(-1+1*alpha)/2 (1-1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(1-1*alpha)/2 (0+0*alpha)/1,(0+0*alpha)/1 (-1-1*alpha)/2,(-1+1*alpha)/2 (-1+1*alpha)/2,(-1-1*alpha)/2 (-1-1*alpha)/2,(1-1*alpha)/2 (1-1*alpha)/2,(-1-1*alpha)/2 ";
   
   windowType win( winSize );
   win.center( origin );
@@ -97,7 +97,7 @@ int main (int argc, char* argv[])
   {
     CvoronoiCell<numberType> clipTile;
     clipTile.load(clipTileStr);
-    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType(0,1);
+    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType::get(1,0,2);
     
     do 
     {
@@ -123,7 +123,7 @@ int main (int argc, char* argv[])
         std::string word2 = buffer.substr(buffer.length()/2);
         CdeloneSet10<numberType> delone = quasicrystal2D10(circ->Xwindow(), word1, word2);
         
-        //delone << *clipTile.CarrierSet;
+        delone << *clipTile.CarrierSet;
         
         delone.setPackingR();
         delone.setCoveringR(numberType::get(2, 0)*coveringR);
