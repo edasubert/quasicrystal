@@ -70,7 +70,7 @@ int main (int argc, char* argv[])
   
   // size of rhumbus circumscribed to covering radius disc
   //numberType lengthToCover = numberType::get(8, 0)*coveringR;
-  numberType lengthToCover = numberType::get(8, 0);
+  numberType lengthToCover = numberType::get(4, 0);
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   
@@ -158,7 +158,7 @@ int main (int argc, char* argv[])
           
           std::list<Cpoint<numberType> > potential;
           potential = it->getPotential();
-          voronoi.filterSetPotential( &potential );
+          voronoi.filterSetPotential(&potential);
           it->clearPotential();
           it->addPotential(potential);
           
@@ -174,8 +174,10 @@ int main (int argc, char* argv[])
             delones.push_back(delone);
           }
           
-          
-          cells.push_back( voronoi );
+          if (voronoi.CarrierSet->size() >= 3)
+          {
+            cells.push_back(voronoi);
+          }
           
           delones.erase(it);
           
