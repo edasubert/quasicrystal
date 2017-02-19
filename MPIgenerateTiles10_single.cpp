@@ -51,7 +51,7 @@ int main (int argc, char* argv[])
   numberType winSize(1, 0);
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
-  std::string clipTileStr = "(-1+1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(-1+1*alpha)/2 (1-1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(1-1*alpha)/2 (0+0*alpha)/1,(0+0*alpha)/1 (-1-1*alpha)/2,(-1+1*alpha)/2 (-1+1*alpha)/2,(-1-1*alpha)/2 (-1-1*alpha)/2,(1-1*alpha)/2 (1-1*alpha)/2,(-1-1*alpha)/2 ";
+  //std::string clipTileStr = "(-1+1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(-1+1*alpha)/2 (1-1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(1-1*alpha)/2 (0+0*alpha)/1,(0+0*alpha)/1 (-1-1*alpha)/2,(-1+1*alpha)/2 (-1+1*alpha)/2,(-1-1*alpha)/2 (-1-1*alpha)/2,(1-1*alpha)/2 (1-1*alpha)/2,(-1-1*alpha)/2 ";
   
   windowType win( winSize );
   win.center( origin );
@@ -96,9 +96,9 @@ int main (int argc, char* argv[])
   
   if (taskid != MASTER) // NODE ----------------------------------------
   {
-    CvoronoiCell<numberType> clipTile;
-    clipTile.load(clipTileStr);
-    *clipTile.CarrierSet = *clipTile.CarrierSet*numberType::get(3,0,2);
+    //CvoronoiCell<numberType> clipTile;
+    //clipTile.load(clipTileStr);
+    //*clipTile.CarrierSet = *clipTile.CarrierSet*numberType::get(3,0,2);
     
     do 
     {
@@ -174,10 +174,7 @@ int main (int argc, char* argv[])
             delones.push_back(delone);
           }
           
-          if (voronoi.CarrierSet->size() >= 3)
-          {
-            cells.push_back(voronoi);
-          }
+          cells.push_back(voronoi);
           
           delones.erase(it);
           

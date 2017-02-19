@@ -99,6 +99,12 @@ int main (int argc, char* argv[])
   {
     CvoronoiCell<numberType> voronoi;
     voronoi.load(*it);
+    
+    if (voronoi.CarrierSet->size() < 3)
+    {
+      continue;
+    }
+    
     voronoi.setDescription(*it);
     voronoi.CarrierSet->setPackingR();
     voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
