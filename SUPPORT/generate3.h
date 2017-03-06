@@ -539,4 +539,27 @@ numberType minWord( std::list<std::string> lang, window<numberType> win )
   return length;
 }
 
+template <typename numberType>
+numberType max(numberType a, numberType b)
+{
+  return (a>=b)? a : b;
+}
+
+template <typename numberType>
+numberType min(numberType a, numberType b)
+{
+  return (a<=b)? a : b;
+}
+
+template <typename numberType>
+int sign(numberType a)
+{
+  if ( a > numberType::get(0,0) )
+    return 1;
+  else if ( a < numberType::get(0,0) )
+    return -1;
+  else
+    return 0;
+}
+
 #endif

@@ -61,12 +61,12 @@ class window {
 template <typename numberType>
 class window2D {
   public:
-    virtual bool in( Cpoint<numberType > star ) const = 0;
+    virtual bool in( Cpoint<numberType > star );
     virtual void intersect( window2D* win );
     virtual void intersect( Cpoint<numberType > center );
-    virtual void svg( std::ostream& out ) const;
-    virtual window2D* inscribed() const;
-    virtual window2D* circumscribed() const;
+    virtual void svg( std::ostream& out );
+    virtual window2D* inscribed();
+    virtual window2D* circumscribed();
     virtual void center( Cpoint<numberType > center );
     virtual bool empty();
 };
@@ -88,17 +88,17 @@ class rhombus : public window2D<numberType>
     rhombus( numberType  width );
     rhombus( numberType  width, numberType  height );
     rhombus( numberType  width, numberType  height, numberType  x ,numberType  y );
-    void svg( std::ostream& out ) const;
+    void svg( std::ostream& out );
     void setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth );
     
-    bool operator == ( const rhombus<numberType> &Input )const;
+    bool operator == ( const rhombus<numberType> &Input );
     
-    bool in( Cpoint<numberType > star )const;
+    bool in( Cpoint<numberType > star );
     void intersect( rhombus<numberType>* win );
     void intersect( Cpoint<numberType > center );
     
-    rhombus<numberType>* inscribed() const;
-    rhombus<numberType>* circumscribed() const;
+    rhombus<numberType>* inscribed();
+    rhombus<numberType>* circumscribed();
     
     void center( Cpoint<numberType > center );
     
@@ -140,12 +140,12 @@ class circle : public window2D<numberType>
     void svg( std::ostream& out );
     void setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth );
     
-    bool in( Cpoint<numberType > star )const;
+    bool in( Cpoint<numberType > star );
     void intersect( circle<numberType>* win );
     void intersect( Cpoint<numberType > center );
     
-    rhombus<numberType>* inscribed() const;
-    rhombus<numberType>* circumscribed() const;
+    rhombus<numberType>* inscribed();
+    rhombus<numberType>* circumscribed();
     
     void center( Cpoint<numberType > center );
     void emptyIntersectionList();
@@ -162,33 +162,46 @@ class circle : public window2D<numberType>
 };
 
 template <typename numberType>
-class dodecagonTip : public window2D<numberType> 
+class polygon : public window2D<numberType> 
 {
   protected:
-    numberType  m_a;
-    numberType  m_x; // center
-    numberType  m_y;
+    Cpoint<numberType> m_center;
+    CpointSet<numberType> m_vert;
+    CpointSet<numberType> backup_vert; // for simple intersection after original polygon has been altered
     
     std::string m_fillColor;  // format rgb(R,G,B)
     std::string m_strokeColor;
     std::string m_strokeWidth;
   public:
-    dodecagonTip();
-    dodecagonTip( numberType  a );
-    dodecagonTip( numberType  a, numberType  x ,numberType  y );
-    void svg( std::ostream& out ) const;
+    polygon();
+    polygon(CpointSet<numberType> vert);
+    polygon(CpointSet<numberType> vert, Cpoint<numberType> center);
+    void operator = (const polygon<numberType>& polygon);
+    void svg( std::ostream& out );
     void setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth );
     
-    bool in( Cpoint<numberType > star )const;
-    void intersect( dodecagonTip<numberType>* win );
-    void intersect( Cpoint<numberType > center );
+    bool in( Cpoint<numberType> star );
+    bool inClose( Cpoint<numberType> star );
+    void intersect( polygon<numberType>* win );
+    void intersect( Cpoint<numberType> center );
     
-    rhombus<numberType>* inscribed() const;
-    rhombus<numberType>* circumscribed() const;
+    rhombus<numberType>* inscribed();
+    rhombus<numberType>* circumscribed();
     
-    void center( Cpoint<numberType > center );
+    void center( Cpoint<numberType> center );
     
     bool empty();
+    
+    double  centerX();
+    double  centerY();
+    
+    numberType size();
+    bool operator < (polygon<numberType> &compare);
+    
+    template <typename number>
+    friend bool diff(polygon<number>& larger, polygon<number> smaller);
+    
+    polygon<numberType> static octagon(numberType size);
 };
 
 template <typename numberType>
@@ -559,13 +572,13 @@ template <typename numberType>
 void window2D<numberType>::intersect( Cpoint<numberType> center ) {}
 
 template <typename numberType>
-void window2D<numberType>::svg( std::ostream& out ) const {}
+void window2D<numberType>::svg( std::ostream& out ) {}
 
 template <typename numberType>
-window2D<numberType>* window2D<numberType>::inscribed() const {}
+window2D<numberType>* window2D<numberType>::inscribed() {}
 
 template <typename numberType>
-window2D<numberType>* window2D<numberType>::circumscribed() const {}
+window2D<numberType>* window2D<numberType>::circumscribed() {}
 
 template <typename numberType>
 void window2D<numberType>::center( Cpoint<numberType> center ) {}
@@ -611,13 +624,13 @@ rhombus<numberType>::rhombus( numberType width, numberType height, numberType x 
 }
 
 template <typename numberType>
-bool rhombus<numberType>::operator == ( const rhombus &Input )const
+bool rhombus<numberType>::operator == ( const rhombus &Input )
 {
   return ((m_x == Input.m_x) && (m_y == Input.m_y) && (m_width == Input.m_width) && (m_height == Input.m_height));
 }
 
 template <typename numberType>
-bool rhombus<numberType>::in(Cpoint<numberType> star)const
+bool rhombus<numberType>::in(Cpoint<numberType> star)
 {
   numberType tmp = numberType::windowA()*numberType::windowD() - numberType::windowB()*numberType::windowC(); // denominator of inverse transform
   
@@ -676,7 +689,7 @@ void rhombus<numberType>::intersect( Cpoint<numberType> center )
 }
 
 template <typename numberType>
-void rhombus<numberType>::svg( std::ostream& out ) const
+void rhombus<numberType>::svg( std::ostream& out )
 {
   out << "<polygon points=\"";
   out << (numberType::windowA()*m_x           + numberType::windowB()*m_y)            << "," << ( numberType::windowC()*m_x           + numberType::windowD()*m_y ) << " ";
@@ -695,7 +708,7 @@ void rhombus<numberType>::setColor( const std::string fillColor, const std::stri
 }
 
 template <typename numberType>
-rhombus<numberType>* rhombus<numberType>::inscribed() const
+rhombus<numberType>* rhombus<numberType>::inscribed()
 {
   rhombus* result;
   if ( m_width < m_height )
@@ -711,7 +724,7 @@ rhombus<numberType>* rhombus<numberType>::inscribed() const
 }
 
 template <typename numberType>
-rhombus<numberType>* rhombus<numberType>::circumscribed() const
+rhombus<numberType>* rhombus<numberType>::circumscribed()
 {
   rhombus* result;
   if ( m_width > m_height )
@@ -742,19 +755,19 @@ void rhombus<numberType>::center( Cpoint<numberType> center )
 }
 
 template <typename numberType>
-window<numberType> rhombus<numberType>::Xwindow()const
+window<numberType> rhombus<numberType>::Xwindow() const
 {
   return window<numberType>( m_x, m_x + m_width );
 }
 
 template <typename numberType>
-window<numberType> rhombus<numberType>::Ywindow()const
+window<numberType> rhombus<numberType>::Ywindow() const
 {
   return window<numberType>( m_y, m_y + m_height );
 }
 
 template <typename numberType>
-numberType rhombus<numberType>::large()const
+numberType rhombus<numberType>::large() const
 {
   window<numberType> Xwin( m_width );
   window<numberType> Ywin( m_height );
@@ -922,7 +935,7 @@ void circle<numberType>::setColor( const std::string fillColor, const std::strin
 }
 
 template <typename numberType>
-bool circle<numberType>::in( Cpoint<numberType> star )const
+bool circle<numberType>::in( Cpoint<numberType> star )
 {
   for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
   {
@@ -968,7 +981,7 @@ void circle<numberType>::intersect( Cpoint<numberType> center )
 }
 
 template <typename numberType>
-rhombus<numberType>* circle<numberType>::inscribed() const
+rhombus<numberType>* circle<numberType>::inscribed()
 {
   numberType size = m_R*numberType::inscribedRhombusToCircle();;
   
@@ -978,7 +991,7 @@ rhombus<numberType>* circle<numberType>::inscribed() const
 }
 
 template <typename numberType>
-rhombus<numberType>* circle<numberType>::circumscribed() const
+rhombus<numberType>* circle<numberType>::circumscribed()
 {
   numberType size = m_R*numberType::circumscribedRhombusToCircle();
   
@@ -1186,39 +1199,60 @@ bool diff(circle<numberType>& larger, circle<numberType> smaller)
   return flag;
 }
 
-// DODECAGON_TIP -----------------------------------------------------------
-template <typename numberType>
-dodecagonTip<numberType>::dodecagonTip()
-{
-  m_a = numberType::get( 1, 0 );
-  m_x = numberType::get( 0, 0 );
-  m_y = numberType::get( 0, 0 );
-}
 
+// POLYGON -------------------------------------------------------------
 template <typename numberType>
-dodecagonTip<numberType>::dodecagonTip( numberType a )
-{
-  m_a = a;
-  m_x = numberType::get( 0, 0 );
-  m_y = numberType::get( 0, 0 );
-}
-
-template <typename numberType>
-dodecagonTip<numberType>::dodecagonTip( numberType a, numberType x ,numberType y )
-{
-  m_a = a;
-  m_x = x;
-  m_y = y;
-}
-
-template <typename numberType>
-void dodecagonTip<numberType>::svg( std::ostream& out ) const
+polygon<numberType>::polygon()
 {
   
 }
 
 template <typename numberType>
-void dodecagonTip<numberType>::setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth )
+polygon<numberType>::polygon(CpointSet<numberType> vert)
+{
+  m_vert = vert;
+  m_vert.sortClockwise();
+  for (typename std::list<Cpoint<numberType> >::iterator it = m_vert.begin(); it != m_vert.end(); ++it)
+  {
+    m_center.set(m_center.getX() + it->getX(), m_center.getY() + it->getY());
+  }
+  m_center.set(m_center.getX()/numberType::get(m_vert.size(),0), m_center.getY()/numberType::get(m_vert.size(),0));
+  
+  backup_vert = m_vert;
+}
+
+template <typename numberType>
+polygon<numberType>::polygon(CpointSet<numberType> vert, Cpoint<numberType> center)
+{
+  m_vert = vert;
+  m_center = center;
+  
+  m_vert.sortClockwise();
+  
+  backup_vert = m_vert;
+}
+
+template <typename numberType>
+void polygon<numberType>::operator = (const polygon<numberType> &polygon)
+{
+  this->m_vert = polygon.m_vert;
+  this->m_center = polygon.m_center;
+  this->backup_vert = polygon.backup_vert;
+}
+
+template <typename numberType>
+void polygon<numberType>::svg( std::ostream& out )
+{
+  out << "<polygon points=\"";
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(); it != m_vert.end(); ++it)
+  {
+    out << it->getX() << "," << it->getY() << " ";
+  }
+  out << "\" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "; fill-opacity:0.4\"/>" << std::endl;
+}
+
+template <typename numberType>
+void polygon<numberType>::setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth )
 {
   m_fillColor = fillColor;
   m_strokeColor = strokeColor;
@@ -1226,71 +1260,300 @@ void dodecagonTip<numberType>::setColor( const std::string fillColor, const std:
 }
 
 template <typename numberType>
-bool dodecagonTip<numberType>::in( Cpoint<numberType> star )const
+bool polygon<numberType>::in( Cpoint<numberType> star )
 {
-  numberType x = star.getX();
-  numberType y = star.getY();
-  
-  if ( x < m_x )
+  bool c = false;
+  // sending horizontal rays, flipping c on boundary intersection: http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(), ot = --m_vert.end(); it != m_vert.end(); ot = it++) 
   {
-    x = m_x*numberType::get(2,0) - x;
+    // check border
+    if ( (max(it->getX(), ot->getX()) >= star.getX()) && (min(it->getX(), ot->getX()) <= star.getX()) && (max(it->getY(), ot->getY()) >= star.getY()) && (min(it->getY(), ot->getY()) <= star.getY()) \
+      && ( (ot->getX() - it->getX()) * (star.getY() - it->getY()) == (star.getX() - it->getX()) * (ot->getY() - it->getY()) ) \
+       )
+    {
+      return false;
+    }
+    
+    if ( ((it->getY() > star.getY()) != (ot->getY() > star.getY()) ) \
+      && ( (star.getX()-it->getX()) < ((ot->getX()-it->getX()) * (star.getY()-it->getY()) / (ot->getY()-it->getY())) ) \
+       )
+    {
+      c = !c;
+    }
   }
   
-  if ( y < m_y )
+  return c;
+}
+
+
+template <typename numberType>
+bool polygon<numberType>::inClose( Cpoint<numberType> star )
+{
+  bool c = false;
+  // sending horizontal rays, flipping c on boundary intersection: http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(), ot = --m_vert.end(); it != m_vert.end(); ot = it++) 
   {
-    y = m_y*numberType::get(2,0) - y;
+    // check border
+    if ( (max(it->getX(), ot->getX()) >= star.getX()) && (min(it->getX(), ot->getX()) <= star.getX()) && (max(it->getY(), ot->getY()) >= star.getY()) && (min(it->getY(), ot->getY()) <= star.getY()) \
+      && ( (ot->getX() - it->getX()) * (star.getY() - it->getY()) == (star.getX() - it->getX()) * (ot->getY() - it->getY()) ) \
+       )
+    {
+      return true;
+    }
+    
+    if ( ((it->getY() > star.getY()) != (ot->getY() > star.getY()) ) \
+      && ( (star.getX()-it->getX()) < ((ot->getX()-it->getX()) * (star.getY()-it->getY()) / (ot->getY()-it->getY())) ) \
+       )
+    {
+      c = !c;
+    }
   }
   
-  return ( ( y + numberType::get(0,1)*x <= numberType::get(0,1)*(m_x+m_a) + m_y     ) \
-        && ( y + x                   <= m_x + m_y + numberType::get(-1,1,2)*m_a  ) \
-        && ( numberType::get(0,1)*y + x <= m_x + numberType::get(0,1)*( m_y + m_a ) ) );
+  return c;
+}
+
+
+template <typename numberType>
+void polygon<numberType>::intersect( polygon* win )
+{
+  // assume one intersecting area
+  CpointSet<numberType> new_vert;
+  
+  for (typename std::list<Cpoint<numberType> >::const_iterator ot = win->m_vert.begin(); ot != win->m_vert.end(); ++ot) 
+  {
+    if (this->inClose(*ot))
+    {
+      new_vert.addPoint(*ot);
+    }
+  }
+  
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(), itold = --m_vert.end(); it != m_vert.end(); itold = it++) 
+  {
+    if (win->in(*it))
+    {
+      new_vert.addPoint(*it);
+    }
+    
+    if (win->inClose(*it) != win->in(*itold))
+    {
+      // search for two points dividing this edge
+      for (typename std::list<Cpoint<numberType> >::const_iterator ot = win->m_vert.begin(), otold = --win->m_vert.end(); ot != win->m_vert.end(); otold = ot++) 
+      {
+        if ( ( sign( ((it->getX()-ot->getX())*(otold->getY()-ot->getY())-(it->getY()-ot->getY())*(otold->getX()-ot->getX())) ) \
+            != sign( ((itold->getX()-ot->getX())*(otold->getY()-ot->getY())-(itold->getY()-ot->getY())*(otold->getX()-ot->getX())) ) \
+             ) \
+          && ( sign( ((ot->getX()-it->getX())*(itold->getY()-it->getY())-(ot->getY()-it->getY())*(itold->getX()-it->getX())) ) \
+            != sign( ((otold->getX()-it->getX())*(itold->getY()-it->getY())-(otold->getY()-it->getY())*(itold->getX()-it->getX())) ) \
+             ) \
+           )
+        {
+          // add intersection of edges to new vertexes https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+          numberType a = it->getX()*itold->getY()-it->getY()*itold->getX();
+          numberType b = ot->getX()*otold->getY()-ot->getY()*otold->getX();
+          numberType c = (it->getX()-itold->getX())*(ot->getY()-otold->getY()) - (it->getY()-itold->getY())*(ot->getX()-otold->getX()); //denominator
+          Cpoint<numberType> vertex;
+          vertex.setX((a*(ot->getX()-otold->getX())-b*(it->getX()-itold->getX()))/c);
+          vertex.setY((a*(ot->getY()-otold->getY())-b*(it->getY()-itold->getY()))/c);
+          new_vert.addPoint(vertex);
+        }
+      }
+    }
+  }
+  new_vert.unique();
+  new_vert.sortClockwise();
+  
+  m_center = Cpoint<numberType>(0,0);
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = new_vert.begin(); it != new_vert.end(); ++it) 
+  {
+    m_center.set(m_center.getX() + it->getX(), m_center.getY() + it->getY());
+  }
+  m_center.set(m_center.getX()/numberType::get(new_vert.size(),0), m_center.getY()/numberType::get(new_vert.size(),0));
+  
+  m_vert = new_vert;
 }
 
 template <typename numberType>
-void dodecagonTip<numberType>::intersect( dodecagonTip* win )
+void polygon<numberType>::intersect( Cpoint<numberType> center )
 {
-  
-}
-
-template <typename numberType>
-void dodecagonTip<numberType>::intersect( Cpoint<numberType> center )
-{
-  dodecagonTip moving = *this;
+  polygon<numberType> moving(backup_vert);
   moving.center(center);
   this->intersect(&moving);
 }
 
 template <typename numberType>
-rhombus<numberType>* dodecagonTip<numberType>::inscribed() const
+rhombus<numberType>* polygon<numberType>::inscribed()
 {
-  numberType size = numberType::get( -3, 1, 4 )*m_a;
+  numberType size = max((m_vert.begin()->getX()-m_center.getX()).abs(), (m_vert.begin()->getY()-m_center.getY()).abs());
   
-  rhombus<numberType>* insc = new rhombus<numberType>( size, size, m_x, m_y );
-  insc->center( Cpoint<numberType>( m_x, m_y ) );
+  // radius of inscribed circle
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = ++m_vert.begin(); it != m_vert.end(); ++it)
+  {
+    size = min(max((it->getX()-m_center.getX()).abs(), (it->getY()-m_center.getY()).abs()), size);
+  }
+  size = size*numberType::inscribedRhombusToCircle();
+  
+  rhombus<numberType>* insc = new rhombus<numberType>(size, size);
+  insc->center(m_center);
   return insc;
 }
 
 template <typename numberType>
-rhombus<numberType>* dodecagonTip<numberType>::circumscribed() const
+rhombus<numberType>* polygon<numberType>::circumscribed()
 {
-  numberType size = m_a*numberType::get( 4, 0 );
+  numberType size;
   
-  rhombus<numberType>* circ = new rhombus<numberType>( size, size, m_x, m_y );
-  circ->center( Cpoint<numberType>( m_x, m_y ) );
+  // radius of circumscribed circle
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(); it != m_vert.end(); ++it)
+  {
+      size = max((it->getX()-m_center.getX()).abs() + (it->getY()-m_center.getY()).abs(), size);
+  }
+  
+  size = size*numberType::circumscribedRhombusToCircle();
+  
+  rhombus<numberType>* circ = new rhombus<numberType>(size, size);
+  circ->center(m_center);
   return circ;
 }
 
 template <typename numberType>
-void dodecagonTip<numberType>::center( Cpoint<numberType> center )
+void polygon<numberType>::center( Cpoint<numberType> center )
 {
-  m_x = center.getX();
-  m_y = center.getY();
+  for (typename std::list<Cpoint<numberType> >::iterator it = m_vert.begin(); it != m_vert.end(); ++it)
+  {
+    it->setX(it->getX() - m_center.getX() + center.getX());
+    it->setY(it->getY() - m_center.getY() + center.getY());
+  }
+  m_center = center;
 }
 
 template <typename numberType>
-bool dodecagonTip<numberType>::empty() 
+bool polygon<numberType>::empty() 
+{
+  numberType area;
+  
+  if (m_vert.size() < 3)
+  {
+    return true;
+  }
+  
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(), itold = --m_vert.end(); it != m_vert.end(); itold = it++) 
+  {
+    area+= itold->getX()*it->getY() - it->getX()*itold->getY();
+  }
+  
+  return abs(area) == 0;
+}
+
+template <typename numberType>
+double polygon<numberType>::centerX()
+{
+  return m_center.getX();
+}
+
+template <typename numberType>
+double polygon<numberType>::centerY()
+{
+  return m_center.getY();
+}
+
+template <typename numberType>
+numberType polygon<numberType>::size()
 {
   
+  numberType area = numberType::get(0,0);
+  
+  for ( typename std::list<Cpoint<numberType> >::iterator it = m_vert.begin(), itold = --m_vert.end(); it != m_vert.end(); itold = it++ )
+  {
+    area+= itold->getX()*it->getY() - it->getX()*itold->getY();
+  }
+  
+  return area.abs()*numberType::get(1,0,2);
+}
+
+template <typename numberType>
+bool polygon<numberType>::operator < (polygon<numberType> &compare)
+{
+  return this->size() < compare.size();
+}
+
+template <typename numberType>
+bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
+{
+  // assume one area
+  CpointSet<numberType> new_vert = larger.m_vert;
+  
+  // add division points
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = smaller.m_vert.begin(); it != smaller.m_vert.end(); ++it) 
+  {
+    if (larger.inClose(*it) && !larger.in(*it))
+    {
+      new_vert.addPoint(*it);
+    }
+  }
+  
+  new_vert.unique();
+  new_vert.sortClockwise();
+  
+  bool flag; // there are three points smaller.inClose
+  do
+  {
+    flag = false;
+    
+    typename std::list<Cpoint<numberType> >::iterator itold_old = ----new_vert.end();
+    for (typename std::list<Cpoint<numberType> >::iterator it = new_vert.begin(), itold = --new_vert.end(); it != new_vert.end(); itold = it++) 
+    {
+      if (smaller.inClose(*itold_old) && smaller.inClose(*itold) && smaller.inClose(*it))
+      {
+        new_vert.removePoint(itold);
+        flag = true;
+      }
+      else
+      {
+        itold_old = itold;
+      }
+    }
+  } while (flag);
+  
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = smaller.m_vert.begin(); it != smaller.m_vert.end(); ++it) 
+  {
+    if (larger.in(*it))
+    {
+      new_vert.addPoint(*it);
+    }
+  }
+  
+  new_vert.unique();
+  new_vert.sortClockwise();
+  
+  larger.m_center = Cpoint<numberType>(0,0);
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = new_vert.begin(); it != new_vert.end(); ++it) 
+  {
+    larger.m_center.set(larger.m_center.getX() + it->getX(), larger.m_center.getY() + it->getY());
+  }
+  larger.m_center.set(larger.m_center.getX()/numberType::get(new_vert.size(),0), larger.m_center.getY()/numberType::get(new_vert.size(),0));
+  
+  larger.m_vert = new_vert;
+}
+
+
+
+
+
+
+template <typename numberType>
+polygon<numberType> polygon<numberType>::octagon(numberType size)
+{
+  CpointSet<numberType> vert;
+  vert.addPoint(Cpoint<numberType>(size*numberType::get(1,0,1),  size*numberType::get(0,0,1)));
+  vert.addPoint(Cpoint<numberType>(size*numberType::get(-1,1,2), size*numberType::get(-1,1,2)));
+  vert.addPoint(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(1,0,1)));
+  vert.addPoint(Cpoint<numberType>(size*numberType::get(1,-1,2), size*numberType::get(-1,1,2)));
+  vert.addPoint(Cpoint<numberType>(size*numberType::get(-1,0,1), size*numberType::get(0,0,1)));
+  vert.addPoint(Cpoint<numberType>(size*numberType::get(1,-1,2), size*numberType::get(1,-1,2)));
+  vert.addPoint(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(-1,0,1)));
+  vert.addPoint(Cpoint<numberType>(size*numberType::get(-1,1,2), size*numberType::get(1,-1,2)));
+  
+  return polygon<numberType>(vert);
 }
 
 

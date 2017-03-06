@@ -268,6 +268,7 @@ class CvoronoiCell : public virtual Cfigure<numberType>
     
     double value() const;
     numberType size() const;
+    numberType radius() const;
     Cpoint<numberType> middle() const;
     Cpoint<numberType> middleDomain() const;
     void colorify();
@@ -866,6 +867,7 @@ int CpointSet<numberType>::size() const
 template <typename numberType>
 void CpointSet<numberType>::unique()
 {
+  points->sort();
   points->unique();
 }
 
@@ -1102,11 +1104,11 @@ template <typename numberType>
 void CpointSet<numberType>::sortClockwise()
 {
   Cpoint<numberType> center;
-  for (std::list<Cpoint<double> >::iterator it = this->points->begin(); it != this->points->end(); ++it)
+  for (typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); ++it)
   {
     center.set(center.getX()+it->getX(), center.getY()+it->getY());
   }
-  center.set(center.getX()/this->points->size(), center.getY()/this->points->size());
+  center.set(center.getX()/numberType::get(this->points->size(),0), center.getY()/numberType::get(this->points->size(),0));
   *this-= center;
   
   this->points->sort(clockwiseComp<numberType>);
@@ -2005,16 +2007,28 @@ double CvoronoiCell<numberType>::value() const
 template <typename numberType>
 numberType CvoronoiCell<numberType>::size() const
 {
-  numberType area;
+  numberType area = numberType::get(0,0);
   
-  for ( typename std::list<Cpoint<numberType> >::iterator it = Cell->begin(); std::next(it) != Cell->end(); ++it )
+  for ( typename std::list<Cpoint<numberType> >::iterator it = Cell->begin(), itold = --Cell->end(); it != Cell->end(); itold = it++ )
   {
-    area+= it->getX()*std::next(it)->getY() - std::next(it)->getX()*it->getY();
+    area+= itold->getX()*it->getY() - it->getX()*itold->getY();
   }
   
-  area+= Cell->rbegin()->getX()*Cell->begin()->getY() - Cell->begin()->getX()*Cell->rbegin()->getY();
+  return area.abs()*numberType::get(1,0,2);
+}
+
+template <typename numberType>
+numberType CvoronoiCell<numberType>::radius() const
+{
+  numberType radius = numberType::get(0,0);
   
-  return abs(area)*numberType::get(1,0,2);
+  // upper estimate from Manhattan metric
+  for (typename std::list<Cpoint<numberType> >::iterator it = Cell->begin(); it != Cell->end(); ++it)
+  {
+    radius = max(it->getX().abs()+it->getY().abs(), radius);
+  }
+  
+  return radius;
 }
 
 template <typename numberType>

@@ -19,7 +19,7 @@
 // creates diagram of "any" window from finite section
 
 typedef alphaSet numberType;
-typedef circle<numberType> windowType;
+typedef polygon<numberType> windowType;
 
 int main( int argc, char ** argv )
 {
@@ -27,7 +27,7 @@ int main( int argc, char ** argv )
   std::cout << "---------------------------------" << std::endl << std::flush;
   
   // interval of the quasicrystal
-  numberType x(20,0);
+  numberType x(35,0);
     
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
@@ -61,7 +61,8 @@ int main( int argc, char ** argv )
   
   
   //rhombus win( winSize, winSize );
-  windowType win( winSize );
+  //windowType win( winSize );
+  windowType win = polygon<numberType>::octagon(winSize);
   win.center( origin );
   
   // control with hyperquasicrystal
@@ -71,9 +72,9 @@ int main( int argc, char ** argv )
   rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
   
   
-  numberType x1 = -x;//numberType::get(-3, 0)*insc->large();
+  numberType x1 = -x;
   numberType x2 = x;
-  numberType y1 = -x;//numberType::get(-3, 0)*insc->large();
+  numberType y1 = -x;
   numberType y2 = x;
   
   
@@ -165,9 +166,18 @@ int main( int argc, char ** argv )
   print(output, winSize);
   output << std::endl;
   
+  numberType radius;
+  
   for (std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it)
   {
+    // get radius
+    radius = max(it->radius(), radius);
+    
     output << it->save() << std::endl;
   }
   output.close();
+  
+  std::cout << "Distance to cover estimate: ";
+  print(std::cout, radius*numberType::get(4,0));
+  std::cout << std::endl;
 }

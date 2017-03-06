@@ -423,6 +423,11 @@ betaSet betaSet::abs() const
     Output.a = -a;
     Output.b = -b;
   }
+  else
+  {
+    Output.a = a;
+    Output.b = b;
+  }
   Output.c = ( c < 0 ) ? -c : c;
   
   Output.simplify();

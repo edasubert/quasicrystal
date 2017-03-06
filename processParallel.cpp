@@ -17,7 +17,7 @@
 #include <string>
 
 typedef alphaSet numberType;
-typedef circle<numberType> windowType;
+typedef polygon<numberType> windowType;
 
 int main (int argc, char* argv[])
 { 
@@ -47,7 +47,8 @@ int main (int argc, char* argv[])
   
   
   // initialize
-  windowType win( winSize );
+  //windowType win( winSize );
+  windowType win = polygon<numberType>::octagon(winSize);
   win.center( origin );
   
   // hyperquasicrystal
@@ -79,9 +80,6 @@ int main (int argc, char* argv[])
       {
         inputData.push_back(line);
       }
-      
-      if (inputData.size() > 100)
-        break;
     }
     myfile.close();
   }
@@ -104,6 +102,19 @@ int main (int argc, char* argv[])
     {
       continue;
     }
+    
+    for (std::list<Cpoint<numberType> >::iterator ot = voronoi.CarrierSet->begin(); ot != voronoi.CarrierSet->end();)
+    {
+      if (*ot == origin)
+      {
+        ot = voronoi.CarrierSet->removePoint(ot);
+      }
+      else
+      {
+        ++ot;
+      }
+    }
+    
     
     voronoi.setDescription(*it);
     voronoi.CarrierSet->setPackingR();
@@ -142,8 +153,6 @@ int main (int argc, char* argv[])
   std::string borderstrokeWidth = convert.str();
   
   
-  
-  
   int count;
   
   
@@ -154,10 +163,11 @@ int main (int argc, char* argv[])
   
   for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); )
   {
+    it->CarrierSet->sortClockwise();
     windowType intersect = win;
     for (std::list<Cpoint<numberType> >::iterator ot = it->CarrierSet->begin(); ot != it->CarrierSet->end(); ++ot)
     {
-      intersect.intersect(origin-ot->star());
+      intersect.intersect((origin-*ot).star());
     }
     if (!intersect.empty())
     {
@@ -166,7 +176,8 @@ int main (int argc, char* argv[])
     }
     else
     {
-      it = cells.erase(it);
+      it = cells.erase(it); 
+      //++it;
       std::cout << "WHAT IS GOING ON?!?!?!" << std::endl << std::flush;
     }
   }
@@ -174,58 +185,62 @@ int main (int argc, char* argv[])
   std::cout << "cells size: " << cells.size() << std::endl << std::endl << std::flush;
   std::cout << "Dealing with overlap" << std::endl << std::flush;
   
-  // deal with overlap
-  //cells.sort();
-  //std::list<CvoronoiCell<numberType> > selection;
+  //// deal with overlap
+  cells.sort();
+  std::list<CvoronoiCell<numberType> > selection;
   
-  //selection.push_back(*cells.begin());
+  selection.push_back(*cells.begin());
   
-  //count = 0;
-  //int printCount = 0;
-  //bool check;
+  count = 0;
+  int printCount = 0;
+  bool check;
   
-  //for (std::list<CvoronoiCell<numberType> >::iterator ot = ++cells.begin(); ot != cells.end(); ++ot)
-  //{
-    //std::list<windowType> toCut;
-    //// gather cutting material
-    //for ( std::list<CvoronoiCell<numberType> >::iterator it = selection.begin(); it != selection.end(); ++it )
-    //{
-      //windowType intersection = windowParts[it->getDescription()];
-      //intersection.intersect(&windowParts[ot->getDescription()]);
-      //if ((!intersection.empty()) && (ot->size() > it->size()))
-      //{
-        //toCut.push_back(windowParts[it->getDescription()]);
-      //}
-    //}
+  for (std::list<CvoronoiCell<numberType> >::iterator ot = ++cells.begin(); ot != cells.end(); ++ot)
+  {
+    std::list<windowType> toCut;
+    // gather cutting material
+    for ( std::list<CvoronoiCell<numberType> >::iterator it = selection.begin(); it != selection.end(); ++it )
+    {
+      windowType intersection = windowParts[it->getDescription()];
+      intersection.intersect(&windowParts[ot->getDescription()]);
+      if ((!intersection.empty()) && (ot->size() > it->size()))
+      {
+        toCut.push_back(windowParts[it->getDescription()]);
+        std::cout << "CUT cut cut" << std::endl << std::flush;
+      }
+    }
     
-    //// do some cutting
-    //for ( std::list<windowType>::iterator it = toCut.begin(); it != toCut.end(); ++it )
-    //{
-      //windowType intersection = *it;
-      //intersection.intersect(&windowParts[ot->getDescription()]);
-      //diff(windowParts[ot->getDescription()], intersection);
+    toCut.sort();
+    toCut.reverse();
+    
+    // do some cutting
+    for ( std::list<windowType>::iterator it = toCut.begin(); it != ++toCut.begin(); ++it )
+    {
+      windowType intersection = *it;
+      intersection.intersect(&windowParts[ot->getDescription()]);
+      diff(windowParts[ot->getDescription()], intersection);
       
-      //if (windowParts[ot->getDescription()].empty())
-        //break;
-    //}
+      if (windowParts[ot->getDescription()].empty())
+        break;
+    }
     
-    //// decide
-    //if (!windowParts[ot->getDescription()].empty())
-    //{
-      //selection.push_back(*ot);
-    //}
+    // decide
+    if (!windowParts[ot->getDescription()].empty())
+    {
+      selection.push_back(*ot);
+    }
     
-    //// print progress
-    //++count;
-    //++printCount;
-    //if (500*printCount > cells.size())
-    //{
-      //std::cout << "processed " << count << "/" << cells.size() << " <=> " << 100*count/cells.size() << "%" << "\t| " << "selection size: " << selection.size() << std::endl << std::flush;
-      //printCount = 0;
-    //}
-  //}
+    // print progress
+    ++count;
+    ++printCount;
+    if (500*printCount > cells.size())
+    {
+      std::cout << "processed " << count << "/" << cells.size() << " <=> " << 100*count/cells.size() << "%" << "\t| " << "selection size: " << selection.size() << std::endl << std::flush;
+      printCount = 0;
+    }
+  }
   
-  //std::cout << "selection size: " << selection.size() << std::endl << std::endl << std::flush;
+  std::cout << "selection size: " << selection.size() << std::endl << std::endl << std::flush;
   
   //cells = selection;
   
