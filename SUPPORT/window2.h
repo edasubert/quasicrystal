@@ -1329,7 +1329,7 @@ void polygon<numberType>::intersect( polygon* win )
   
   for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(), itold = --m_vert.end(); it != m_vert.end(); itold = it++) 
   {
-    if (win->in(*it))
+    if (win->inClose(*it))
     {
       new_vert.addPoint(*it);
     }
@@ -1359,6 +1359,7 @@ void polygon<numberType>::intersect( polygon* win )
       }
     }
   }
+  new_vert.sort();
   new_vert.unique();
   new_vert.sortClockwise();
   
@@ -1479,51 +1480,96 @@ bool polygon<numberType>::operator < (polygon<numberType> &compare)
 template <typename numberType>
 bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
 {
+  //std::cout << smaller.m_vert.size() << std::endl << std::flush;
   // assume one area
-  CpointSet<numberType> new_vert = larger.m_vert;
+  CpointSet<numberType> new_vert;
   
-  // add division points
-  for (typename std::list<Cpoint<numberType> >::const_iterator it = smaller.m_vert.begin(); it != smaller.m_vert.end(); ++it) 
+  // start larger outside smaller
   {
-    if (larger.inClose(*it) && !larger.in(*it))
+    Cpoint<numberType> tmp = *larger.m_vert.begin();
+    while (smaller.inClose(*(--larger.m_vert.end())))
     {
-      new_vert.addPoint(*it);
+      larger.m_vert.push_back(*larger.m_vert.begin());
+      larger.m_vert.removePoint(larger.m_vert.begin());
+      
+      if (tmp == *larger.m_vert.begin())
+      {
+        larger.m_vert = new_vert; // empty
+        return true;
+      }
     }
   }
   
-  new_vert.unique();
-  new_vert.sortClockwise();
-  
-  bool flag; // there are three points smaller.inClose
-  do
+  // add points of smaller to the bigger
+  for (typename std::list<Cpoint<numberType> >::iterator it = larger.m_vert.begin(), itold = --larger.m_vert.end(); it != larger.m_vert.end(); itold = it++) 
   {
-    flag = false;
+    new_vert.push_back(*itold);
+    for (typename std::list<Cpoint<numberType> >::iterator ot = smaller.m_vert.begin(); ot != smaller.m_vert.end(); ++ot) 
+    {
+      // add points on edge it--itold
+      if (((ot->getY()-it->getY())*(itold->getX()-it->getX()) == (ot->getX()-it->getX())*(itold->getY()-it->getY())) \
+        && (max(it->getX(),itold->getX()) > ot->getX()) && (min(it->getX(),itold->getX()) < ot->getX()) \
+        && (max(it->getY(),itold->getY()) > ot->getY()) && (min(it->getY(),itold->getY()) < ot->getY()) \
+         )
+      {
+        new_vert.push_back(*ot);
+      }
+    }
+  }
+  
+  larger.m_vert = new_vert;
+  new_vert.clear();
+  
+  larger.m_vert.push_back(*larger.m_vert.begin());
+  larger.m_vert.removePoint(larger.m_vert.begin());
+  
+  typename std::list<Cpoint<numberType> >::iterator ot = smaller.m_vert.end();
+  
+  for (typename std::list<Cpoint<numberType> >::iterator it = larger.m_vert.begin(), itold = --larger.m_vert.end(); it != larger.m_vert.end(); itold = it++) 
+  {
+    std::cout << "FOR " << std::distance(larger.m_vert.begin(), it) << std::endl << std::flush;
+    if (ot == smaller.m_vert.end())
+    {
+      new_vert.push_back(*itold);
+    }
     
-    typename std::list<Cpoint<numberType> >::iterator itold_old = ----new_vert.end();
-    for (typename std::list<Cpoint<numberType> >::iterator it = new_vert.begin(), itold = --new_vert.end(); it != new_vert.end(); itold = it++) 
+    // entering the smaller
+    if ((smaller.inClose(*it)) && (ot == smaller.m_vert.end()))
     {
-      if (smaller.inClose(*itold_old) && smaller.inClose(*itold) && smaller.inClose(*it))
+      //std::cout << "IF" << std::endl << std::flush;
+      // search for point of smaller on the edge itold--it; make it begin
+      ot = smaller.m_vert.begin();
+      while (*ot != *it)
       {
-        new_vert.removePoint(itold);
-        flag = true;
-      }
-      else
-      {
-        itold_old = itold;
+        //std::cout << "WHILE smaller" << std::endl << std::flush;
+        smaller.m_vert.push_back(*ot);
+        ot = smaller.m_vert.removePoint(ot); //if there is no such point, there is troble elsewhere
       }
     }
-  } while (flag);
-  
-  for (typename std::list<Cpoint<numberType> >::const_iterator it = smaller.m_vert.begin(); it != smaller.m_vert.end(); ++it) 
-  {
-    if (larger.in(*it))
+    
+    std::cout << "test: " << (!smaller.inClose(*it)) << (ot != smaller.m_vert.end()) << std::endl << std::flush;
+    if ((!smaller.inClose(*it)) && (ot != smaller.m_vert.end()))
     {
-      new_vert.addPoint(*it);
+      std::cout << "IF add smaller" << std::endl << std::flush;
+      // fill in points of smaller, counterclockwise
+      new_vert.push_back(*ot);
+      typename std::list<Cpoint<numberType> >::reverse_iterator ut = smaller.m_vert.rbegin();
+      while (*ut != *itold)
+      {
+        //std::cout << "add" << std::endl << std::flush;
+        new_vert.push_back(*ut);
+        ++ut;
+      }
+      new_vert.push_back(*ut);
+      
+      ot = smaller.m_vert.end();
     }
+    
+    std::cout << "larger vert size: " << larger.m_vert.size() << std::endl << std::flush;
+    std::cout << "new vert size: " << new_vert.size() << std::endl << std::flush;
   }
   
   new_vert.unique();
-  new_vert.sortClockwise();
   
   larger.m_center = Cpoint<numberType>(0,0);
   for (typename std::list<Cpoint<numberType> >::const_iterator it = new_vert.begin(); it != new_vert.end(); ++it) 
@@ -1533,6 +1579,7 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
   larger.m_center.set(larger.m_center.getX()/numberType::get(new_vert.size(),0), larger.m_center.getY()/numberType::get(new_vert.size(),0));
   
   larger.m_vert = new_vert;
+  std::cout << "DIFF DONE" << std::endl << std::flush;
 }
 
 

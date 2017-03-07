@@ -21,7 +21,7 @@
 #define MASTER 0        /* task ID of master task */
 
 typedef alphaSet numberType;
-typedef circle<numberType> windowType;
+typedef polygon<numberType> windowType;
 
 int main (int argc, char* argv[])
 {
@@ -53,7 +53,7 @@ int main (int argc, char* argv[])
   
   //std::string clipTileStr = "(-1+1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(-1+1*alpha)/2 (1-1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(1-1*alpha)/2 (0+0*alpha)/1,(0+0*alpha)/1 (-1-1*alpha)/2,(-1+1*alpha)/2 (-1+1*alpha)/2,(-1-1*alpha)/2 (-1-1*alpha)/2,(1-1*alpha)/2 (1-1*alpha)/2,(-1-1*alpha)/2 ";
   
-  windowType win( winSize );
+  windowType win = polygon<numberType>::octagon(winSize);
   win.center( origin );
   
   // hyperquasicrystal
@@ -70,7 +70,7 @@ int main (int argc, char* argv[])
   
   // size of rhumbus circumscribed to covering radius disc
   //numberType lengthToCover = numberType::get(8, 0)*coveringR;
-  numberType lengthToCover = numberType::get(4, 0);
+  numberType lengthToCover = numberType::get(2, 2);
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   

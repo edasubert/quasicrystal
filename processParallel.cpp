@@ -76,7 +76,7 @@ int main (int argc, char* argv[])
   {
     while ( getline(myfile, line) )
     {
-      if (line.size() > 0)
+      if ((line.size() > 0) && (line[0] != '#'))
       {
         inputData.push_back(line);
       }
@@ -203,6 +203,7 @@ int main (int argc, char* argv[])
     {
       windowType intersection = windowParts[it->getDescription()];
       intersection.intersect(&windowParts[ot->getDescription()]);
+      
       if ((!intersection.empty()) && (ot->size() > it->size()))
       {
         toCut.push_back(windowParts[it->getDescription()]);
@@ -210,11 +211,11 @@ int main (int argc, char* argv[])
       }
     }
     
-    toCut.sort();
-    toCut.reverse();
+    //toCut.sort();
+    //toCut.reverse();
     
     // do some cutting
-    for ( std::list<windowType>::iterator it = toCut.begin(); it != ++toCut.begin(); ++it )
+    for ( std::list<windowType>::iterator it = toCut.begin(); it != toCut.end(); ++it )
     {
       windowType intersection = *it;
       intersection.intersect(&windowParts[ot->getDescription()]);
@@ -271,6 +272,12 @@ int main (int argc, char* argv[])
     it->CarrierSet->setColor(fillColor, strokeColor, strokeWidth);
     it->Center.setColor(fillColor, strokeColor, strokeWidth);
     
+    Cpoint<numberType> middle = it->middle();
+    Cpoint<numberType> middleDomain = it->middleDomain();
+    
+    middle.setColor(fillColor, "#FF1744", strokeWidth);
+    middleDomain.setColor(fillColor, "#2979FF", strokeWidth);
+    
     std::ostringstream oss;
     oss << folder << '/' << fileName << std::setfill('0') << std::setw(3) << count << ".svg";// << " " << it->size();
     std::ofstream myfile ( oss.str().c_str() );
@@ -295,6 +302,8 @@ int main (int argc, char* argv[])
     it->svg(myfile);
     it->CarrierSet->svg(myfile);
     it->Center.svg(myfile);
+    middle.svg(myfile);
+    middleDomain.svg(myfile);
     
     it->svg(overlayfile);
     it->CarrierSet->svg(overlayfile);
@@ -326,7 +335,7 @@ int main (int argc, char* argv[])
   windowfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
   windowfile << "<svg width=\"" << 5000 << "\" height=\"" << 5000 << "\" viewBox=\"" << -1.1*winSize << " " << -1.1*winSize << " " << 2.2*winSize << " " << 2.2*winSize << "\">\n" << std::endl;
   windowfile << "<rect x=\"-50%\" y=\"-50%\" width=\"100%\" height=\"100%\" fill=\"white\" />" << std::endl;
-  windowfile << "<g transform=\"scale(1,-1)\">" << std::endl;
+  //windowfile << "<g transform=\"scale(1,-1)\">" << std::endl;
   win.setColor(windowfillColor, windowstrokeColor, windowstrokeWidth);
   win.svg(windowfile);
   
@@ -342,7 +351,7 @@ int main (int argc, char* argv[])
       windowfile << it->CarrierSet->getDescription();
       windowfile << "-->" << std::endl;
       intersect.setColor(windowfillColor, windowstrokeColor, windowstrokeWidth);
-      //intersect.flip(2);
+      //intersect.intersect(&windowParts[cells.begin()->getDescription()]);
       intersect.svg(windowfile);
       
       // tiles
@@ -356,14 +365,16 @@ int main (int argc, char* argv[])
       
       it->setColor(fillColor, strokeColor, strokeWidth);
       it->CarrierSet->setColor(fillColor, strokeColor, strokeWidth);
+      it->Center.setColor(fillColor, strokeColor, strokeWidth);
       it->svg(windowfile);
       it->CarrierSet->svg(windowfile);
+      it->Center.svg(windowfile);
       
       windowfile << "</svg>" << std::endl;
       windowfile << "</g>" << std::endl;
     }
   }
-  windowfile << "</g>" << std::endl;
+  //windowfile << "</g>" << std::endl;
   windowfile << "</svg>" << std::endl;
   windowfile.close();
   

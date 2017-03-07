@@ -134,6 +134,8 @@ class CpointSet : public virtual Cfigure<numberType>
     void var_dump( std::ostream& out ) const;
     
     void addPoint( Cpoint<numberType> addition );
+    void push_front( Cpoint<numberType> addition );
+    void push_back( Cpoint<numberType> addition );
     typename std::list<Cpoint<numberType> >::iterator removePoint( typename std::list<Cpoint<numberType> >::iterator removal );
     
     CpointSet& operator << ( Cpoint<numberType> addition );
@@ -153,6 +155,7 @@ class CpointSet : public virtual Cfigure<numberType>
     
     void clear();
     int size() const;
+    void sort();
     void unique();
     void reverse();
     
@@ -787,6 +790,18 @@ void CpointSet<numberType>::addPoint( Cpoint<numberType> addition )
 }
 
 template <typename numberType>
+void CpointSet<numberType>::push_front( Cpoint<numberType> addition )
+{
+  points->push_front( addition );
+}
+
+template <typename numberType>
+void CpointSet<numberType>::push_back( Cpoint<numberType> addition )
+{
+  points->push_back( addition );
+}
+
+template <typename numberType>
 typename std::list<Cpoint<numberType> >::iterator CpointSet<numberType>::removePoint( typename std::list<Cpoint<numberType> >::iterator removal )
 {
   return this->points->erase(removal);
@@ -865,9 +880,14 @@ int CpointSet<numberType>::size() const
 }
 
 template <typename numberType>
-void CpointSet<numberType>::unique()
+void CpointSet<numberType>::sort()
 {
   points->sort();
+}
+
+template <typename numberType>
+void CpointSet<numberType>::unique()
+{
   points->unique();
 }
 
