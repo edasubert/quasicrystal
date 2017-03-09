@@ -6,15 +6,14 @@
 #include "SUPPORT/generate3.h"
 #include "SUPPORT/geometricObject2.h"
 
+#include "config.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
 
 // creates diagram of "any" window
-
-typedef alphaSet numberType;
-typedef polygon<numberType> winType;
 
 int main( int argc, char ** argv )
 {
@@ -33,15 +32,15 @@ int main( int argc, char ** argv )
   numberType winSize;
   //while (std::cin >> winSize)
   {
-    winSize = numberType::get(1,0,1)/numberType::get(0,1,1);
-    //winSize = numberType::get(1,1);
+    winSize = const_winSize;
     Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
     
     //rhombus win( winSize, winSize );
-    //winType win( winSize );
+    //windowType win( winSize );
     //win.center( origin );
     
-    winType win = polygon<numberType>::octagon(winSize, origin);
+    windowType win = getWindow(winSize);
+    win.center(origin);
     
     // control with hyperquasicrystal
     rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> ( win.circumscribed() );
@@ -86,8 +85,8 @@ int main( int argc, char ** argv )
     
     std::string folder = argv[1];
     std::string fileName = argv[2];
-    std::string fillColor = "#4CAF50";
-    std::string strokeColor = "rgb(25,25,25)";
+    std::string fillColor = const_fillColor;
+    std::string strokeColor = const_strokeColor;
     std::ostringstream convert;
     convert << 0.02*(x2-x1)*(y2-y1)/numberType::get(delone.size(),0,1);
     std::string strokeWidth = convert.str();

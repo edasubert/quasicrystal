@@ -8,6 +8,8 @@
 #include "SUPPORT/generate3.h"
 #include "SUPPORT/geometricObject2.h"
 
+#include "config.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -17,12 +19,11 @@
 
 
 // creates diagram of "any" window from finite section
-
-typedef alphaSet numberType;
-typedef polygon<numberType> windowType;
-
 int main( int argc, char ** argv )
 {
+  std::string folder = argv[2];
+  std::string fileName = argv[3];
+  
   std::cout << "LIMITED WINDOW DIVISION GENERATOR" << std::endl << std::flush;
   std::cout << "---------------------------------" << std::endl << std::flush;
   
@@ -35,34 +36,24 @@ int main( int argc, char ** argv )
   numberType winSize;
   //while (std::cin >> winSize)
   
-  winSize = numberType::get(1,0);
+  winSize = const_winSize;
   
-  std::string folder = argv[1];
-  std::string fileName = argv[2];
-  std::string fillColor = "none";
-  std::string strokeColor = "rgb(25,25,25)";
+  std::string fillColor = const_fillColor;
+  std::string strokeColor = const_strokeColor;
+  std::string strokeWidth = const_strokeWidth(winSize);
+  
+  std::string windowfillColor = const_windowfillColor;
+  std::string windowstrokeColor = const_windowstrokeColor;
+  std::string windowstrokeWidth = const_windowstrokeWidth(winSize);
+  
   std::ostringstream convert;
-  convert << 0.24/winSize;
-  std::string strokeWidth = convert.str();
-  
-  convert.str("");
-  convert.clear();
-  
-  std::string windowfillColor = "#00BCD4";
-  std::string windowstrokeColor = "#37474F";
-  convert << 0.003*winSize;
-  std::string windowstrokeWidth = convert.str();
-  
-  convert.str("");
-  convert.clear();
-  
   convert << 0.6/winSize;
   std::string borderstrokeWidth = convert.str();
   
   
   //rhombus win( winSize, winSize );
   //windowType win( winSize );
-  windowType win = polygon<numberType>::octagon(winSize);
+  windowType win = getWindow(winSize);
   win.center( origin );
   
   // control with hyperquasicrystal

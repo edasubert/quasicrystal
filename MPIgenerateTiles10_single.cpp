@@ -8,6 +8,8 @@
 #include "SUPPORT/generate3.h"
 #include "SUPPORT/geometricObject2.h"
 
+#include "config.h"
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -19,9 +21,6 @@
 #include <chrono>
 
 #define MASTER 0        /* task ID of master task */
-
-typedef alphaSet numberType;
-typedef polygon<numberType> windowType;
 
 int main (int argc, char* argv[])
 {
@@ -48,20 +47,21 @@ int main (int argc, char* argv[])
   
   
   // initialize
-  numberType winSize(1, 0);
+  numberType winSize = const_winSize;
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
   //std::string clipTileStr = "(-1+1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(-1+1*alpha)/2 (1-1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(1-1*alpha)/2 (0+0*alpha)/1,(0+0*alpha)/1 (-1-1*alpha)/2,(-1+1*alpha)/2 (-1+1*alpha)/2,(-1-1*alpha)/2 (-1-1*alpha)/2,(1-1*alpha)/2 (1-1*alpha)/2,(-1-1*alpha)/2 ";
   
-  windowType win = polygon<numberType>::octagon(winSize);
+  windowType win = getWindow(winSize);
   win.center( origin );
   
   // hyperquasicrystal
   rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> ( win.circumscribed() );
-  
+  circ->center(origin);
   
   // hypoquasicrystal
   rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
+  insc->center(origin);
   
   numberType S = circ->Xwindow().Small();
   numberType L = insc->Xwindow().Large();
@@ -69,8 +69,8 @@ int main (int argc, char* argv[])
   numberType coveringR = numberType::coveringR()*L;
   
   // size of rhumbus circumscribed to covering radius disc
-  //numberType lengthToCover = numberType::get(8, 0)*coveringR;
-  numberType lengthToCover = numberType::get(2, 2);
+  numberType lengthToCover = numberType::get(8, 0)*coveringR;
+  //numberType lengthToCover = numberType::get(2, 2);
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   

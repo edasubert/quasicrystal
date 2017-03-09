@@ -80,6 +80,9 @@ class rhombus : public window2D<numberType>
     numberType  m_x; // left buttom corner
     numberType  m_y;
     
+    numberType  backup_m_height;
+    numberType  backup_m_width;
+    
     std::string m_fillColor;  // format rgb(R,G,B)
     std::string m_strokeColor;
     std::string m_strokeWidth;
@@ -88,6 +91,7 @@ class rhombus : public window2D<numberType>
     rhombus( numberType  width );
     rhombus( numberType  width, numberType  height );
     rhombus( numberType  width, numberType  height, numberType  x ,numberType  y );
+    void operator = (const rhombus<numberType>& rhombus);
     void svg( std::ostream& out );
     void setColor( const std::string fillColor, const std::string strokeColor, const std::string strokeWidth );
     
@@ -113,6 +117,7 @@ class rhombus : public window2D<numberType>
     numberType  centerY()const;
     numberType  width()const;
     numberType  height()const;
+    numberType size();
     
     template <typename number>
     friend bool diff(rhombus<number>& larger, rhombus<number> smaller);
@@ -202,6 +207,7 @@ class polygon : public window2D<numberType>
     friend bool diff(polygon<number>& larger, polygon<number> smaller);
     
     polygon<numberType> static octagon(numberType size);
+    polygon<numberType> static rhombic(numberType size);
 };
 
 template <typename numberType>
@@ -594,6 +600,9 @@ rhombus<numberType>::rhombus()
   m_height = numberType::get( 1, 0 );
   m_x = numberType::get( 0, 0 );
   m_y = numberType::get( 0, 0 );
+  
+  backup_m_width = m_width;
+  backup_m_height = m_height;
 }
 
 template <typename numberType>
@@ -603,6 +612,9 @@ rhombus<numberType>::rhombus( numberType width )
   m_height = width;
   m_x = numberType::get( 0, 0 );
   m_y = numberType::get( 0, 0 );
+  
+  backup_m_width = m_width;
+  backup_m_height = m_height;
 }
 
 template <typename numberType>
@@ -612,6 +624,9 @@ rhombus<numberType>::rhombus( numberType width, numberType height )
   m_height = height;
   m_x = numberType::get( 0, 0 );
   m_y = numberType::get( 0, 0 );
+  
+  backup_m_width = m_width;
+  backup_m_height = m_height;
 }
 
 template <typename numberType>
@@ -621,6 +636,21 @@ rhombus<numberType>::rhombus( numberType width, numberType height, numberType x 
   m_height = height;
   m_x = x;
   m_y = y;
+  
+  backup_m_width = m_width;
+  backup_m_height = m_height;
+}
+
+template <typename numberType>
+void rhombus<numberType>::operator = (const rhombus<numberType>& rhombus)
+{
+  m_width = rhombus.m_width;
+  m_height = rhombus.m_height;
+  m_x = rhombus.m_x;
+  m_y = rhombus.m_y;
+  
+  backup_m_width = rhombus.m_width;
+  backup_m_height = rhombus.m_height;
 }
 
 template <typename numberType>
@@ -674,6 +704,7 @@ void rhombus<numberType>::intersect( rhombus* win )
     W = numberType::get(0,0);
     H = numberType::get(0,0);
   }
+  
   m_x = x;
   m_y = y;
   m_width = W;
@@ -683,7 +714,7 @@ void rhombus<numberType>::intersect( rhombus* win )
 template <typename numberType>
 void rhombus<numberType>::intersect( Cpoint<numberType> center )
 {
-  rhombus moving = *this;
+  rhombus moving = rhombus(backup_m_width, backup_m_height);
   moving.center(center);
   this->intersect(&moving);
 }
@@ -691,6 +722,20 @@ void rhombus<numberType>::intersect( Cpoint<numberType> center )
 template <typename numberType>
 void rhombus<numberType>::svg( std::ostream& out )
 {
+  out << "<!--" << std::endl;
+  out << "x:\t\t\t";
+  print(out, m_x);
+  out << std::endl;
+  out << "y:\t\t\t";
+  print(out, m_y);
+  out << std::endl;
+  out << "width:\t";
+  print(out, m_width);
+  out << std::endl;
+  out << "height:\t";
+  print(out, m_height);
+  out << std::endl;
+  out << "-->" << std::endl;
   out << "<polygon points=\"";
   out << (numberType::windowA()*m_x           + numberType::windowB()*m_y)            << "," << ( numberType::windowC()*m_x           + numberType::windowD()*m_y ) << " ";
   out << (numberType::windowA()*(m_x+m_width) + numberType::windowB()*m_y)            << "," << ( numberType::windowC()*(m_x+m_width) + numberType::windowD()*m_y ) << " ";
@@ -717,7 +762,7 @@ rhombus<numberType>* rhombus<numberType>::inscribed()
   }
   else
   {
-    result = new rhombus<numberType>( m_height, m_height, m_x + (m_height - m_width)*numberType::get( 1, 0, 2 ), m_y );
+    result = new rhombus<numberType>( m_height*numberType::get( 4, 0, 5 ), m_height*numberType::get( 4, 0, 5 ), m_x + (m_height - m_width)*numberType::get( 1, 0, 2 ), m_y );
   }
   
   return result;
@@ -733,7 +778,7 @@ rhombus<numberType>* rhombus<numberType>::circumscribed()
   }
   else
   {
-    result = new rhombus<numberType>(m_height, m_height, m_x + (m_width - m_height)*numberType::get( 1, 0, 2 ), m_y );
+    result = new rhombus<numberType>(m_height*numberType::get( 5, 0, 4 ), m_height*numberType::get( 5, 0, 4 ), m_x + (m_width - m_height)*numberType::get( 1, 0, 2 ), m_y );
   }
   
   return result;
@@ -836,8 +881,21 @@ numberType rhombus<numberType>::height()const
 }
 
 template <typename numberType>
+numberType rhombus<numberType>::size()
+{
+  return (numberType::windowA()*m_width+numberType::windowB()*m_height)*(numberType::windowC()*m_width+numberType::windowD()*m_height);
+}
+
+template <typename numberType>
 bool diff(rhombus<numberType>& larger, rhombus<numberType> smaller)
 {
+  if (larger == smaller)
+  {
+    larger.m_width = numberType::get(0,0);
+    larger.m_height = numberType::get(0,0);
+    return true;
+  }
+  
   if ((larger.m_x <= smaller.m_x) && (larger.m_y <= smaller.m_y) && (smaller.m_x < larger.m_x+larger.m_width) && (smaller.m_y < larger.m_y+larger.m_height))
   {
     if ((larger.m_x == smaller.m_x) && (larger.m_y == smaller.m_y)) //same top left corner
@@ -1248,7 +1306,7 @@ void polygon<numberType>::svg( std::ostream& out )
   {
     out << it->getX() << "," << it->getY() << " ";
   }
-  out << "\" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "; fill-opacity:0.4\"/>" << std::endl;
+  out << "\" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\"/>" << std::endl;
 }
 
 template <typename numberType>
@@ -1536,14 +1594,20 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
     // entering the smaller
     if ((smaller.inClose(*it)) && (ot == smaller.m_vert.end()))
     {
-      //std::cout << "IF" << std::endl << std::flush;
+      std::cout << "IF" << std::endl << std::flush;
       // search for point of smaller on the edge itold--it; make it begin
       ot = smaller.m_vert.begin();
+      Cpoint<numberType> tmp = *ot;
       while (*ot != *it)
       {
-        //std::cout << "WHILE smaller" << std::endl << std::flush;
+        std::cout << "WHILE smaller" << std::endl << std::flush;
         smaller.m_vert.push_back(*ot);
         ot = smaller.m_vert.removePoint(ot); //if there is no such point, there is troble elsewhere
+        if (*ot == tmp)
+        {
+          std::cout << "OH NOOOO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+          return false;
+        }
       }
     }
     
@@ -1556,7 +1620,7 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
       typename std::list<Cpoint<numberType> >::reverse_iterator ut = smaller.m_vert.rbegin();
       while (*ut != *itold)
       {
-        //std::cout << "add" << std::endl << std::flush;
+        std::cout << "add" << std::endl << std::flush;
         new_vert.push_back(*ut);
         ++ut;
       }
@@ -1599,6 +1663,18 @@ polygon<numberType> polygon<numberType>::octagon(numberType size)
   vert.addPoint(Cpoint<numberType>(size*numberType::get(1,-1,2), size*numberType::get(1,-1,2)));
   vert.addPoint(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(-1,0,1)));
   vert.addPoint(Cpoint<numberType>(size*numberType::get(-1,1,2), size*numberType::get(1,-1,2)));
+  
+  return polygon<numberType>(vert);
+}
+
+template <typename numberType>
+polygon<numberType> polygon<numberType>::rhombic(numberType size)
+{
+  CpointSet<numberType> vert;
+  vert.push_back(Cpoint<numberType>(numberType::get(0,0), numberType::get(0,0)));
+  vert.push_back(Cpoint<numberType>(numberType::windowA()*size, numberType::windowC()*size));
+  vert.push_back(Cpoint<numberType>(numberType::windowA()*size + numberType::windowB()*size, numberType::windowC()*size + numberType::windowD()*size));
+  vert.push_back(Cpoint<numberType>(numberType::windowB()*size, numberType::windowD()*size));
   
   return polygon<numberType>(vert);
 }
