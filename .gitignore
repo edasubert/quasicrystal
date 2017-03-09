@@ -3,6 +3,7 @@
 /output/*
 /*
 !/*.cpp
+!/*.h
 !/SUPPORT/*.cpp
 !/SUPPORT/*.h
 /presentation/*
