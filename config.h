@@ -8,18 +8,18 @@
 #include "SUPPORT/generate3.h"
 #include "SUPPORT/geometricObject2.h"
 
-typedef betaSet numberType;
+typedef alphaSet numberType;
 //typedef rhombus<numberType> windowType;
 typedef polygon<numberType> windowType;
 
 windowType getWindow(numberType winSize)
 {
-  return polygon<numberType>::rhombic(winSize);
-  //return polygon<numberType>::octagon(winSize);
+  //return polygon<numberType>::rhombic(winSize);
+  return polygon<numberType>::octagon(winSize);
   //return windowType(winSize);
 }
 
-numberType const const_winSize = numberType::get(1,0,1);
+numberType const const_winSize = numberType::get(1,0,1);//numberType::get(0,1,1);
 
 // cell colors
 std::string const const_fillColor = "#689F38";

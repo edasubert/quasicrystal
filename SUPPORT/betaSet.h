@@ -75,6 +75,13 @@ class betaSet
         betaSet static windowC();
         betaSet static windowD();
         
+        betaSet static rotateA(); //constants for rotation
+        betaSet static rotateB();
+        betaSet static rotateC();
+        betaSet static rotateD();
+        int static rotateN();
+        
+        
         // window parameters
         betaSet static assign_L(const betaSet c, const betaSet d, const int k);
         betaSet static assign_M(const betaSet c, const betaSet d, const int k);

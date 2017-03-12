@@ -76,6 +76,13 @@ class alphaSet
         alphaSet static windowD();
         
         
+        alphaSet static rotateA(); //constants for window transformation
+        alphaSet static rotateB();
+        alphaSet static rotateC();
+        alphaSet static rotateD();
+        int static rotateN();
+        
+        
         // window parameters
         alphaSet static assign_L(const alphaSet c, const alphaSet d, const int k);
         alphaSet static assign_M(const alphaSet c, const alphaSet d, const int k);

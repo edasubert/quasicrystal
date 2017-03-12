@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <list>
 #include <vector>
 #include <map>
@@ -13,6 +14,7 @@
 #include <math.h> 
 #include <fstream>
 #include <sstream>
+#include <functional>
 
 
 #include "betaSet.h"
@@ -42,6 +44,7 @@ class Cfigure
     
     void setColor( const std::string I_fillColor, const std::string I_strokeColor, const std::string I_strokeWidth );
     void setFillColor( const std::string I_fillColor );
+    std::string getFillColor();
     void svg( std::ostream& out ) const;
     void svg( std::ostream& out, double a, double b, double c, double d ) const;
     
@@ -136,6 +139,7 @@ class CpointSet : public virtual Cfigure<numberType>
     void addPoint( Cpoint<numberType> addition );
     void push_front( Cpoint<numberType> addition );
     void push_back( Cpoint<numberType> addition );
+    void insert(typename std::list<Cpoint<numberType> >::iterator pos, Cpoint<numberType> addition);
     typename std::list<Cpoint<numberType> >::iterator removePoint( typename std::list<Cpoint<numberType> >::iterator removal );
     
     CpointSet& operator << ( Cpoint<numberType> addition );
@@ -276,7 +280,8 @@ class CvoronoiCell : public virtual Cfigure<numberType>
     Cpoint<numberType> middleDomain() const;
     void colorify();
     
-    CvoronoiCell<numberType> rotate( int n ) const;
+    CvoronoiCell<numberType> rotate(int n) const;
+    CvoronoiCell<numberType> flip() const;
     
     CvoronoiCell<numberType> star()const;
 };
@@ -337,6 +342,12 @@ template <typename numberType>
 void Cfigure<numberType>::setFillColor( const std::string I_fillColor )
 {
   this->fillColor = I_fillColor;
+}
+
+template <typename numberType>
+std::string Cfigure<numberType>::getFillColor()
+{
+  return this->fillColor;
 }
 
 
@@ -799,6 +810,12 @@ template <typename numberType>
 void CpointSet<numberType>::push_back( Cpoint<numberType> addition )
 {
   points->push_back( addition );
+}
+
+template <typename numberType>
+void CpointSet<numberType>::insert(typename std::list<Cpoint<numberType> >::iterator pos, Cpoint<numberType> addition)
+{
+  points->insert(pos, addition);
 }
 
 template <typename numberType>
@@ -1815,7 +1832,7 @@ void CvoronoiCell<numberType>::svg( std::ostream& out ) const
     {
     out << std::fixed << it->getX() << "," << it->getY() << " ";
   }
-  out << "\" fill=\"" << this->fillColor << "\" stroke=\"" << this->strokeColor << "\" stroke-width=\"" << this->strokeWidth << "\" />" << std::endl;
+  out << "\" style=\"fill:" << this->fillColor << ";stroke:" << this->strokeColor << ";stroke-width:" << this->strokeWidth << "\" />" << std::endl;
 }
 
 template <typename numberType>
@@ -2082,84 +2099,153 @@ Cpoint<numberType> CvoronoiCell<numberType>::middleDomain() const
 template <typename numberType>
 void CvoronoiCell<numberType>::colorify()
 {
-  std::map<double,std::string> color;
+  std::hash<std::string> str_hash;
   
+  CvoronoiCell<numberType> rot = *this;
   
-color[  999015  ]  = "rgb(26, 19, 52)";
-color[  1076289 ]  = "rgb(38, 41, 74)";
-color[  1153563 ]  = "rgb(1, 84, 90)";
-color[  2595517 ]  = "rgb(1, 115, 81)";
-color[  267685  ]  = "rgb(26, 19, 52)";
-color[  288391  ]  = "rgb(38, 41, 74)";
-color[  309096  ]  = "rgb(1, 84, 90)";
-color[  695467  ]  = "rgb(1, 115, 81)";
-color[  1871551 ]  = "rgb(3, 195, 131)";
-color[  1549086 ]  = "rgb(170, 217, 98)";
-color[  1196725 ]  = "rgb(251, 191, 69)";
-color[  1243501 ]  = "rgb(239, 106, 50)";
-color[  453112  ]  = "rgb(237, 3, 69)";
-color[  1295730 ]  = "rgb(161, 42, 94)";
-color[  1425280 ]  = "rgb(113, 1, 98)";
-color[  1652097 ]  = "rgb(17, 1, 65)";
-color[  1564629 ]  = "rgb(46, 39, 72)";
-color[  1683434 ]  = "rgb(58, 61, 94)";
-color[  1369149 ]  = "rgb(21, 104, 110)";
-color[  1313018 ]  = "rgb(21, 135, 101)";
-color[  4587634 ]  = "rgb(23, 215, 151)";
-color[  3032875 ]  = "rgb(190, 237, 118)";
-color[  1022840 ]  = "rgb(181, 62, 114)";
-color[  1100133 ]  = "rgb(133, 21, 118)";
-color[  1677928 ]  = "rgb(37, 21, 85)";
-color[  387293  ]  = "rgb(66, 59, 92)";
-color[  1270640 ]  = "rgb(78, 81, 114)";
-color[  670719  ]  = "rgb(41, 124, 130)";
-color[  481396  ]  = "rgb(41, 155, 121)";
-color[  911304  ]  = "rgb(43, 235, 171)";
-color[  864528  ]  = "rgb(201, 82, 134)";
-color[  1146407 ]  = "rgb(153, 41, 138)";
-color[  960177  ]  = "rgb(57, 41, 105)";
-color[  1237823 ]  = "rgb(98, 101, 134)";
-color[  1162628 ]  = "rgb(61, 144, 150)";
-color[  630613  ]  = "rgb(61, 175, 141)";
-color[  809912  ]  = "rgb(221, 102, 154)";
-color[  791377  ]  = "rgb(0, 175, 111)";
-color[  525120  ]  = "rgb(150, 197, 78)";
-color[  747211  ]  = "rgb(231, 171, 49)";
-color[  621846  ]  = "rgb(219, 86, 30)";
-color[  1452493 ]  = "rgb(217, 0, 49)";
-color[  865709  ]  = "rgb(141, 22, 74)";
-color[  692557  ]  = "rgb(26, 19, 52)";
-color[  940041  ]  = "rgb(38, 41, 74)";
-color[  1071212 ]  = "rgb(1, 115, 81)";
-color[  1924787 ]  = "rgb(3, 195, 131)";
-color[  513385  ]  = "rgb(170, 217, 98)";
-color[  1426379 ]  = "rgb(235, 191, 69)";
-color[  505248  ]  = "rgb(235, 106, 50)";
-color[  1199137 ]  = "rgb(235, 3, 69)";
-color[  727091  ]  = "rgb(161, 42, 94)";
-color[  735579  ]  = "rgb(113, 1, 98)";
+  rot.filterSet();
   
-  if (color.find(round(value())) == color.end() )
+  *rot.Cell-= rot.Center;
+  *rot.CarrierSet-= rot.Center;
+  
+  CvoronoiCell<numberType> min = rot;
+  CvoronoiCell<numberType> flip = rot.flip();
+  
+  for (int i = 1; i < numberType::rotateN(); ++i)
   {
-    std::cout << "COLOR NOT FOUND" << std::endl;
+    flip = flip.rotate(1);
+    rot = rot.rotate(1);
+    if (rot < min)
+    {
+      min = rot;
+    }
+    if (flip < min)
+    {
+      min = flip;
+    }
   }
   
-  this->setFillColor( color[round(value())] );
+  min.CarrierSet->sortClockwise();
+  //*min.CarrierSet = *min.CarrierSet*numberType::get(1,0,min.size());
+  *min.CarrierSet = *min.CarrierSet*(numberType::get(5,0)/(min.CarrierSet->begin()->getX()+min.CarrierSet->begin()->getY()));
+  
+  //std::cout << min.save() << std::endl << std::endl;
+  
+  unsigned int hash = str_hash(min.save());
+  
+  double h = hash % 2147483647;
+  double s = (((hash & 0x00FF00) >> 8) % 128 + 128);
+  double v = ((hash & 0x0000FF) % 16 + 240);
+  
+  h/=2147483647.;
+  h*=6.;
+  s/=256.;
+  v/=256.;
+  
+  double fract = h - floor(h);
+  double P = v*(1. - s);
+  double Q = v*(1. - s*fract);
+  double T = v*(1. - s*(1. - fract));
+  
+  double r, g, b;
+  
+  if (0. <= h && h < 1.)
+  {
+    r = v;
+    g = T;
+    b = P;
+  }
+  else if (1. <= h && h < 2.)
+  {
+    r = Q;
+    g = v;
+    b = P;
+  }
+  else if (2. <= h && h < 3.)
+  {
+    r = P;
+    g = v;
+    b = T;
+  }
+  else if (3. <= h && h < 4.)
+  {
+    r = P;
+    g = Q;
+    b = v;
+  }
+  else if (4. <= h && h < 5.)
+  {
+    r = T;
+    g = P;
+    b = v;
+  }
+  else if (5. <= h && h < 6.)
+  {
+    r = v;
+    g = P;
+    b = Q;
+  }
+  else
+  {
+    r = 0;
+    g = 0;
+    b = 0;
+  }
+  
+  r*=256;
+  g*=256;
+  b*=256;
+  
+  //std::cout << r << " " << g << " " << b << std::endl;
+  
+  std::ostringstream color;
+  
+  color << "#" << std::setfill('0') << std::setw(2) << std::hex << int(r) << std::setfill('0') << std::setw(2) << int(g) << std::setfill('0') << std::setw(2) << int(b) << std::dec;
+  
+  //std::cout << color.str().c_str() << std::endl;
+  
+  this->setFillColor( color.str().c_str() );
 }
 
 template <typename numberType>
 CvoronoiCell<numberType> CvoronoiCell<numberType>::rotate( int n ) const
 {
+  n = n%numberType::rotateN();
+  
   CvoronoiCell<numberType> Output = *this;
   for ( typename std::list<Cpoint<numberType> >::iterator it = Output.Cell->begin(); it != Output.Cell->end(); ++it )
   {
     for ( int i = 1; i <= n; ++i )
     {
-      it->set( it->getX()*numberType::get(-2,1,2) + it->getY()*numberType::get(-1,0,2), it->getX()*numberType::get(1,0,2) + it->getY()*numberType::get(-2,1,2) );
+      it->set( it->getX()*numberType::rotateA() + it->getY()*numberType::rotateB(), it->getX()*numberType::rotateC() + it->getY()*numberType::rotateD() );
     }
   }
   
-  Output.setDescription( "Link to CarrierSet broken!" );
+  for ( typename std::list<Cpoint<numberType> >::iterator it = Output.CarrierSet->begin(); it != Output.CarrierSet->end(); ++it )
+  {
+    for ( int i = 1; i <= n; ++i )
+    {
+      it->set( it->getX()*numberType::rotateA() + it->getY()*numberType::rotateB(), it->getX()*numberType::rotateC() + it->getY()*numberType::rotateD() );
+    }
+  }
+  
+  return Output;
+}
+
+template <typename numberType>
+CvoronoiCell<numberType> CvoronoiCell<numberType>::flip() const
+{
+  numberType x = (numberType::windowA()+numberType::windowB());
+  numberType y = (numberType::windowC()+numberType::windowD());
+  numberType denominator = x*x+y*y;
+  numberType a = (x*x-y*y)/denominator;
+  numberType b = (numberType::get(2,0)*x*y)/denominator;
+  numberType c = (numberType::get(2,0)*x*y)/denominator;
+  numberType d = (y*y-x*x)/denominator;
+  
+  CvoronoiCell<numberType> Output = *this;
+  Output.Cell->transform(a,b,c,d);
+  Output.CarrierSet->transform(a,b,c,d);
   
   return Output;
 }

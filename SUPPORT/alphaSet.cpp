@@ -517,6 +517,35 @@ alphaSet alphaSet::windowD()
   return alphaSet::get(-1,1,2);
 }
 
+
+
+alphaSet alphaSet::rotateA()
+{
+  return alphaSet::get(-1,1,2);
+}
+
+alphaSet alphaSet::rotateB()
+{
+  return alphaSet::get(1,-1,2);
+}
+
+alphaSet alphaSet::rotateC()
+{
+  return alphaSet::get(-1,1,2);
+}
+
+alphaSet alphaSet::rotateD()
+{
+  return alphaSet::get(-1,1,2);
+}
+
+int alphaSet::rotateN()
+{
+  return 8;
+}
+
+
+
 alphaSet alphaSet::assign_L(const alphaSet c, const alphaSet d, const int k)
 {
   if ( d - c < alphaSet::get( 3, -1 ) )

@@ -528,6 +528,34 @@ betaSet betaSet::windowD()
   return betaSet::get(1,0,2);
 }
 
+
+
+betaSet betaSet::rotateA()
+{
+  return betaSet::get(-2,1,2);
+}
+
+betaSet betaSet::rotateB()
+{
+  return betaSet::get(-1,0,2);
+}
+
+betaSet betaSet::rotateC()
+{
+  return betaSet::get(1,0,2);
+}
+
+betaSet betaSet::rotateD()
+{
+  return betaSet::get(-2,1,2);
+}
+
+int betaSet::rotateN()
+{
+  return 12;
+}
+
+
 betaSet betaSet::assign_L(const betaSet c, const betaSet d, const int k)
 {
   if ( d - c < betaSet::get( -7, 2 ) )

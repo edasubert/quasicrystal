@@ -206,6 +206,9 @@ class polygon : public window2D<numberType>
     template <typename number>
     friend bool diff(polygon<number>& larger, polygon<number> smaller);
     
+    template <typename number>
+    friend bool unite(polygon<number>& larger, polygon<number> smaller);
+    
     polygon<numberType> static octagon(numberType size);
     polygon<numberType> static rhombic(numberType size);
 };
@@ -1306,7 +1309,7 @@ void polygon<numberType>::svg( std::ostream& out )
   {
     out << it->getX() << "," << it->getY() << " ";
   }
-  out << "\" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\"/>" << std::endl;
+  out << "\" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\" fill-opacity=\"0.9\" />" << std::endl;
 }
 
 template <typename numberType>
@@ -1392,19 +1395,28 @@ void polygon<numberType>::intersect( polygon* win )
       new_vert.addPoint(*it);
     }
     
-    if (win->inClose(*it) != win->in(*itold))
+    //if (win->inClose(*it) != win->in(*itold))
     {
       // search for two points dividing this edge
       for (typename std::list<Cpoint<numberType> >::const_iterator ot = win->m_vert.begin(), otold = --win->m_vert.end(); ot != win->m_vert.end(); otold = ot++) 
       {
-        if ( ( sign( ((it->getX()-ot->getX())*(otold->getY()-ot->getY())-(it->getY()-ot->getY())*(otold->getX()-ot->getX())) ) \
-            != sign( ((itold->getX()-ot->getX())*(otold->getY()-ot->getY())-(itold->getY()-ot->getY())*(otold->getX()-ot->getX())) ) \
-             ) \
-          && ( sign( ((ot->getX()-it->getX())*(itold->getY()-it->getY())-(ot->getY()-it->getY())*(itold->getX()-it->getX())) ) \
-            != sign( ((otold->getX()-it->getX())*(itold->getY()-it->getY())-(otold->getY()-it->getY())*(itold->getX()-it->getX())) ) \
+        if ( \
+             (   
+                 ( (ot->getX() == otold->getX()) && (sign(it->getX()-ot->getX()) != sign(itold->getX()-ot->getX()))) \
+              || \
+                 (   sign( ((it->getX()-ot->getX())   *(otold->getY()-ot->getY())-(it->getY()-ot->getY())   *(otold->getX()-ot->getX())) ) \
+                  != sign( ((itold->getX()-ot->getX())*(otold->getY()-ot->getY())-(itold->getY()-ot->getY())*(otold->getX()-ot->getX())) ) 
+                 )  \
+               ) \
+            && ( ( (it->getX() == itold->getX()) && (sign(ot->getX()-it->getX()) != sign(otold->getX()-it->getX()))) \
+                || \
+                 (   sign( ((ot->getX()-it->getX())   *(itold->getY()-it->getY())-(ot->getY()-it->getY())   *(itold->getX()-it->getX())) ) \
+                  != sign( ((otold->getX()-it->getX())*(itold->getY()-it->getY())-(otold->getY()-it->getY())*(itold->getX()-it->getX())) ) \
+                 )  \
              ) \
            )
         {
+          //std::cout << "adding intersection" << std::endl;
           // add intersection of edges to new vertexes https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
           numberType a = it->getX()*itold->getY()-it->getY()*itold->getX();
           numberType b = ot->getX()*otold->getY()-ot->getY()*otold->getX();
@@ -1417,6 +1429,13 @@ void polygon<numberType>::intersect( polygon* win )
       }
     }
   }
+  
+  if (new_vert.size() < 3)
+  {
+    m_vert.clear();
+    return;
+  }
+  
   new_vert.sort();
   new_vert.unique();
   new_vert.sortClockwise();
@@ -1542,6 +1561,12 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
   // assume one area
   CpointSet<numberType> new_vert;
   
+  if (larger.size() == smaller.size())
+  {
+    larger.m_vert = new_vert; // empty
+    return true;
+  }
+  
   // start larger outside smaller
   {
     Cpoint<numberType> tmp = *larger.m_vert.begin();
@@ -1558,18 +1583,21 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
     }
   }
   
-  // add points of smaller to the bigger
+  // add points of smaller to the larger
   for (typename std::list<Cpoint<numberType> >::iterator it = larger.m_vert.begin(), itold = --larger.m_vert.end(); it != larger.m_vert.end(); itold = it++) 
   {
     new_vert.push_back(*itold);
     for (typename std::list<Cpoint<numberType> >::iterator ot = smaller.m_vert.begin(); ot != smaller.m_vert.end(); ++ot) 
     {
+      //std::cout << "FOR adding smaller" << std::endl;
       // add points on edge it--itold
-      if (((ot->getY()-it->getY())*(itold->getX()-it->getX()) == (ot->getX()-it->getX())*(itold->getY()-it->getY())) \
-        && (max(it->getX(),itold->getX()) > ot->getX()) && (min(it->getX(),itold->getX()) < ot->getX()) \
-        && (max(it->getY(),itold->getY()) > ot->getY()) && (min(it->getY(),itold->getY()) < ot->getY()) \
+      if ( (*ot != *it) && (*ot != *itold)
+        && (max(it->getX(),itold->getX()) >= ot->getX()) && (min(it->getX(),itold->getX()) <= ot->getX()) \
+        && (max(it->getY(),itold->getY()) >= ot->getY()) && (min(it->getY(),itold->getY()) <= ot->getY()) \
+        && ((ot->getY()-it->getY())*(itold->getX()-it->getX()) == (ot->getX()-it->getX())*(itold->getY()-it->getY())) \
          )
       {
+        //std::cout << "adding from smaller" << std::endl;
         new_vert.push_back(*ot);
       }
     }
@@ -1585,7 +1613,7 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
   
   for (typename std::list<Cpoint<numberType> >::iterator it = larger.m_vert.begin(), itold = --larger.m_vert.end(); it != larger.m_vert.end(); itold = it++) 
   {
-    std::cout << "FOR " << std::distance(larger.m_vert.begin(), it) << std::endl << std::flush;
+    //std::cout << "FOR " << std::distance(larger.m_vert.begin(), it) << std::endl << std::flush;
     if (ot == smaller.m_vert.end())
     {
       new_vert.push_back(*itold);
@@ -1594,13 +1622,13 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
     // entering the smaller
     if ((smaller.inClose(*it)) && (ot == smaller.m_vert.end()))
     {
-      std::cout << "IF" << std::endl << std::flush;
+      //std::cout << "IF" << std::endl << std::flush;
       // search for point of smaller on the edge itold--it; make it begin
       ot = smaller.m_vert.begin();
       Cpoint<numberType> tmp = *ot;
       while (*ot != *it)
       {
-        std::cout << "WHILE smaller" << std::endl << std::flush;
+        //std::cout << "WHILE smaller" << std::endl << std::flush;
         smaller.m_vert.push_back(*ot);
         ot = smaller.m_vert.removePoint(ot); //if there is no such point, there is troble elsewhere
         if (*ot == tmp)
@@ -1611,16 +1639,16 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
       }
     }
     
-    std::cout << "test: " << (!smaller.inClose(*it)) << (ot != smaller.m_vert.end()) << std::endl << std::flush;
+    //std::cout << "test: " << (!smaller.inClose(*it)) << (ot != smaller.m_vert.end()) << std::endl << std::flush;
     if ((!smaller.inClose(*it)) && (ot != smaller.m_vert.end()))
     {
-      std::cout << "IF add smaller" << std::endl << std::flush;
+      //std::cout << "IF add smaller" << std::endl << std::flush;
       // fill in points of smaller, counterclockwise
       new_vert.push_back(*ot);
       typename std::list<Cpoint<numberType> >::reverse_iterator ut = smaller.m_vert.rbegin();
       while (*ut != *itold)
       {
-        std::cout << "add" << std::endl << std::flush;
+        //std::cout << "add" << std::endl << std::flush;
         new_vert.push_back(*ut);
         ++ut;
       }
@@ -1629,12 +1657,13 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
       ot = smaller.m_vert.end();
     }
     
-    std::cout << "larger vert size: " << larger.m_vert.size() << std::endl << std::flush;
-    std::cout << "new vert size: " << new_vert.size() << std::endl << std::flush;
+    //std::cout << "larger vert size: " << larger.m_vert.size() << std::endl << std::flush;
+    //std::cout << "new vert size: " << new_vert.size() << std::endl << std::flush;
   }
   
   new_vert.unique();
   
+  // find center
   larger.m_center = Cpoint<numberType>(0,0);
   for (typename std::list<Cpoint<numberType> >::const_iterator it = new_vert.begin(); it != new_vert.end(); ++it) 
   {
@@ -1643,7 +1672,204 @@ bool diff(polygon<numberType>& larger, polygon<numberType> smaller)
   larger.m_center.set(larger.m_center.getX()/numberType::get(new_vert.size(),0), larger.m_center.getY()/numberType::get(new_vert.size(),0));
   
   larger.m_vert = new_vert;
-  std::cout << "DIFF DONE" << std::endl << std::flush;
+  //std::cout << "DIFF DONE" << std::endl << std::flush;
+}
+
+
+
+
+template <typename numberType>
+bool unite(polygon<numberType>& larger, polygon<numberType> smaller)
+{
+  // assume one area (otherwise return false)
+  
+  // check if smaller is inside larger
+  bool flag = true;
+  for (typename std::list<Cpoint<numberType> >::iterator ot = smaller.m_vert.begin(); ot != smaller.m_vert.end(); ++ot) 
+  {
+    if (!larger.inClose(*ot))
+    {
+      flag = false;
+      //std::cout << "false" << std::endl;
+    }
+  }
+  
+  if (flag)
+  {
+    //std::cout << "out" << std::endl << std::endl;
+    //return true;
+  }
+  
+  CpointSet<numberType> new_vert;
+  
+  bool oneArea = false;
+  
+  // start larger outside smaller
+  //std::cout << "start larger outside smaller, larger size: " << larger.m_vert.size() << std::endl << std::flush;
+  Cpoint<numberType> tmp = *larger.m_vert.begin();
+  while (smaller.inClose(*(--larger.m_vert.end())))
+  {
+    
+    larger.m_vert.push_back(*larger.m_vert.begin());
+    larger.m_vert.removePoint(larger.m_vert.begin());
+    
+    if (tmp == *larger.m_vert.begin())
+    {
+      larger = smaller;
+      return true;
+    }
+  }
+  
+  // add points of smaller to the larger
+  //std::cout << "add points of smaller to the larger" << std::endl << std::flush;
+  for (typename std::list<Cpoint<numberType> >::iterator it = larger.m_vert.begin(), itold = --larger.m_vert.end(); it != larger.m_vert.end(); itold = it++) 
+  {
+    new_vert.push_back(*itold);
+    for (typename std::list<Cpoint<numberType> >::iterator ot = smaller.m_vert.begin(); ot != smaller.m_vert.end(); ++ot) 
+    {
+      //std::cout << "FOR adding smaller" << std::endl;
+      // add points on edge it--itold
+      if ( (*ot != *it) && (*ot != *itold)
+        && (max(it->getX(),itold->getX()) >= ot->getX()) && (min(it->getX(),itold->getX()) <= ot->getX()) \
+        && (max(it->getY(),itold->getY()) >= ot->getY()) && (min(it->getY(),itold->getY()) <= ot->getY()) \
+        && ((ot->getY()-it->getY())*(itold->getX()-it->getX()) == (ot->getX()-it->getX())*(itold->getY()-it->getY())) \
+         )
+      {
+        //std::cout << "adding from smaller" << std::endl;
+        new_vert.push_back(*ot);
+        oneArea = true;
+      }
+    }
+  }
+  
+  larger.m_vert = new_vert;
+  larger.m_vert.unique();
+  new_vert.clear();
+  
+  
+  larger.m_vert.push_back(*larger.m_vert.begin());
+  larger.m_vert.removePoint(larger.m_vert.begin());
+  
+  
+  // add intersections to both
+  //std::cout << "add intersections to both" << std::endl << std::flush;
+  for (typename std::list<Cpoint<numberType> >::iterator it = larger.m_vert.begin(), itold = --larger.m_vert.end(); it != larger.m_vert.end(); itold = it++) 
+  {
+    // search for two points dividing this edge
+    for (typename std::list<Cpoint<numberType> >::iterator ot = smaller.m_vert.begin(), otold = --smaller.m_vert.end(); ot != smaller.m_vert.end(); otold = ot++) 
+    {
+      if ( \
+           (   
+               ( (ot->getX() == otold->getX()) && (sign(it->getX()-ot->getX()) != sign(itold->getX()-ot->getX()))) \
+            || \
+               (   sign( ((it->getX()-ot->getX())   *(otold->getY()-ot->getY())-(it->getY()-ot->getY())   *(otold->getX()-ot->getX())) ) \
+                != sign( ((itold->getX()-ot->getX())*(otold->getY()-ot->getY())-(itold->getY()-ot->getY())*(otold->getX()-ot->getX())) ) 
+               )  \
+             ) \
+          && ( ( (it->getX() == itold->getX()) && (sign(ot->getX()-it->getX()) != sign(otold->getX()-it->getX()))) \
+              || \
+               (   sign( ((ot->getX()-it->getX())   *(itold->getY()-it->getY())-(ot->getY()-it->getY())   *(itold->getX()-it->getX())) ) \
+                != sign( ((otold->getX()-it->getX())*(itold->getY()-it->getY())-(otold->getY()-it->getY())*(itold->getX()-it->getX())) ) \
+               )  \
+           ) \
+         )
+      {
+        //std::cout << "adding intersection" << std::endl;
+        // add intersection of edges to new vertexes https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+        numberType a = it->getX()*itold->getY()-it->getY()*itold->getX();
+        numberType b = ot->getX()*otold->getY()-ot->getY()*otold->getX();
+        numberType c = (it->getX()-itold->getX())*(ot->getY()-otold->getY()) - (it->getY()-itold->getY())*(ot->getX()-otold->getX()); //denominator
+        Cpoint<numberType> vertex;
+        vertex.setX((a*(ot->getX()-otold->getX())-b*(it->getX()-itold->getX()))/c);
+        vertex.setY((a*(ot->getY()-otold->getY())-b*(it->getY()-itold->getY()))/c);
+        
+        if ((vertex != *it) && (vertex != *itold))
+        {
+          larger.m_vert.insert(it, vertex);
+        }
+        if ((vertex != *ot) && (vertex != *otold))
+        {
+          smaller.m_vert.insert(ot, vertex);
+        }
+        oneArea = true;
+      }
+    }
+  }
+  
+  larger.m_vert.unique();
+  smaller.m_vert.unique();
+  
+  if (!oneArea)
+  {
+    return false;
+  }
+  
+  typename std::list<Cpoint<numberType> >::iterator ot = smaller.m_vert.end();
+  
+  for (typename std::list<Cpoint<numberType> >::iterator it = larger.m_vert.begin(), itold = --larger.m_vert.end(); it != larger.m_vert.end(); itold = it++) 
+  {
+    //std::cout << "FOR " << std::distance(larger.m_vert.begin(), it) << std::endl << std::flush;
+    if (ot == smaller.m_vert.end())
+    {
+      new_vert.push_back(*itold);
+    }
+    
+    // entering the smaller
+    if ((smaller.inClose(*it)) && (ot == smaller.m_vert.end()))
+    {
+      //std::cout << "IF" << std::endl << std::flush;
+      // search for point of smaller on the edge itold--it; make it begin
+      ot = smaller.m_vert.begin();
+      Cpoint<numberType> tmp = *ot;
+      while (*ot != *it)
+      {
+        //std::cout << "WHILE smaller" << std::endl << std::flush;
+        smaller.m_vert.push_back(*ot);
+        ot = smaller.m_vert.removePoint(ot); 
+        if (*ot == tmp)
+        {
+          std::cout << "OH NOOOO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+          return false;
+        }
+      }
+    }
+    
+    //std::cout << "test: " << (!smaller.inClose(*it)) << (ot != smaller.m_vert.end()) << std::endl << std::flush;
+    if ((!smaller.inClose(*it)) && (ot != smaller.m_vert.end()))
+    {
+      //std::cout << "IF add smaller" << std::endl << std::flush;
+      // fill in points of smaller, counterclockwise
+      new_vert.push_back(*ot);
+      typename std::list<Cpoint<numberType> >::iterator ut = smaller.m_vert.begin();
+      while (*ut != *itold)
+      {
+        //std::cout << "add" << std::endl << std::flush;
+        new_vert.push_back(*ut);
+        ++ut;
+      }
+      new_vert.push_back(*ut);
+      
+      ot = smaller.m_vert.end();
+    }
+    
+    //std::cout << "larger vert size: " << larger.m_vert.size() << std::endl << std::flush;
+    //std::cout << "new vert size: " << new_vert.size() << std::endl << std::flush;
+  }
+  
+  new_vert.unique();
+  
+  // find center
+  larger.m_center = Cpoint<numberType>(0,0);
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = new_vert.begin(); it != new_vert.end(); ++it) 
+  {
+    larger.m_center.set(larger.m_center.getX() + it->getX(), larger.m_center.getY() + it->getY());
+  }
+  larger.m_center.set(larger.m_center.getX()/numberType::get(new_vert.size(),0), larger.m_center.getY()/numberType::get(new_vert.size(),0));
+  
+  larger.m_vert = new_vert;
+  //std::cout << "DIFF DONE" << std::endl << std::flush;
+  
+  return true;
 }
 
 
@@ -1655,14 +1881,14 @@ template <typename numberType>
 polygon<numberType> polygon<numberType>::octagon(numberType size)
 {
   CpointSet<numberType> vert;
-  vert.addPoint(Cpoint<numberType>(size*numberType::get(1,0,1),  size*numberType::get(0,0,1)));
-  vert.addPoint(Cpoint<numberType>(size*numberType::get(-1,1,2), size*numberType::get(-1,1,2)));
-  vert.addPoint(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(1,0,1)));
-  vert.addPoint(Cpoint<numberType>(size*numberType::get(1,-1,2), size*numberType::get(-1,1,2)));
-  vert.addPoint(Cpoint<numberType>(size*numberType::get(-1,0,1), size*numberType::get(0,0,1)));
-  vert.addPoint(Cpoint<numberType>(size*numberType::get(1,-1,2), size*numberType::get(1,-1,2)));
-  vert.addPoint(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(-1,0,1)));
-  vert.addPoint(Cpoint<numberType>(size*numberType::get(-1,1,2), size*numberType::get(1,-1,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(1,0,1),  size*numberType::get(0,0,1)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(-1,1,2), size*numberType::get(-1,1,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(1,0,1)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(1,-1,2), size*numberType::get(-1,1,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(-1,0,1), size*numberType::get(0,0,1)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(1,-1,2), size*numberType::get(1,-1,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(-1,0,1)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(-1,1,2), size*numberType::get(1,-1,2)));
   
   return polygon<numberType>(vert);
 }
