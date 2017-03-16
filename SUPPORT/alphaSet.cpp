@@ -447,7 +447,7 @@ void print( std::ostream & stream, const alphaSet Input )
 
 void printFile( std::ostream & stream, const alphaSet Input )
 {
-  stream << Input.a << "_" << Input.b << "_" << Input.c;
+  stream << Input.a << "_" << Input.b << "alpha" << "_" << Input.c;
 }
 
 std::istream& operator >> ( std::istream & stream, alphaSet& Input )

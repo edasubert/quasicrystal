@@ -50,8 +50,6 @@ int main (int argc, char* argv[])
   numberType winSize = const_winSize;
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
-  //std::string clipTileStr = "(-1+1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(-1+1*alpha)/2 (1-1*alpha)/2,(1+1*alpha)/2 (1+1*alpha)/2,(1-1*alpha)/2 (0+0*alpha)/1,(0+0*alpha)/1 (-1-1*alpha)/2,(-1+1*alpha)/2 (-1+1*alpha)/2,(-1-1*alpha)/2 (-1-1*alpha)/2,(1-1*alpha)/2 (1-1*alpha)/2,(-1-1*alpha)/2 ";
-  
   windowType win = getWindow(winSize);
   win.center( origin );
   
@@ -59,20 +57,15 @@ int main (int argc, char* argv[])
   rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> ( win.circumscribed() );
   circ->center(origin);
   
-  // hypoquasicrystal
-  rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
-  insc->center(origin);
-  
   numberType S = circ->Xwindow().Small();
-  numberType L = insc->Xwindow().Large();
-  
-  numberType coveringR = numberType::coveringR()*L;
   
   // size of rhumbus circumscribed to covering radius disc
   //numberType lengthToCover = numberType::get(8, 0)*coveringR;
-  numberType lengthToCover = numberType::get(1, 0)*numberType::get(1, 2);
+  numberType lengthToCover = numberType::get(2, 2);
   
-  CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
+  numberType coveringR = lengthToCover;
+  
+  CvoronoiCell<numberType>::large = numberType::get(2, 0)*lengthToCover;
   
   // find out the word length by testing
   int wordLength = 1;
@@ -96,10 +89,6 @@ int main (int argc, char* argv[])
   
   if (taskid != MASTER) // NODE ----------------------------------------
   {
-    //CvoronoiCell<numberType> clipTile;
-    //clipTile.load(clipTileStr);
-    //*clipTile.CarrierSet = *clipTile.CarrierSet*numberType::get(3,0,2);
-    
     do 
     {
       MPI_Probe(MASTER, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -117,21 +106,22 @@ int main (int argc, char* argv[])
       
       if (status.MPI_TAG == 0)
       {
-        
-        
         // process data ------------------------------------------------
         std::string word1 = buffer.substr(0, buffer.length()/2);
         std::string word2 = buffer.substr(buffer.length()/2);
-        CdeloneSet10<numberType> delone = quasicrystal2D10(circ->Xwindow(), word1, word2);
         
-        //delone << *clipTile.CarrierSet;
+        CdeloneSet<numberType> tmp = quasicrystal2D(circ->Xwindow(), word1, word2);
+        
+        CdeloneSet10<numberType> delone;
+        delone.addPotential(tmp.getPoints());
         
         delone.setPackingR();
         delone.setCoveringR(numberType::get(2, 0)*coveringR);
         delone.setDescription(word1+word2);
-        delone.sortPotentialByDistance();
         
+        delone.sortPotentialByDistance();
         delone.sortByDistance();
+        
         delone.filterPotentialByWindow(win);
         
         std::list<CdeloneSet10<numberType> > delones;
@@ -142,27 +132,32 @@ int main (int argc, char* argv[])
         {
           //std::cout << "SIZE POTENTIAL: " << it->sizePotential() << std::endl;
           
-          CvoronoiCell<numberType> voronoi;
-          
-          *(voronoi.CarrierSet) = *it;
-          
-          voronoi.CarrierSet->sort();
-          voronoi.CarrierSet->unique();
-          
-          voronoi.CarrierSet->sortByDistance();
-          voronoi.CarrierSet->setPackingR();
-          voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
-          voronoi.setCenter(origin);
-          voronoi.construct();
-          voronoi.filterSet();
-          
-          std::list<Cpoint<numberType> > potential;
-          potential = it->getPotential();
-          voronoi.filterSetPotential(&potential);
-          it->clearPotential();
-          it->addPotential(potential);
-          
-          //std::cout << "SIZE POTENTIAL: " << it->sizePotential() << '\t' << "SIZE DELONES: " << delones.size() << std::endl;
+          if (it->size() > 2)
+          {
+            CvoronoiCell<numberType> voronoi;
+            
+            *(voronoi.CarrierSet) = *it;
+            
+            voronoi.CarrierSet->sort();
+            voronoi.CarrierSet->unique();
+            
+            voronoi.CarrierSet->sortByDistance();
+            voronoi.CarrierSet->setPackingR();
+            voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
+            voronoi.setCenter(origin);
+            voronoi.construct();
+            voronoi.filterSet();
+            
+            std::list<Cpoint<numberType> > potential;
+            potential = it->getPotential();
+            //std::cout << potential.size() << "\t";
+            voronoi.filterSetPotential(&potential);
+            it->clearPotential();
+            it->addPotential(potential);
+            //std::cout << potential.size() << std::endl;
+            
+            cells.push_back(voronoi);
+          }
           
           // deal with potential
           while (it->isPotential()) 
@@ -174,14 +169,12 @@ int main (int argc, char* argv[])
             delones.push_back(delone);
           }
           
-          cells.push_back(voronoi);
-          
           delones.erase(it);
           
           delones.sort();
           delones.unique();
           
-          //std::cout << "  node " << taskid << " delones: " << delones.size() << std::endl;
+          //std::cout << "  node " << taskid << " delones: " << delones.size() << '\t' << "cells: " << cells.size() << std::endl;
         }
         
         cells.sort();
@@ -219,7 +212,7 @@ int main (int argc, char* argv[])
     // create data -----------------------------------------------------
     std::cout << "Load data" << std::endl;
     
-    std::list<std::string> lang = language( insc->Xwindow(), circ->Xwindow(), wordLength );
+    std::list<std::string> lang = language(circ->Xwindow(), wordLength);
     for ( std::list<std::string>::iterator it = lang.begin(); it != lang.end(); ++it )
     {
       for ( std::list<std::string>::iterator ot = lang.begin(); ot != lang.end(); ++ot )
@@ -278,7 +271,7 @@ int main (int argc, char* argv[])
         //std::cout << "finished: " << res.size() << std::endl;
       }
       
-      //std::cout << std::string(4, ' ') << "MASTER received from: " << status.MPI_SOURCE << " sending: " << iterator << std::endl;
+      std::cout << std::string(4, ' ') << "MASTER received from: " << status.MPI_SOURCE << std::endl;
       
       send_buffer = *(iterator++);
       

@@ -155,14 +155,14 @@ void CdeloneSet10<numberType>::filterPotentialByWindow(windowType win)
   for (typename std::list<Cpoint<numberType> >::iterator it = this->potential.begin(); it != this->potential.end(); )
   {
     //std::cout << "INSIDE" << std::endl << std::flush;
-    windowType* windowCheck = new windowType(win);
+    windowType windowCheck = win;
     CdeloneSet10<numberType> delone = *this;
     //std::cout << "CLONING " << it->getX() << std::endl << std::flush;
     delone << *it;
     
-    if (!fitToWindow(windowCheck, delone))
+    if (!fitToWindow(&windowCheck, delone))
     {
-      //std::cout << "\t not fit" << std::endl << std::flush;
+      std::cout << "\t not fit" << std::endl << std::flush;
       it = potential.erase(it);
     }
     else

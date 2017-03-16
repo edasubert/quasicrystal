@@ -21,8 +21,8 @@ int main( int argc, char ** argv )
   std::cout << "------------------------------" << std::endl << std::flush;
   
   // intervel of the quasicrystal
-  numberType x( 40,0,1);
-  numberType y( 30,0,1);
+  numberType x(160,0,2);
+  numberType y( 90,0,2);
   
   numberType x1 = numberType::get(-3,0,4)*x;
   numberType x2 = numberType::get( 3,0,4)*x;
@@ -52,6 +52,8 @@ int main( int argc, char ** argv )
     rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
     
     numberType coveringR = numberType::coveringR()*insc->large();
+    
+    std::cout << "window name: " << win.getName() << std::endl;
     
     std::cout << "window size: ";
     print(std::cout, winSize);
@@ -86,8 +88,7 @@ int main( int argc, char ** argv )
     std::cout << "L: " << insc->large() << std::endl;
     
     
-    std::string folder = argv[1];
-    std::string fileName = argv[2];
+    std::string fileName = argv[1];
     std::string fillColor = const_fillColor;
     std::string strokeColor = const_strokeColor;
     std::ostringstream convert;
@@ -124,9 +125,9 @@ int main( int argc, char ** argv )
     }
     
     std::ostringstream oss;
-    oss << folder << '/' << fileName << "_" << winId << "_";
+    oss << fileName << "_" << win.getName() << "_" << winSize << "_(";
     printFile(oss, winSize);
-    oss << ".svg";
+    oss << ").svg";
         
     std::ofstream myfile ( oss.str().c_str() );
     
@@ -156,9 +157,9 @@ int main( int argc, char ** argv )
     circ->setColor( "none", "#000000", "0.006" );
     insc->setColor( "none", "#000000", "0.006" );
     
-    //win.svg(myfile);
-    //circ->svg(myfile);
-    //insc->svg(myfile);
+    win.svg(myfile);
+    circ->svg(myfile);
+    insc->svg(myfile);
     
     myfile << "</g>" << std::endl;
     myfile << "</svg>";

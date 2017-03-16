@@ -84,19 +84,14 @@ CdeloneSet<numberType> quasicrystal2D( window<numberType> win, std::string &x, s
   numberType xAxis = xAxisMove;
   numberType yAxis = yAxisMove;
   
-  for (std::string::iterator it = x.begin(); it != x.end(); ++++it )
+  for (std::string::iterator it = x.begin(); it != x.end(); ++it )
   {
     xAxis+= win.char2space(*it);
-    for (std::string::iterator ot = y.begin(); ot != y.end(); ++++ot )
+    for (std::string::iterator ot = y.begin(); ot != y.end(); ++ot )
     {
       yAxis+= win.char2space(*ot);
       point.setX(xAxis);
       point.setY(yAxis);
-      point.setDescription("0");
-      if (*(std::next(it)) == '1' && *(std::next(ot)) == '1')
-      {
-        point.setDescription("1");
-      }
       delone << transformBeta( point );
     }
     yAxis = yAxisMove;
@@ -509,13 +504,14 @@ void addSplitForHypowin( window<numberType> hypowin, numberType start, numberTyp
 template <typename numberType>
 bool fitToWindow( window2D<numberType>* win, CdeloneSet<numberType> delone )
 { 
+  window2D<numberType> windowCheck = *win;
   delone = delone.star();
   for (typename std::list<Cpoint<numberType> >::iterator it = delone.begin(); it != delone.end(); ++it)
   {
-    win->intersect(*it);
+    windowCheck.intersect(*it);
   }
   
-  return !win->empty();
+  return !windowCheck.empty();
 }
 
 

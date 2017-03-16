@@ -458,7 +458,7 @@ void print( std::ostream & stream, const betaSet Input )
 
 void printFile( std::ostream & stream, const betaSet Input )
 {
-  stream << Input.a << "_" << Input.b << "_" << Input.c;
+  stream << Input.a << "_" << Input.b << "beta" << "_" << Input.c;
 }
 
 std::istream& operator >> ( std::istream & stream, betaSet& Input )

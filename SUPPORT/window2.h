@@ -60,6 +60,9 @@ class window {
 
 template <typename numberType>
 class window2D {
+  protected:
+    std::string name;
+    void setName(std::string);
   public:
     virtual bool in( Cpoint<numberType > star );
     virtual void intersect( window2D* win );
@@ -69,6 +72,7 @@ class window2D {
     virtual window2D* circumscribed();
     virtual void center( Cpoint<numberType > center );
     virtual bool empty();
+    std::string getName();
 };
 
 template <typename numberType>
@@ -210,6 +214,7 @@ class polygon : public window2D<numberType>
     friend bool unite(polygon<number>& larger, polygon<number> smaller);
     
     polygon<numberType> static octagon(numberType size);
+    polygon<numberType> static dodecagon(numberType size);
     polygon<numberType> static rhombic(numberType size);
 };
 
@@ -575,6 +580,9 @@ numberType window<numberType>::seed() const
 
 // window2D ------------------------------------------------------------------------------------------------
 template <typename numberType>
+bool window2D<numberType>::in( Cpoint<numberType> star ) {}
+
+template <typename numberType>
 void window2D<numberType>::intersect( window2D* win ) {}
 
 template <typename numberType>
@@ -595,10 +603,24 @@ void window2D<numberType>::center( Cpoint<numberType> center ) {}
 template <typename numberType>
 bool window2D<numberType>::empty() {}
 
+template <typename numberType>
+std::string window2D<numberType>::getName()
+{
+  return this->name;
+}
+
+template <typename numberType>
+void window2D<numberType>::setName(std::string new_name)
+{
+  this->name = new_name;
+}
+
 // rhombus -------------------------------------------------------------------------------------------------
 template <typename numberType>
 rhombus<numberType>::rhombus()
 {
+  this->name = "rhombus";
+  
   m_width = numberType::get( 1, 0 );
   m_height = numberType::get( 1, 0 );
   m_x = numberType::get( 0, 0 );
@@ -611,6 +633,8 @@ rhombus<numberType>::rhombus()
 template <typename numberType>
 rhombus<numberType>::rhombus( numberType width )
 {
+  this->name = "rhombus";
+  
   m_width = width;
   m_height = width;
   m_x = numberType::get( 0, 0 );
@@ -623,6 +647,8 @@ rhombus<numberType>::rhombus( numberType width )
 template <typename numberType>
 rhombus<numberType>::rhombus( numberType width, numberType height )
 {
+  this->name = "rhombus";
+  
   m_width = width;
   m_height = height;
   m_x = numberType::get( 0, 0 );
@@ -635,6 +661,8 @@ rhombus<numberType>::rhombus( numberType width, numberType height )
 template <typename numberType>
 rhombus<numberType>::rhombus( numberType width, numberType height, numberType x ,numberType y )
 {
+  this->name = "rhombus";
+  
   m_width = width;
   m_height = height;
   m_x = x;
@@ -647,6 +675,8 @@ rhombus<numberType>::rhombus( numberType width, numberType height, numberType x 
 template <typename numberType>
 void rhombus<numberType>::operator = (const rhombus<numberType>& rhombus)
 {
+  this->name = rhombus.name;
+  
   m_width = rhombus.m_width;
   m_height = rhombus.m_height;
   m_x = rhombus.m_x;
@@ -942,6 +972,8 @@ bool diff(rhombus<numberType>& larger, rhombus<numberType> smaller)
 template <typename numberType>
 circle<numberType>::circle()
 {
+  this->name = "circle";
+  
   m_R = numberType::get( 1, 0 );
   m_x = numberType::get( 0, 0 );
   m_y = numberType::get( 0, 0 );
@@ -951,6 +983,8 @@ circle<numberType>::circle()
 template <typename numberType>
 circle<numberType>::circle( numberType R )
 {
+  this->name = "circle";
+  
   m_R = R;
   m_x = numberType::get( 0, 0 );
   m_y = numberType::get( 0, 0 );
@@ -960,6 +994,8 @@ circle<numberType>::circle( numberType R )
 template <typename numberType>
 circle<numberType>::circle( numberType R, numberType x ,numberType y )
 {
+  this->name = "circle";
+  
   m_R = R;
   m_x = x;
   m_y = y;
@@ -1011,25 +1047,25 @@ bool circle<numberType>::in( Cpoint<numberType> star )
 template <typename numberType>
 void circle<numberType>::intersect( circle* win )
 {
-  if (m_R == win->m_R)
-  {
-    for (typename std::list<circle<numberType> >::iterator it = win->intersectionList.begin(); it != win->intersectionList.end(); ++it)
-    {
-      bool flag = true;
-      for (typename std::list<circle<numberType> >::iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
-      {
-        if ((ot->m_x == it->m_x) && (ot->m_y == it->m_y))
-        {
-          flag = false;
-        }
-      }
-      if (flag)
-      {
-        intersectionList.push_back(*it);
-      }
-    }
-  }
-  createPolygon();
+  //if (m_R == win->m_R)
+  //{
+    //for (typename std::list<circle<numberType> >::iterator it = win->intersectionList.begin(); it != win->intersectionList.end(); ++it)
+    //{
+      //bool flag = true;
+      //for (typename std::list<circle<numberType> >::iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+      //{
+        //if ((ot->m_x == it->m_x) && (ot->m_y == it->m_y))
+        //{
+          //flag = false;
+        //}
+      //}
+      //if (flag)
+      //{
+        //intersectionList.push_back(*it);
+      //}
+    //}
+  //}
+  //createPolygon();
 }
 
 template <typename numberType>
@@ -1126,97 +1162,97 @@ double circle<numberType>::centerY()
 template <typename numberType>
 void circle<numberType>::createPolygon()
 {
-  polygon.clear();
+  //polygon.clear();
   
-  for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
-  {
-    double angle01 = 0; //start
-    double angle02 = 4*M_PI; // interval   <--- deliberately larger 
+  //for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
+  //{
+    //double angle01 = 0; //start
+    //double angle02 = 4*M_PI; // interval   <--- deliberately larger 
     
-    double count = 1;
+    //double count = 1;
     
-    for (typename std::list<circle<numberType> >::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
-    {
-      if (it == ot)
-        continue;
+    //for (typename std::list<circle<numberType> >::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+    //{
+      //if (it == ot)
+        //continue;
       
-      double tmp01 = atan2(ot->m_y-it->m_y, ot->m_x-it->m_x);
-      double tmp02 = acos(sqrt( (ot->m_x-it->m_x)*(ot->m_x-it->m_x) + (ot->m_y-it->m_y)*(ot->m_y-it->m_y) )/(2*m_R));
+      //double tmp01 = atan2(ot->m_y-it->m_y, ot->m_x-it->m_x);
+      //double tmp02 = acos(sqrt( (ot->m_x-it->m_x)*(ot->m_x-it->m_x) + (ot->m_y-it->m_y)*(ot->m_y-it->m_y) )/(2*m_R));
       
-      double new_angle01 = tmp01 - tmp02;
-      double new_angle02 = 2*tmp02;
+      //double new_angle01 = tmp01 - tmp02;
+      //double new_angle02 = 2*tmp02;
       
-      if (new_angle01 < 0)
-      {
-        new_angle01+= 2*M_PI;
-      }
-      
-      // a starts first
-      double a1, a2, b1, b2;
-      if (angle01 < new_angle01)
-      {
-        a1 = angle01;
-        a2 = angle02;
-        b1 = new_angle01;
-        b2 = new_angle02;
-      }
-      else
-      {
-        b1 = angle01;
-        b2 = angle02;
-        a1 = new_angle01;
-        a2 = new_angle02;
-      }
-      
-      //std::cout.precision(3);
-      //std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
-      
-      // solve wrap around
-      if ((a1+a2 < b1) && (b1+b2 > 2*M_PI+a1))
-      {
-        a1+= 2*M_PI;
-      }
-      
-      //std::cout.precision(3);
-      //std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
-      
-      // intersection
-      angle01 = std::max(a1,b1);
-      angle02 = std::min(a1+a2,b1+b2) - angle01;
-      
-      if (angle01 > 2*M_PI)
-      {
-        angle01-= 2*M_PI;
-      }
-      
-      //std::cout.precision(3);
-      //std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << angle01 << " " << angle01+angle02 << std::endl;
-      
-      //if (angle02 > 0)
+      //if (new_angle01 < 0)
       //{
-      //out << "<line x1=\"" << it->m_x << "\" y1=\"" << it->m_y << "\" x2=\"" << cos(tmp01)*m_R + it->m_x << "\" y2=\"" << sin(tmp01)*m_R + it->m_y << "\" stroke=\"#607D8B\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blueGrey
-        
-      //out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
-          //<< "fill=\"none\" stroke=\"#FF1744\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // red
-      //out << "<path d=\" M" << cos(a1)*m_R + it->m_x << "," << sin(a1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(a1+a2)*m_R + it->m_x << " " << sin(a1+a2)*m_R + it->m_y << "\" " 
-          //<< "fill=\"none\" stroke=\"#FFEB3B\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // yellow
-      //out << "<path d=\" M" << cos(b1)*m_R + it->m_x << "," << sin(b1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(b1+b2)*m_R + it->m_x << " " << sin(b1+b2)*m_R + it->m_y << "\" " 
-          //<< "fill=\"none\" stroke=\"#0288D1\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blue
-      //count++;
+        //new_angle01+= 2*M_PI;
       //}
-    }
-    //std::cout << angle01 << " " << angle01+angle02 << std::endl;
-    //std::cout << std::endl;
-    if (angle02 > 0)
-    {
-      //out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
-          //<< "fill=\"none\" stroke=\"#3F51B5\" stroke-width=\"" << m_strokeWidth << "\" />" << std::endl; // indigo
-      polygon << Cpoint<double>(cos(angle01+angle02)*m_R + it->m_x, sin(angle01+angle02)*m_R + it->m_y);
-      sweep.push_back(1);
-    }
-  }
+      
+      //// a starts first
+      //double a1, a2, b1, b2;
+      //if (angle01 < new_angle01)
+      //{
+        //a1 = angle01;
+        //a2 = angle02;
+        //b1 = new_angle01;
+        //b2 = new_angle02;
+      //}
+      //else
+      //{
+        //b1 = angle01;
+        //b2 = angle02;
+        //a1 = new_angle01;
+        //a2 = new_angle02;
+      //}
+      
+      ////std::cout.precision(3);
+      ////std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
+      
+      //// solve wrap around
+      //if ((a1+a2 < b1) && (b1+b2 > 2*M_PI+a1))
+      //{
+        //a1+= 2*M_PI;
+      //}
+      
+      ////std::cout.precision(3);
+      ////std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
+      
+      //// intersection
+      //angle01 = std::max(a1,b1);
+      //angle02 = std::min(a1+a2,b1+b2) - angle01;
+      
+      //if (angle01 > 2*M_PI)
+      //{
+        //angle01-= 2*M_PI;
+      //}
+      
+      ////std::cout.precision(3);
+      ////std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << angle01 << " " << angle01+angle02 << std::endl;
+      
+      ////if (angle02 > 0)
+      ////{
+      ////out << "<line x1=\"" << it->m_x << "\" y1=\"" << it->m_y << "\" x2=\"" << cos(tmp01)*m_R + it->m_x << "\" y2=\"" << sin(tmp01)*m_R + it->m_y << "\" stroke=\"#607D8B\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blueGrey
+        
+      ////out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
+          ////<< "fill=\"none\" stroke=\"#FF1744\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // red
+      ////out << "<path d=\" M" << cos(a1)*m_R + it->m_x << "," << sin(a1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(a1+a2)*m_R + it->m_x << " " << sin(a1+a2)*m_R + it->m_y << "\" " 
+          ////<< "fill=\"none\" stroke=\"#FFEB3B\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // yellow
+      ////out << "<path d=\" M" << cos(b1)*m_R + it->m_x << "," << sin(b1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(b1+b2)*m_R + it->m_x << " " << sin(b1+b2)*m_R + it->m_y << "\" " 
+          ////<< "fill=\"none\" stroke=\"#0288D1\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blue
+      ////count++;
+      ////}
+    //}
+    ////std::cout << angle01 << " " << angle01+angle02 << std::endl;
+    ////std::cout << std::endl;
+    //if (angle02 > 0)
+    //{
+      ////out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
+          ////<< "fill=\"none\" stroke=\"#3F51B5\" stroke-width=\"" << m_strokeWidth << "\" />" << std::endl; // indigo
+      //polygon << Cpoint<double>(cos(angle01+angle02)*m_R + it->m_x, sin(angle01+angle02)*m_R + it->m_y);
+      //sweep.push_back(1);
+    //}
+  //}
   
-  polygon.sortClockwise();
+  //polygon.sortClockwise();
 }
 
 
@@ -1265,12 +1301,14 @@ bool diff(circle<numberType>& larger, circle<numberType> smaller)
 template <typename numberType>
 polygon<numberType>::polygon()
 {
-  
+  this->name = "polygon-unknown";
 }
 
 template <typename numberType>
 polygon<numberType>::polygon(CpointSet<numberType> vert)
 {
+  this->name = "polygon-unknown";
+  
   m_vert = vert;
   m_vert.sortClockwise();
   for (typename std::list<Cpoint<numberType> >::iterator it = m_vert.begin(); it != m_vert.end(); ++it)
@@ -1285,6 +1323,8 @@ polygon<numberType>::polygon(CpointSet<numberType> vert)
 template <typename numberType>
 polygon<numberType>::polygon(CpointSet<numberType> vert, Cpoint<numberType> center)
 {
+  this->name = "polygon-unknown";
+  
   m_vert = vert;
   m_center = center;
   
@@ -1296,6 +1336,7 @@ polygon<numberType>::polygon(CpointSet<numberType> vert, Cpoint<numberType> cent
 template <typename numberType>
 void polygon<numberType>::operator = (const polygon<numberType> &polygon)
 {
+  this->name = polygon.name;
   this->m_vert = polygon.m_vert;
   this->m_center = polygon.m_center;
   this->backup_vert = polygon.backup_vert;
@@ -1309,7 +1350,7 @@ void polygon<numberType>::svg( std::ostream& out )
   {
     out << it->getX() << "," << it->getY() << " ";
   }
-  out << "\" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\" fill-opacity=\"0.9\" />" << std::endl;
+  out << "\" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\" fill-opacity=\"1\" />" << std::endl;
 }
 
 template <typename numberType>
@@ -1461,14 +1502,23 @@ void polygon<numberType>::intersect( Cpoint<numberType> center )
 template <typename numberType>
 rhombus<numberType>* polygon<numberType>::inscribed()
 {
-  numberType size = max((m_vert.begin()->getX()-m_center.getX()).abs(), (m_vert.begin()->getY()-m_center.getY()).abs());
+  numberType tmp = numberType::windowA()*numberType::windowD() - numberType::windowB()*numberType::windowC(); // denominator of inverse transform
   
-  // radius of inscribed circle
-  for (typename std::list<Cpoint<numberType> >::const_iterator it = ++m_vert.begin(); it != m_vert.end(); ++it)
+  numberType size = max( (numberType::windowD()/tmp*(m_vert.begin()->getX()-m_center.getX()) - numberType::windowB()/tmp*(m_vert.begin()->getY()-m_center.getY())).abs(), \
+                         (numberType::windowA()/tmp*(m_vert.begin()->getY()-m_center.getY()) - numberType::windowC()/tmp*(m_vert.begin()->getX()-m_center.getX())).abs());
+  
+  for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(); it != m_vert.end(); ++it)
   {
-    size = min(max((it->getX()-m_center.getX()).abs(), (it->getY()-m_center.getY()).abs()), size);
+      size = min(max( \
+        (numberType::windowD()/tmp*(it->getX()-m_center.getX()) - numberType::windowB()/tmp*(it->getY()-m_center.getY())).abs(), \
+        (numberType::windowA()/tmp*(it->getY()-m_center.getY()) - numberType::windowC()/tmp*(it->getX()-m_center.getX())).abs() \
+      ), size);
+      
+      //std::cout << (numberType::transformD()/tmp*(it->getX()-m_center.getX()) - numberType::transformB()/tmp*(it->getY()-m_center.getY())).abs() << std::endl;
+      //std::cout << (numberType::transformA()/tmp*(it->getX()-m_center.getX()) - numberType::transformC()/tmp*(it->getY()-m_center.getY())).abs() << std::endl << std::endl;
   }
-  size = size*numberType::inscribedRhombusToCircle();
+  
+  size = size*numberType::get(9,0,10);
   
   rhombus<numberType>* insc = new rhombus<numberType>(size, size);
   insc->center(m_center);
@@ -1478,15 +1528,25 @@ rhombus<numberType>* polygon<numberType>::inscribed()
 template <typename numberType>
 rhombus<numberType>* polygon<numberType>::circumscribed()
 {
+  // inverse transform and circumscribe square
   numberType size;
   
-  // radius of circumscribed circle
+  numberType tmp = numberType::windowA()*numberType::windowD() - numberType::windowB()*numberType::windowC(); // denominator of inverse transform
+  
   for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(); it != m_vert.end(); ++it)
   {
-      size = max((it->getX()-m_center.getX()).abs() + (it->getY()-m_center.getY()).abs(), size);
+      size = max((numberType::windowD()/tmp*(it->getX()-m_center.getX()) - numberType::windowB()/tmp*(it->getY()-m_center.getY())).abs(), size);
+      size = max((numberType::windowA()/tmp*(it->getY()-m_center.getY()) - numberType::windowC()/tmp*(it->getX()-m_center.getX())).abs(), size);
+      
+      //print(std::cout, (numberType::windowD()/tmp*(it->getX()-m_center.getX()) - numberType::windowB()/tmp*(it->getY()-m_center.getY())).abs());
+      //std::cout << '\t';
+      //print(std::cout, ((numberType::windowA()/tmp*(it->getY()-m_center.getY()) - numberType::windowC()/tmp*(it->getX()-m_center.getX())).abs()));
+      //std::cout << std::endl;
+      //std::cout << (numberType::windowD()/tmp*(it->getX()-m_center.getX()) - numberType::windowB()/tmp*(it->getY()-m_center.getY())).abs() << '\t';
+      //std::cout << (numberType::windowA()/tmp*(it->getY()-m_center.getY()) - numberType::windowC()/tmp*(it->getX()-m_center.getX())).abs() << std::endl << std::endl;
   }
   
-  size = size*numberType::circumscribedRhombusToCircle();
+  size = size*numberType::get(2,0)*numberType::get(11,0,10);
   
   rhombus<numberType>* circ = new rhombus<numberType>(size, size);
   circ->center(m_center);
@@ -1890,7 +1950,37 @@ polygon<numberType> polygon<numberType>::octagon(numberType size)
   vert.push_back(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(-1,0,1)));
   vert.push_back(Cpoint<numberType>(size*numberType::get(-1,1,2), size*numberType::get(1,-1,2)));
   
-  return polygon<numberType>(vert);
+  vert.sortClockwise();
+  
+  polygon<numberType> octagon = polygon<numberType>(vert);
+  octagon.setName("polygon-octagon");
+  
+  return octagon;
+}
+
+template <typename numberType>
+polygon<numberType> polygon<numberType>::dodecagon(numberType size)
+{
+  CpointSet<numberType> vert;
+  vert.push_back(Cpoint<numberType>(size*numberType::get(1,0,1),  size*numberType::get(0,0,1)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(-2,1,2), size*numberType::get(-1,0,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(1,0,2), size*numberType::get(2,-1,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(1,0,1)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(-1,0,2), size*numberType::get(2,-1,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(2,-1,2), size*numberType::get(-1,0,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(-1,0,1), size*numberType::get(0,0,1)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(2,-1,2), size*numberType::get(1,0,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(-1,0,2), size*numberType::get(-2,1,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(0,0,1),  size*numberType::get(-1,0,1)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(1,0,2), size*numberType::get(-2,1,2)));
+  vert.push_back(Cpoint<numberType>(size*numberType::get(-2,1,2), size*numberType::get(1,0,2)));
+  
+  vert.sortClockwise();
+  
+  polygon<numberType> dodecagon = polygon<numberType>(vert);
+  dodecagon.setName("polygon-dodecagon");
+  
+  return dodecagon;
 }
 
 template <typename numberType>
@@ -1902,7 +1992,12 @@ polygon<numberType> polygon<numberType>::rhombic(numberType size)
   vert.push_back(Cpoint<numberType>(numberType::windowA()*size + numberType::windowB()*size, numberType::windowC()*size + numberType::windowD()*size));
   vert.push_back(Cpoint<numberType>(numberType::windowB()*size, numberType::windowD()*size));
   
-  return polygon<numberType>(vert);
+  vert.sortClockwise();
+  
+  polygon<numberType> rhombus = polygon<numberType>(vert);
+  rhombus.setName("polygon-rhombus");
+  
+  return rhombus;
 }
 
 

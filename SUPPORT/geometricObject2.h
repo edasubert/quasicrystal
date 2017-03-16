@@ -282,6 +282,7 @@ class CvoronoiCell : public virtual Cfigure<numberType>
     
     CvoronoiCell<numberType> rotate(int n) const;
     CvoronoiCell<numberType> flip() const;
+    CvoronoiCell<numberType> flop() const;
     
     CvoronoiCell<numberType> star()const;
 };
@@ -1768,6 +1769,10 @@ void CvoronoiCell<numberType>::filterSet()
     {
       ot = CarrierSet->removePoint( ot );
     }
+    else if (*ot == Cpoint<numberType>())
+    {
+      ot = CarrierSet->removePoint( ot );
+    }
     else
     {
       ++ot;
@@ -2108,12 +2113,16 @@ void CvoronoiCell<numberType>::colorify()
   *rot.Cell-= rot.Center;
   *rot.CarrierSet-= rot.Center;
   
+  rot.CarrierSet->sortClockwise();
+  
   CvoronoiCell<numberType> min = rot;
   CvoronoiCell<numberType> flip = rot.flip();
+  CvoronoiCell<numberType> flop = rot.flop();
   
   for (int i = 1; i < numberType::rotateN(); ++i)
   {
     flip = flip.rotate(1);
+    flop = flop.rotate(1);
     rot = rot.rotate(1);
     if (rot < min)
     {
@@ -2123,18 +2132,28 @@ void CvoronoiCell<numberType>::colorify()
     {
       min = flip;
     }
+    if (flop < min)
+    {
+      min = flop;
+    }
   }
   
+  //*this = min;
+  
   min.CarrierSet->sortClockwise();
+  
+  //*this->CarrierSet = *min.CarrierSet;
+  //*this->Cell = *min.Cell;
+  
   //*min.CarrierSet = *min.CarrierSet*numberType::get(1,0,min.size());
-  *min.CarrierSet = *min.CarrierSet*(numberType::get(5,0)/(min.CarrierSet->begin()->getX()+min.CarrierSet->begin()->getY()));
+  *min.CarrierSet = *min.CarrierSet*(numberType::get(6,0)/(min.CarrierSet->begin()->getX()+min.CarrierSet->begin()->getY()));
   
   //std::cout << min.save() << std::endl << std::endl;
   
   unsigned int hash = str_hash(min.save());
   
   double h = hash % 2147483647;
-  double s = (((hash & 0x00FF00) >> 8) % 128 + 128);
+  double s = (((hash & 0x00FF00) >> 8) % 124 + 128);
   double v = ((hash & 0x0000FF) % 16 + 240);
   
   h/=2147483647.;
@@ -2237,6 +2256,24 @@ CvoronoiCell<numberType> CvoronoiCell<numberType>::flip() const
 {
   numberType x = (numberType::windowA()+numberType::windowB());
   numberType y = (numberType::windowC()+numberType::windowD());
+  numberType denominator = x*x+y*y;
+  numberType a = (x*x-y*y)/denominator;
+  numberType b = (numberType::get(2,0)*x*y)/denominator;
+  numberType c = (numberType::get(2,0)*x*y)/denominator;
+  numberType d = (y*y-x*x)/denominator;
+  
+  CvoronoiCell<numberType> Output = *this;
+  Output.Cell->transform(a,b,c,d);
+  Output.CarrierSet->transform(a,b,c,d);
+  
+  return Output;
+}
+
+template <typename numberType>
+CvoronoiCell<numberType> CvoronoiCell<numberType>::flop() const
+{
+  numberType x = (numberType::windowA()-numberType::windowB());
+  numberType y = (numberType::windowC()-numberType::windowD());
   numberType denominator = x*x+y*y;
   numberType a = (x*x-y*y)/denominator;
   numberType b = (numberType::get(2,0)*x*y)/denominator;

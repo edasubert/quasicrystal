@@ -23,7 +23,6 @@ int main (int argc, char* argv[])
   std::cout << "DRAWING TILES AND WINDOW FROM A LIST OF CANDIDATES" << std::endl << std::flush;
   std::cout << "--------------------------------------------------" << std::endl << std::flush;
   
-  std::string folder = argv[2];
   std::string fileName = argv[3];
   
   numberType winSize;
@@ -63,9 +62,68 @@ int main (int argc, char* argv[])
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   
   
-  std::cout << "Loading data: " << std::endl << std::flush;
+  
+  // input finite
+  std::cout << "Loading \"finite\" data" << std::endl;
+  
+  std::list<CvoronoiCell<numberType> > cellsFinite;
+  
+  std::ifstream myfileFinite(argv[2]);
   
   std::list<std::string> inputData; 
+  
+  if (myfileFinite.is_open())
+  {
+    while ( getline(myfileFinite, line) )
+    {
+      if ((line.size() > 0) && (line[0] != '#'))
+      {
+        inputData.push_back(line);
+      }
+    }
+    myfileFinite.close();
+  }
+  else std::cout << "Unable to open file" << std::endl; 
+  
+  std::cout << "strings read: " << inputData.size() << std::endl << std::flush; 
+  
+  inputData.sort();
+  inputData.unique();
+  
+  for (std::list<std::string>::iterator it = inputData.begin(); it != inputData.end(); ++it)
+  {
+    CvoronoiCell<numberType> voronoi;
+    voronoi.load(*it);
+    
+    if (voronoi.CarrierSet->size() < 3)
+    {
+      continue;
+    }
+    
+    voronoi.setDescription(*it);
+    voronoi.CarrierSet->setPackingR();
+    voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
+    voronoi.setCenter(origin);
+    voronoi.construct();
+    voronoi.filterSet();
+    cellsFinite.push_back(voronoi);
+  }
+  
+  std::cout << "finite cells: " << cellsFinite.size() << std::endl << std::flush; 
+  
+  cellsFinite.sort();
+  
+  // select largest size from finite
+  numberType largest = cellsFinite.rbegin()->size();
+  std::cout << "largest: " << largest << " ";
+  print(std::cout, largest);
+  std::cout << std::endl;
+  
+  
+  // input
+  std::cout << std::endl << "Loading data: " << std::endl << std::flush;
+  
+  inputData.clear();
   
   if (myfile.is_open())
   {
@@ -87,7 +145,6 @@ int main (int argc, char* argv[])
   
   std::cout << "strings after unique: " << inputData.size() << std::endl << std::flush; 
   
-  
   for (std::list<std::string>::iterator it = inputData.begin(); it != inputData.end(); ++it)
   {
     CvoronoiCell<numberType> voronoi;
@@ -98,25 +155,18 @@ int main (int argc, char* argv[])
       continue;
     }
     
-    for (std::list<Cpoint<numberType> >::iterator ot = voronoi.CarrierSet->begin(); ot != voronoi.CarrierSet->end();)
-    {
-      if (*ot == origin)
-      {
-        ot = voronoi.CarrierSet->removePoint(ot);
-      }
-      else
-      {
-        ++ot;
-      }
-    }
-    
-    
     voronoi.setDescription(*it);
     voronoi.CarrierSet->setPackingR();
     voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
     voronoi.setCenter(origin);
     voronoi.construct();
-    cells.push_back(voronoi);
+    voronoi.filterSet();
+    
+    if (voronoi.size() <= largest+numberType::get(1,0))
+    {
+      cells.push_back(voronoi);
+      //std::cout << voronoi.size() << std::endl;
+    }
   }
   
   std::cout << "cells: " << cells.size() << std::endl << std::flush; 
@@ -125,6 +175,7 @@ int main (int argc, char* argv[])
   cells.unique();
   
   std::cout << "cells after unique: " << cells.size() << std::endl << std::endl << std::flush; 
+  
   
   std::string fillColor = const_fillColor;
   std::string strokeColor = const_strokeColor;
@@ -139,11 +190,19 @@ int main (int argc, char* argv[])
   std::string borderstrokeWidth = convert.str();
   
   
+  // JOIN CELLS AND CELLS FINITE
+  //std::cout << "Join finite" << std::endl << std::flush;
+  //cells.insert(cells.begin(), cellsFinite.begin(), cellsFinite.end());
+  //
+  //std::cout << "cells: " << cells.size() << std::endl << std::flush; 
+  //cells.sort();
+  //cells.unique();
+  //std::cout << "cells after unique: " << cells.size() << std::endl << std::endl << std::flush; 
+  
+  
   long int count;
   
-  
   std::cout << "Cutting window sections" << std::endl << std::flush;
-  
   // CUT WINDOW SECTIONS -----------------------------------------------
   std::map<std::string, windowType> windowParts;
   
@@ -381,7 +440,7 @@ int main (int argc, char* argv[])
     middleDomain.setColor(fillColor, "#2979FF", strokeWidth);
     
     std::ostringstream oss;
-    oss << folder << '/' << fileName << std::setfill('0') << std::setw(3) << count << ".svg";// << " " << it->size();
+    oss << fileName << std::setfill('0') << std::setw(3) << count << ".svg";// << " " << it->size();
     std::ofstream myfile ( oss.str().c_str() );
     
     myfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
@@ -426,7 +485,7 @@ int main (int argc, char* argv[])
   
   tmp02.clear();
   tmp02.str(std::string());
-  tmp02 << folder << '/' << fileName << "_";
+  tmp02 << fileName << "_";
   printFile(tmp02, winSize);
   tmp02 << ".svg";
   std::ofstream windowfile ( tmp02.str().c_str() );
@@ -461,21 +520,21 @@ int main (int argc, char* argv[])
       intersect.svg(windowfile);
       
       // tiles
-      windowfile << "<svg x=\"" << static_cast<double>(intersect.centerX())-0.03*winSize << "\" y=\"" << static_cast<double>(intersect.centerY())-0.03*winSize << "\" width=\"" << 0.06*winSize << "\" height=\"" << 0.06*winSize << "\" viewBox=\"" << -2*coveringR << " " << -2*coveringR << " " << 4*coveringR << " " << 4*coveringR << "\">\n" << std::endl;
+      //windowfile << "<svg x=\"" << static_cast<double>(intersect.centerX())-0.03*winSize << "\" y=\"" << static_cast<double>(intersect.centerY())-0.03*winSize << "\" width=\"" << 0.06*winSize << "\" height=\"" << 0.06*winSize << "\" viewBox=\"" << -2*coveringR << " " << -2*coveringR << " " << 4*coveringR << " " << 4*coveringR << "\">\n" << std::endl;
       
       
-      it->svg(windowfile);
-      it->CarrierSet->svg(windowfile);
+      //it->svg(windowfile);
+      //it->CarrierSet->svg(windowfile);
       
-      it->setColor(fillColor, strokeColor, strokeWidth);
-      it->colorify();
-      it->CarrierSet->setColor(fillColor, strokeColor, strokeWidth);
-      it->Center.setColor(fillColor, strokeColor, strokeWidth);
-      it->svg(windowfile);
-      it->CarrierSet->svg(windowfile);
-      it->Center.svg(windowfile);
+      //it->setColor(fillColor, strokeColor, strokeWidth);
+      //it->colorify();
+      //it->CarrierSet->setColor(fillColor, strokeColor, strokeWidth);
+      //it->Center.setColor(fillColor, strokeColor, strokeWidth);
+      //it->svg(windowfile);
+      //it->CarrierSet->svg(windowfile);
+      //it->Center.svg(windowfile);
       
-      windowfile << "</svg>" << std::endl;
+      //windowfile << "</svg>" << std::endl;
       windowfile << "</g>" << std::endl;
     }
   }

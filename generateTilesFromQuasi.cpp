@@ -21,14 +21,13 @@
 // creates diagram of "any" window from finite section
 int main( int argc, char ** argv )
 {
-  std::string folder = argv[2];
-  std::string fileName = argv[3];
+  std::string fileName = argv[1];
   
   std::cout << "LIMITED WINDOW DIVISION GENERATOR" << std::endl << std::flush;
   std::cout << "---------------------------------" << std::endl << std::flush;
   
   // interval of the quasicrystal
-  numberType x(35,0);
+  numberType x(80,0);
     
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
@@ -38,36 +37,22 @@ int main( int argc, char ** argv )
   
   winSize = const_winSize;
   
-  std::string fillColor = const_fillColor;
-  std::string strokeColor = const_strokeColor;
-  std::string strokeWidth = const_strokeWidth(winSize);
-  
-  std::string windowfillColor = const_windowfillColor;
-  std::string windowstrokeColor = const_windowstrokeColor;
-  std::string windowstrokeWidth = const_windowstrokeWidth(winSize);
-  
-  std::ostringstream convert;
-  convert << 0.6/winSize;
-  std::string borderstrokeWidth = convert.str();
-  
-  
   //rhombus win( winSize, winSize );
   //windowType win( winSize );
   windowType win = getWindow(winSize);
-  win.center( origin );
+  win.center(origin);
   
   // control with hyperquasicrystal
-  rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> ( win.circumscribed() );
+  rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> (win.circumscribed());
   
   // control with hypoquasicrystal
-  rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
+  rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> (win.inscribed());
   
   
   numberType x1 = -x;
   numberType x2 = x;
   numberType y1 = -x;
   numberType y2 = x;
-  
   
   numberType coveringR = numberType::coveringR()*insc->large();
   
@@ -76,21 +61,12 @@ int main( int argc, char ** argv )
   
   CdeloneSet<numberType> delone = quasicrystal2D( win, x1, x2, y1, y2 );
   delone.setDescription("Deloneovská množina bodů");
-  delone.setColor( fillColor, strokeColor, strokeWidth );
   //*voronoi->CarrierSet = delone;
   
   CdeloneSet<numberType> hyper = quasicrystal2D( *circ, x1, x2, y1, y2 );
-  hyper.setColor( fillColor, "#2196F3", strokeWidth );
   
   std::cout << "hypercrystal: ";
   print( std::cout, circ->Xwindow().l() );
-  std::cout << std::endl << std::flush;
-  
-  CdeloneSet<numberType> hypo = quasicrystal2D( *insc, x1, x2, y1, y2 );
-  hypo.setColor( fillColor, "#D50000", strokeWidth );
-  
-  std::cout << "hypocrystal:  ";
-  print( std::cout, insc->Xwindow().l() );
   std::cout << std::endl << std::flush;
   
   CvoronoiCell<numberType>::large = numberType::get(3,0)*coveringR;
@@ -117,7 +93,6 @@ int main( int argc, char ** argv )
     CvoronoiCell<numberType> voronoi;
     
     voronoi.setCenter(origin);
-    voronoi.setColor( fillColor, strokeColor, strokeWidth );
     
     *voronoi.CarrierSet = delone;
     *voronoi.CarrierSet-= *it;
@@ -127,12 +102,12 @@ int main( int argc, char ** argv )
     voronoi.filterSet();
     
     
-    convert.str("");
-    convert.clear();
-    
-    print(convert, it->getX());
-    print(convert, it->getY());
-    voronoi.setDescription(convert.str());
+    //convert.str("");
+    //convert.clear();
+    //
+    //print(convert, it->getX());
+    //print(convert, it->getY());
+    //voronoi.setDescription(convert.str());
     
     cells.push_back(voronoi);
     
@@ -145,9 +120,9 @@ int main( int argc, char ** argv )
   
   
   std::ostringstream tmp02;
-  tmp02 << folder << '/' << fileName << "_";
+  tmp02 << fileName << "_" << win.getName() << "_" << winSize << "_(";
   printFile(tmp02, winSize);
-  tmp02 << "-" << floor(x);
+  tmp02 << ")_" << floor(x) << "_" << cells.size();
   
   // write to file
   std::ofstream output(tmp02.str().c_str());
