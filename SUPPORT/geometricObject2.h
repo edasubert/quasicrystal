@@ -284,6 +284,8 @@ class CvoronoiCell : public virtual Cfigure<numberType>
     CvoronoiCell<numberType> flip() const;
     CvoronoiCell<numberType> flop() const;
     
+    std::string dna() const;
+    
     CvoronoiCell<numberType> star()const;
 };
 
@@ -301,6 +303,9 @@ bool distanceComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
 
 template <typename numberType>
 bool clockwiseComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
+
+template <typename numberType>
+bool dnaComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
 
 
 // FIGURE ==============================================================
@@ -2300,6 +2305,48 @@ CvoronoiCell<numberType> CvoronoiCell<numberType>::star() const
 }
 
 
+template <typename numberType>
+std::string CvoronoiCell<numberType>::dna() const
+{
+  CvoronoiCell<numberType> rot = *this;
+  
+  rot.filterSet();
+  
+  *rot.Cell-= rot.Center;
+  *rot.CarrierSet-= rot.Center;
+  
+  rot.CarrierSet->sortClockwise();
+  
+  CvoronoiCell<numberType> min = rot;
+  CvoronoiCell<numberType> flip = rot.flip();
+  CvoronoiCell<numberType> flop = rot.flop();
+  
+  for (int i = 1; i < numberType::rotateN(); ++i)
+  {
+    flip = flip.rotate(1);
+    flop = flop.rotate(1);
+    rot = rot.rotate(1);
+    if (rot < min)
+    {
+      min = rot;
+    }
+    if (flip < min)
+    {
+      min = flip;
+    }
+    if (flop < min)
+    {
+      min = flop;
+    }
+  }
+  
+  //*this = min;
+  
+  min.CarrierSet->sortClockwise();
+  
+  return min.save();
+}
+
 template<typename numberType> numberType CvoronoiCell<numberType>::large = 0;
 
 // SUPPORT FUNCTION ====================================================
@@ -2324,13 +2371,19 @@ double euklid2(const Cpoint<numberType>& a)
 template <typename numberType>
 bool distanceComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b )
 {
-  return ( (a.getX()*a.getX()+a.getY()*a.getY() < b.getX()*b.getX()+b.getY()*b.getY()) || ( (a.getX()*a.getX()+a.getY()*a.getY() < b.getX()*b.getX()+b.getY()*b.getY()) && (( a.getX() < b.getX() ) || (( a.getX() == b.getX() ) && ( a.getY() < b.getY() )))));
+  return ( (a.getX()*a.getX()+a.getY()*a.getY() < b.getX()*b.getX()+b.getY()*b.getY()) || ( (a.getX()*a.getX()+a.getY()*a.getY() == b.getX()*b.getX()+b.getY()*b.getY()) && (( a.getX() < b.getX() ) || (( a.getX() == b.getX() ) && ( a.getY() < b.getY() )))));
 }
 
 template <typename numberType>
 bool clockwiseComp( const Cpoint<numberType>& a, const Cpoint<numberType>& b )
 {
   return atan2(a.getY(), a.getX()) < atan2(b.getY(), b.getX());
+}
+
+template <typename numberType>
+bool dnaComp( const CvoronoiCell<numberType>& a, const CvoronoiCell<numberType>& b )
+{
+  return a.dna() == b.dna();
 }
 
 #endif

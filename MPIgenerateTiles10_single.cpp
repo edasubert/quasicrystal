@@ -66,13 +66,13 @@ int main (int argc, char* argv[])
   numberType S = circ->Xwindow().Small();
   numberType L = insc->Xwindow().Large();
   
-  numberType coveringR = numberType::coveringR()*L;
+  numberType coveringR = covering;
   
   // size of rhumbus circumscribed to covering radius disc
   //numberType lengthToCover = numberType::get(8, 0)*coveringR;
-  numberType lengthToCover = numberType::get(1, 0)*numberType::get(1, 2);
+  numberType lengthToCover = numberType::circumscribedRhombusToCircle()*numberType::get(2, 0)*covering;
   
-  CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
+  CvoronoiCell<numberType>::large = coveringR;
   
   // find out the word length by testing
   int wordLength = 1;
@@ -174,7 +174,10 @@ int main (int argc, char* argv[])
             delones.push_back(delone);
           }
           
-          cells.push_back(voronoi);
+          if (voronoi.size() <= largestTile)
+          {
+            cells.push_back(voronoi);
+          }
           
           delones.erase(it);
           

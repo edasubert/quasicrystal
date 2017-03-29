@@ -61,11 +61,11 @@ int main (int argc, char* argv[])
   
   // size of rhumbus circumscribed to covering radius disc
   //numberType lengthToCover = numberType::get(8, 0)*coveringR;
-  numberType lengthToCover = numberType::get(2, 2);
+  numberType lengthToCover = numberType::circumscribedRhombusToCircle()*numberType::get(2, 0)*covering;
   
-  numberType coveringR = lengthToCover;
+  numberType coveringR = covering;
   
-  CvoronoiCell<numberType>::large = numberType::get(2, 0)*lengthToCover;
+  CvoronoiCell<numberType>::large = covering;
   
   // find out the word length by testing
   int wordLength = 1;
@@ -74,7 +74,7 @@ int main (int argc, char* argv[])
     ++wordLength;
   } while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
   
-  //wordLength = 7;
+  //wordLength = 4;
   
   /* Obtain number of tasks and task ID */
   MPI_Init(&argc,&argv);
@@ -116,13 +116,14 @@ int main (int argc, char* argv[])
         delone.addPotential(tmp.getPoints());
         
         delone.setPackingR();
-        delone.setCoveringR(numberType::get(2, 0)*coveringR);
+        delone.setCoveringR(coveringR);
         delone.setDescription(word1+word2);
         
         delone.sortPotentialByDistance();
         delone.sortByDistance();
         
-        delone.filterPotentialByWindow(win);
+        delone.filterDistanceOrigin(numberType::get(2, 0)*coveringR);
+        delone.removeOrigin();
         
         std::list<CdeloneSet10<numberType> > delones;
         std::list<CvoronoiCell<numberType> > cells;
@@ -131,12 +132,18 @@ int main (int argc, char* argv[])
         for (std::list<CdeloneSet10<numberType> >::iterator it = delones.begin(); it != delones.end(); it = delones.begin())
         {
           //std::cout << "SIZE POTENTIAL: " << it->sizePotential() << std::endl;
-          
-          if (it->size() > 2)
+          while (it->isPotential()) 
           {
+            Cpoint<numberType> cache = it->popPotential();
+            
+            delone = *it;
+            delone << cache;
+            delone.sortPotentialByDistance();
+            delone.filterPotentialByWindow(win);
+            
             CvoronoiCell<numberType> voronoi;
             
-            *(voronoi.CarrierSet) = *it;
+            *(voronoi.CarrierSet) = delone;
             
             voronoi.CarrierSet->sort();
             voronoi.CarrierSet->unique();
@@ -148,24 +155,21 @@ int main (int argc, char* argv[])
             voronoi.construct();
             voronoi.filterSet();
             
+            //std::cout << delone.sizePotential() << "\t";
             std::list<Cpoint<numberType> > potential;
-            potential = it->getPotential();
-            //std::cout << potential.size() << "\t";
+            potential = delone.getPotential();
+            
             voronoi.filterSetPotential(&potential);
-            it->clearPotential();
-            it->addPotential(potential);
-            //std::cout << potential.size() << std::endl;
+            delone.clearPotential();
+            delone.addPotential(potential);
+            //std::cout << delone.sizePotential() << std::endl;
             
-            cells.push_back(voronoi);
-          }
+            if (voronoi.size() <= largestTile)
+            {
+              cells.push_back(voronoi);
+              //std::cout << "tile!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+            }
           
-          // deal with potential
-          while (it->isPotential()) 
-          {
-            Cpoint<numberType> cache = it->popPotential();
-            
-            delone = *it;
-            delone << cache;
             delones.push_back(delone);
           }
           
@@ -174,7 +178,7 @@ int main (int argc, char* argv[])
           delones.sort();
           delones.unique();
           
-          //std::cout << "  node " << taskid << " delones: " << delones.size() << '\t' << "cells: " << cells.size() << std::endl;
+          //std::cout << "  node " << taskid << " delones: " << delones.size() << '\t' << "cells: " << cells.size() << std::endl << std::flush;
         }
         
         cells.sort();
@@ -192,7 +196,7 @@ int main (int argc, char* argv[])
         // end ---------------------------------------------------------
         
         
-        //std::cout << "  node " << taskid << " sending back: " << list.size() << std::endl;
+        std::cout << "  node " << taskid << " sending back: " << list.size() << std::endl;
         
         for (std::list<std::string>::iterator it = list.begin(); it != --list.end(); ++it)
         {
@@ -240,6 +244,7 @@ int main (int argc, char* argv[])
     }
     
     // gather data while processing
+    int count_print;
     std::cout << "distribute the rest on demand" << std::endl;
     while (iterator != data.end())
     {
@@ -278,9 +283,11 @@ int main (int argc, char* argv[])
       MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
       
       count++;
-      if ((20*count)%data.size() < 20)
+      count_print++;
+      //if (count_print > data.size()/100.)
       {
-        std::cout << "processed " << count << "/" << data.size() << " <=> " << 10*count/data.size() << "0%" << std::endl;
+        count_print = 0;
+        std::cout << "processed " << count << "/" << data.size() << " <=> " << 100*count/data.size() << "%" << std::endl;
       }
     }
     
@@ -325,6 +332,7 @@ int main (int argc, char* argv[])
       output << *it << std::endl;
     }
     output.close();
+    std::cout << "res size: " << res.size() << std::endl;
   }
   
   std::cout << std::string(4, ' ') << "... MPI task " << taskid << " is closing" << std::endl;

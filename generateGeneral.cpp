@@ -51,7 +51,7 @@ int main( int argc, char ** argv )
     // control with hypoquasicrystal
     rhombus<numberType> *insc = dynamic_cast<rhombus<numberType>*> ( win.inscribed() );
     
-    numberType coveringR = numberType::coveringR()*insc->large();
+    numberType coveringR = covering;
     
     std::cout << "window name: " << win.getName() << std::endl;
     

@@ -1,5 +1,11 @@
+#include "SUPPORT/window2.h"
+#include "SUPPORT/generate3.h"
 #include "SUPPORT/geometricObject2.h"
 #include "SUPPORT/betaSet.h"
+#include "SUPPORT/alphaSet.h"
+
+#include "config.h"
+
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -9,23 +15,23 @@
 #include <iomanip>
 
 #define _ERROR_
-#define _SVG_
-//#define _OUTPUT_
+//#define _SVG_
+#define _OUTPUT_
 
 struct division
 {
-	betaSet x;
-	betaSet y;
+	numberType x;
+	numberType y;
 	
-	betaSet a1;
-	betaSet a2;
+	numberType a1;
+	numberType a2;
 	
-	betaSet b;
+	numberType b;
 	
-	betaSet a10;
-	betaSet a20;
+	numberType a10;
+	numberType a20;
 	
-	betaSet b0;
+	numberType b0;
 	
 	bool operator<(division const &other) { 
         return x < other.x;
@@ -44,18 +50,35 @@ int main( int argc, char ** argv )
 	std::list<division> Db;
 	
 	division cache;
+  
+  bool beta = true;
+  bool alpha = false;
 	
-	window G0( betaSet::get(  4, -1 ) );
-	window G1( betaSet::get( -7,  2 ) );
-	window G2( betaSet::get( -3,  1 ) );
-	window G3( betaSet::get(  1,  0 ) );
+  window<numberType> G0;
+  window<numberType> G1;
+  window<numberType> G2;
+  window<numberType> G3;
+  
+  if (beta)
+  {
+    G0 = window<numberType>(numberType::get( 4, -1));
+    G1 = window<numberType>(numberType::get(-7,  2));
+    G2 = window<numberType>(numberType::get(-3,  1));
+    G3 = window<numberType>(numberType::get( 1,  0));
+  }
+  if (alpha)
+  {
+    G0 = window<numberType>(numberType::get( 1,  0));
+    G1 = window<numberType>(numberType::get(-1,  1));
+    G2 = window<numberType>(numberType::get( 0,  1));
+  }
 	
 	cache.x  = G0.l();
 	cache.y  = G1.l();
-	cache.a1 = betaSet::get(0,0);//G0.a();
+	cache.a1 = numberType::get(0,0);//G0.a();
 	cache.a2 = G1.a();
 	cache.b  = G1.b();
-	cache.a10 = betaSet::get(0,0);//G0.a();
+	cache.a10 = numberType::get(0,0);//G0.a();
 	cache.a20 = G1.a();
 	cache.b0  = G1.b();
 	D.push_back(cache);
@@ -70,17 +93,20 @@ int main( int argc, char ** argv )
 	cache.b0  = G2.b();
 	D.push_back(cache);
 	
-	cache.x  = G2.l();
-	cache.y  = G3.l();
-	cache.a1 = G2.a();
-	cache.a2 = G3.a();
-	cache.b  = G3.b();
-	cache.a10 = G2.a();
-	cache.a20 = G3.a();
-	cache.b0  = G3.b();
-	D.push_back(cache);
+  if (beta)
+  {
+    cache.x  = G2.l();
+    cache.y  = G3.l();
+    cache.a1 = G2.a();
+    cache.a2 = G3.a();
+    cache.b  = G3.b();
+    cache.a10 = G2.a();
+    cache.a20 = G3.a();
+    cache.b0  = G3.b();
+    D.push_back(cache);
+  }
 	
-	betaSet u,v,w;
+	numberType u,v,w;
 	
 	Db = D;
 	
@@ -117,9 +143,9 @@ int main( int argc, char ** argv )
 			if ( it->x == it->y )
 				continue;
 			
-			betaSet avgXY = ( it->x + it->y )/2;
-			window win( avgXY );
-			betaSet avgA = ( it->a1 + it->a2 )/2;
+			numberType avgXY = ( it->x + it->y )/2;
+			window<numberType> win( avgXY );
+			numberType avgA = ( it->a1 + it->a2 )/2;
 			
 			u = win.step( avgA ) + ( it->x - it->y )/2;
 			v = win.step( avgA ) - ( it->x - it->y )/2;
@@ -213,8 +239,8 @@ std::cout << std::endl;
 			if ( it->x == it->y )
 				continue;
 			
-			betaSet avgXY = ( it->x + it->y )/2;
-			window win( avgXY );
+			numberType avgXY = ( it->x + it->y )/2;
+			window<numberType> win( avgXY );
 			
 			w = win.step( it->b );
 			
@@ -332,7 +358,7 @@ std::cout << std::endl;
 		//if ( it->x == it->y )
 			//	continue;
 		
-		print( std::cout, (it->x+it->y)*betaSet::get(1,0,2) );
+		print( std::cout, (it->x+it->y)*numberType::get(1,0,2) );
 		std::cout << std::endl;
     print( std::cout, it->y );
     std::cout << std::endl;

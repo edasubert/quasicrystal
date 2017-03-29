@@ -25,6 +25,10 @@ windowType getWindow(numberType winSize)
 //numberType const const_winSize = numberType::get(1,0,1)/numberType::get(0,1,1) + (numberType::get(1,0,1)-numberType::get(1,0,1)/numberType::get(0,1,1))*numberType::get(0,0,4);
 numberType const const_winSize = numberType::get(-1,1,2);
 
+numberType covering = numberType::get(1, 1, 2);
+numberType lengthToCover = numberType::get(2, 2);
+numberType largestTile = numberType::get(0, 2);
+
 // cell colors
 std::string const const_fillColor = "#689F38";
 std::string const const_strokeColor = "#263238";

@@ -28,6 +28,7 @@ class CdeloneSet10 : public CdeloneSet<numberType>//, public virtual Cfigure<num
     bool operator == ( const CdeloneSet10<numberType> &compare ) const;
     bool operator <  ( const CdeloneSet10<numberType> &compare ) const;
     void filterDistanceOrigin(const numberType dist);
+    void removeOrigin();
     void filterByVoronoi();
     template <typename windowType>
     void filterPotentialByWindow(windowType win);
@@ -86,24 +87,48 @@ template <typename numberType>
 void CdeloneSet10<numberType>::filterDistanceOrigin(const numberType dist)
 {
   Cpoint<numberType> origin(0, 0);
-  for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); ++it )
+  for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); )
   {
-    if (euklid(origin,*it) > dist )
+    if (euklid2(origin,*it) > dist*dist)
     {
       it = this->removePoint( it );
-      --it;
+    }
+    else
+    {
+      ++it;
     }
   }
   
-  for ( typename std::list<Cpoint<numberType> >::iterator it = this->potential.begin(); it != this->potential.end(); ++it )
+  for ( typename std::list<Cpoint<numberType> >::iterator it = this->potential.begin(); it != this->potential.end(); )
   {
-    if (euklid(origin,*it) > dist )
+    if (euklid2(origin,*it) > dist*dist)
     {
-      it = this->removePoint( it );
-      --it;
+      it = this->potential.erase(it);
+    }
+    else
+    {
+      ++it;
     }
   }
 }
+
+template <typename numberType>
+void CdeloneSet10<numberType>::removeOrigin()
+{
+  Cpoint<numberType> origin(0, 0);
+  for ( typename std::list<Cpoint<numberType> >::iterator it = this->potential.begin(); it != this->potential.end(); )
+  {
+    if (*it == origin)
+    {
+      it = this->potential.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+}
+
 
 template <typename numberType>
 void CdeloneSet10<numberType>::filterByVoronoi()

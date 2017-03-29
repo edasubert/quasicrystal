@@ -143,7 +143,11 @@ int main( int argc, char ** argv )
   }
   output.close();
   
-  std::cout << "Distance to cover estimate: ";
-  print(std::cout, radius*numberType::get(4,0));
+  std::cout << "Covering radius estimate: ";
+  print(std::cout, radius);
+  std::cout << std::endl;
+  
+  std::cout << "largest tile size: ";
+  print(std::cout, cells.rbegin()->size());
   std::cout << std::endl;
 }

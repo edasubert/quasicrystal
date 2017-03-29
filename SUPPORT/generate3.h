@@ -182,7 +182,7 @@ CdeloneSet<numberType> quasicrystal2D( window2D<numberType> &win, numberType x1,
 }
 
 template <typename numberType>
-Cpoint<numberType> transformBeta( const Cpoint<numberType> &point )
+Cpoint<numberType> transformBeta(const Cpoint<numberType> &point)
 {
   Cpoint<numberType> Output( point );
   Output.setX(numberType::transformA()*point.getX() + numberType::transformB()*(point.getY()));
@@ -192,7 +192,7 @@ Cpoint<numberType> transformBeta( const Cpoint<numberType> &point )
 
 
 template <typename numberType>
-std::list<std::string> language( window<numberType> win, int n )
+std::list<std::string> language(window<numberType> win, int n)
 {
   std::list<numberType> delimiter;
   std::map <numberType, std::string> language;
@@ -323,7 +323,7 @@ std::list<std::string> language( window<numberType> win, int n )
 }
 
 template <typename numberType>
-std::list<std::string> language( window<numberType> hypowin, window<numberType> hyperwin, int n )
+std::list<std::string> language(window<numberType> hypowin, window<numberType> hyperwin, int n)
 {
   std::list<numberType> delimiter;
   std::map <numberType, std::string> language;
@@ -502,7 +502,7 @@ void addSplitForHypowin( window<numberType> hypowin, numberType start, numberTyp
 
 
 template <typename numberType>
-bool fitToWindow( window2D<numberType>* win, CdeloneSet<numberType> delone )
+bool fitToWindow(window2D<numberType>* win, CdeloneSet<numberType> delone)
 { 
   window2D<numberType> windowCheck = *win;
   delone = delone.star();
@@ -516,7 +516,7 @@ bool fitToWindow( window2D<numberType>* win, CdeloneSet<numberType> delone )
 
 
 template <typename numberType>
-numberType minWord( std::list<std::string> lang, window<numberType> win )
+numberType minWord(std::list<std::string> lang, window<numberType> win)
 {
   numberType length(0,0);
   for (std::list<std::string>::iterator it = lang.begin(); it != lang.end(); ++it)
