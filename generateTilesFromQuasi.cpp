@@ -21,21 +21,33 @@
 // creates diagram of "any" window from finite section
 int main( int argc, char ** argv )
 {
+  // INPUT
+  numberType const_winSize;
+  numberType covering;
+  numberType largestTile;
+  std::cin >> const_winSize;
+  std::cin >> covering;
+  std::cin >> largestTile;
+  
+  
   std::string fileName = argv[1];
+  fileName+= "/";
+  fileName+= argv[2];
+  
+  std::string fileNameProp = argv[3];
   
   std::cout << "LIMITED WINDOW DIVISION GENERATOR" << std::endl << std::flush;
   std::cout << "---------------------------------" << std::endl << std::flush;
   
-  // interval of the quasicrystal
-  numberType x(80,0);
-    
   Cpoint<numberType> origin( numberType::get(0,0), numberType::get(0,0) );
   
   // window definition
-  numberType winSize;
+  numberType winSize = const_winSize;
   //while (std::cin >> winSize)
   
-  winSize = const_winSize;
+  // interval of the quasicrystal
+  //numberType x = numberType::get(60,0)*(numberType::get(22,0,4)-winSize); //polygon
+  numberType x = numberType::get(20,0)*(numberType::get(22,0,4)-winSize); //circle8
   
   //rhombus win( winSize, winSize );
   //windowType win( winSize );
@@ -56,6 +68,11 @@ int main( int argc, char ** argv )
   
   numberType coveringR = numberType::coveringR()*insc->large();
   
+  std::cout << "window size: ";
+  print(std::cout, winSize);
+  std::cout << std::endl;
+  
+  
   std::cout << "x: " << x << std::endl << std::flush;
   std::cout << "Onto generation ..." << std::endl << std::flush;
   
@@ -65,18 +82,20 @@ int main( int argc, char ** argv )
   
   CdeloneSet<numberType> hyper = quasicrystal2D( *circ, x1, x2, y1, y2 );
   
+  std::cout << "window: ";
+  print( std::cout, winSize );
+  std::cout << std::endl << std::flush;
+  
   std::cout << "hypercrystal: ";
   print( std::cout, circ->Xwindow().l() );
   std::cout << std::endl << std::flush;
   
-  CvoronoiCell<numberType>::large = numberType::get(3,0)*coveringR;
+  CvoronoiCell<numberType>::large = numberType::get(2,0)*coveringR;
   
   delone.setPackingR();
   delone.setCoveringR(CvoronoiCell<numberType>::large);
   
-  std::cout << "L: " << insc->large() << std::endl;
-  
-  //std::cout << "points of quasicrystal: " << voronoi->CarrierSet->size() << std::endl << std::flush;
+  std::cout << "points of quasicrystal (including edge): " << delone.size() << std::endl << std::flush;
   
   std::list<CvoronoiCell<numberType> > cells;
   
@@ -110,19 +129,17 @@ int main( int argc, char ** argv )
     //voronoi.setDescription(convert.str());
     
     cells.push_back(voronoi);
-    
-    cells.sort();
-    cells.unique();
   }
+  cells.sort();
+  cells.unique();
   
   std::cout << "found unique cells: " << cells.size() << std::endl;
-  
   
   
   std::ostringstream tmp02;
   tmp02 << fileName << "_" << win.getName() << "_" << winSize << "_(";
   printFile(tmp02, winSize);
-  tmp02 << ")_" << floor(x) << "_" << cells.size();
+  tmp02 << ")";
   
   // write to file
   std::ofstream output(tmp02.str().c_str());
@@ -139,9 +156,37 @@ int main( int argc, char ** argv )
     // get radius
     radius = max(it->radius(), radius);
     
+    
+    
     output << it->save() << std::endl;
   }
   output.close();
+  
+  
+  // write to file properties
+  std::ostringstream tmp03;
+  tmp03 << fileNameProp << "_" << win.getName() << "_" << winSize << "_(";
+  printFile(tmp03, winSize);
+  tmp03 << ")";
+  
+  output.open(tmp03.str().c_str());
+  
+  print(output, winSize);
+  output << std::endl;
+  print(output, radius);
+  output << std::endl;
+  print(output, cells.rbegin()->size());
+  output << std::endl;
+  
+  output << argv[1] << "/" << std::endl;
+  
+  output << "_" << win.getName() << "_" << winSize << "_(";
+  printFile(output, winSize);
+  output << ")" << std::endl;
+  
+  output.close();
+  
+  
   
   std::cout << "Covering radius estimate: ";
   print(std::cout, radius);
@@ -150,4 +195,11 @@ int main( int argc, char ** argv )
   std::cout << "largest tile size: ";
   print(std::cout, cells.rbegin()->size());
   std::cout << std::endl;
+  
+  
+  delete circ;
+  delete insc;
+  
+  
+  return 0;
 }

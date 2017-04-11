@@ -3,10 +3,10 @@
 
 #include "SUPPORT/betaSet.h"
 #include "SUPPORT/alphaSet.h"
+#include "SUPPORT/geometricObject2_no11.h"
 #include "SUPPORT/delone10.h"
 #include "SUPPORT/window2.h"
 #include "SUPPORT/generate3.h"
-#include "SUPPORT/geometricObject2.h"
 
 #include "config.h"
 
@@ -18,7 +18,7 @@
 #include <list>
 #include <mpi.h>
 #include <string>
-#include <chrono>
+//#include <chrono>
 
 #define MASTER 0        /* task ID of master task */
 
@@ -26,7 +26,7 @@ int main (int argc, char* argv[])
 {
   
   // time measuring
-  std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+  //std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
   
   int	taskid;	  
   int numtasks; 
@@ -202,23 +202,37 @@ int main (int argc, char* argv[])
         // end ---------------------------------------------------------
         
         
-        //std::cout << "  node " << taskid << " sending back: " << list.size() << std::endl;
+        std::cout << "  node " << taskid << " sending back: " << list.size() << std::endl;
         
         for (std::list<std::string>::iterator it = list.begin(); it != --list.end(); ++it)
         {
           send_buffer = *it;
-          // return result
-          MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, MASTER, 0, MPI_COMM_WORLD);
+      
+          MPI_Send(&send_buffer[0], send_buffer.length(), MPI_CHAR, MASTER, 0, MPI_COMM_WORLD);
         }
         
         send_buffer = *list.rbegin();
-        // return result
-        MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, MASTER, 1, MPI_COMM_WORLD);
+      
+        MPI_Send(&send_buffer[0], send_buffer.length(), MPI_CHAR, MASTER, 1, MPI_COMM_WORLD);
       }
     } while (status.MPI_TAG == 0); 
   }
   else // MASTER -------------------------------------------------------
   {
+    // setup
+    std::ostringstream convert;
+    convert << argv[1] << "_" << win.getName() << "_" << winSize << "_(";
+    printFile(convert, winSize);
+    convert << ")_" << res.size();
+    
+    std::string filename = convert.str().c_str();
+    
+    {
+      std::ofstream output;
+      output.open(filename.c_str());
+      output.close();
+    }
+    
     // create data -----------------------------------------------------
     std::cout << "Load data" << std::endl;
     
@@ -243,9 +257,7 @@ int main (int argc, char* argv[])
     {
       send_buffer = *(iterator++);
       
-      //std::cout << std::string(4, ' ') << "MASTER sending: " << iterator << "/168" << std::endl;
-      
-      MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, it+1, 0, MPI_COMM_WORLD);
+      MPI_Send(&send_buffer[0], send_buffer.length(), MPI_CHAR, it+1, 0, MPI_COMM_WORLD);
       count++;
     }
     
@@ -285,13 +297,30 @@ int main (int argc, char* argv[])
       
       send_buffer = *(iterator++);
       
-      MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+      MPI_Send(&send_buffer[0], send_buffer.length(), MPI_CHAR, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
       
       count++;
       if ((20*count)%data.size() < 20)
       {
         std::cout << "processed " << count << "/" << data.size() << " <=> " << 10*count/data.size() << "0%" << std::endl;
       }
+      
+      res.sort();
+      res.unique();
+      
+      // write to file
+      std::ofstream output;
+      output.open(filename.c_str(), std::ios::app);
+      
+      print(output, winSize);
+      output << std::endl;
+      for (std::list<std::string>::iterator it = res.begin(); it != res.end(); ++it)
+      {
+        output << *it << std::endl;
+      }
+      output.close();
+      
+      res.clear();
     }
     
     // terminate processes
@@ -312,21 +341,17 @@ int main (int argc, char* argv[])
       
       //std::cout << std::string(4, ' ') << "MASTER received from: " << status.MPI_SOURCE << " - " << buffer << std::endl;
       
-      send_buffer = std::to_string(0);
+      send_buffer = "0";
       
-      rc = MPI_Send(send_buffer.c_str(), send_buffer.length(), MPI_CHAR, it+1, 1, MPI_COMM_WORLD);
+      rc = MPI_Send(&send_buffer[0], send_buffer.length(), MPI_CHAR, it+1, 1, MPI_COMM_WORLD);
     }
     
     res.sort();
     res.unique();
     
     // write to file
-    std::ostringstream convert;
-    convert << argv[1] << "_" << win.getName() << "_" << winSize << "_(";
-    printFile(convert, winSize);
-    convert << ")_" << res.size();
-    
-    std::ofstream output(convert.str().c_str());
+    std::ofstream output;
+    output.open(filename.c_str(), std::ios::app);
     
     print(output, winSize);
     output << std::endl;
@@ -341,9 +366,9 @@ int main (int argc, char* argv[])
   MPI_Finalize();
   
   // time measuring
-  std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-  std::cout << "microseconds: " << duration << " (" << std::round(duration/100000.0)/10.0 << "s)" << std::endl;
+  //std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+  //auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+  //std::cout << "microseconds: " << duration << " (" << std::round(duration/100000.0)/10.0 << "s)" << std::endl;
   
   return 0;
 }

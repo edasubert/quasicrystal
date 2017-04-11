@@ -859,6 +859,10 @@ template <typename numberType>
 CpointSet<numberType>& CpointSet<numberType>::operator = ( const CpointSet<numberType>& I_PointSet )
 {
   this->description = I_PointSet.description;
+  
+  delete points;
+  points = new std::list<Cpoint<numberType> >;
+  
   *points = *(I_PointSet.points);
   
   this->fillColor = I_PointSet.fillColor;
@@ -1151,7 +1155,8 @@ void CpointSet<numberType>::sortClockwise()
   {
     center.set(center.getX()+it->getX(), center.getY()+it->getY());
   }
-  center.set(center.getX()/numberType::get(this->points->size(),0), center.getY()/numberType::get(this->points->size(),0));
+  //center.set(center.getX()*numberType::get(1,0,this->points->size()), center.getY()*numberType::get(1,0,this->points->size()));
+  center.set(center.getX()/static_cast<numberType>(this->points->size()), center.getY()/static_cast<numberType>(this->points->size()));
   *this-= center;
   
   this->points->sort(clockwiseComp<numberType>);
@@ -1763,7 +1768,6 @@ bool CvoronoiCell<numberType>::filterPoint(Cpoint<numberType> add)
 template <typename numberType>
 void CvoronoiCell<numberType>::filterSet()
 {
-  
   //typename std::list<Cpoint<numberType> >::iterator it;
   
   typename std::list<Cpoint<numberType> >::iterator ot = CarrierSet->begin();
@@ -1784,6 +1788,7 @@ void CvoronoiCell<numberType>::filterSet()
     }
   }
   
+  CarrierSet->sortClockwise();
 }
 
 template <typename numberType>
@@ -1806,6 +1811,13 @@ bool CvoronoiCell<numberType>::filterPointAny( Cpoint<numberType> add )
   {
     if ( ( (n*(*ot)).sum() > d ) != ( (n*(*old)).sum() > d ) )
     {
+      Cvector<numberType> u = *ot - *old;
+      numberType t = ((n*(c - (*old))).sum()) / ((u*n).sum());
+      
+      if ((t==numberType::get(1,0)) || (t==numberType::get(0,0)))
+      {
+        return true;
+      }
       return false;
     }
     

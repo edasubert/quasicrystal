@@ -74,7 +74,7 @@ int main (int argc, char* argv[])
   {
     ++wordLength;
   } while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
-  
+  --wordLength;
   //wordLength = 4;
   
   /* Obtain number of tasks and task ID */
@@ -90,6 +90,53 @@ int main (int argc, char* argv[])
   
   if (taskid != MASTER) // NODE ----------------------------------------
   {
+    // input finite
+    std::string line;
+    
+    std::cout << "Loading \"finite\" data" << std::endl;
+
+    std::list<CdeloneSet<numberType> > delonesFinite;
+
+    std::ifstream myfileFinite(argv[2]);
+
+    std::list<std::string> inputData; 
+
+    if (myfileFinite.is_open())
+    {
+      while ( getline(myfileFinite, line) )
+      {
+        if ((line.size() > 0) && (line[0] != '#'))
+        {
+          inputData.push_back(line);
+        }
+      }
+      myfileFinite.close();
+    }
+    else std::cout << "Unable to open file" << std::endl; 
+
+    std::cout << "strings read: " << inputData.size() << std::endl << std::flush; 
+
+    inputData.sort();
+    inputData.unique();
+
+    for (std::list<std::string>::iterator it = inputData.begin(); it != inputData.end(); ++it)
+    {
+      CvoronoiCell<numberType> voronoi;
+      voronoi.load(*it);
+      
+      if (voronoi.CarrierSet->size() < 3)
+      {
+        continue;
+      }
+      
+      delonesFinite.push_back(*(voronoi.CarrierSet));
+    }
+
+    std::cout << "finite cells: " << delonesFinite.size() << std::endl << std::flush; 
+
+    delonesFinite.sort();
+
+    
     do 
     {
       MPI_Probe(MASTER, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -113,22 +160,89 @@ int main (int argc, char* argv[])
         
         CdeloneSet<numberType> tmp = quasicrystal2D(circ->Xwindow(), word1, word2);
         
-        CdeloneSet10<numberType> delone;
-        delone.addPotential(tmp.getPoints());
-        
-        delone.setPackingR();
-        delone.setCoveringR(coveringR);
-        delone.setDescription(word1+word2);
-        
-        delone.sortPotentialByDistance();
-        delone.sortByDistance();
-        
-        delone.filterDistanceOrigin(numberType::get(2, 0)*coveringR);
-        delone.removeOrigin();
+        //std::cout << "full size: " << tmp.size() << std::endl;
         
         std::list<CdeloneSet10<numberType> > delones;
         std::list<CvoronoiCell<numberType> > cells;
-        delones.push_back(delone);
+        
+        // append finite delones by potential
+        for (std::list<CdeloneSet<numberType> >::iterator it = delonesFinite.begin(); it != delonesFinite.end(); ++it)
+        {
+          // test whether finite's carrier set is among potential
+          CdeloneSet<numberType> testSet;
+          testSet << *it;
+          testSet << tmp;
+          
+          if (testSet.size() > tmp.size())
+          {
+            continue;
+          }
+          
+          CdeloneSet10<numberType> delone;
+          
+          delone << *it;
+          delone.addPotential(tmp.getPoints());
+          
+          delone.setPackingR();
+          delone.setCoveringR(coveringR);
+          
+          delone.sortPotentialByDistance();
+          delone.sortByDistance();
+          
+          delone.filterDistanceOrigin(numberType::get(2, 0)*coveringR);
+          delone.removeOrigin();
+          
+          delone.filterPotentialByWindow(win);
+          
+          CvoronoiCell<numberType> voronoi;
+            
+          *(voronoi.CarrierSet) = delone;
+          
+          voronoi.CarrierSet->sort();
+          voronoi.CarrierSet->unique();
+          
+          voronoi.CarrierSet->sortByDistance();
+          voronoi.CarrierSet->setPackingR();
+          voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
+          voronoi.setCenter(origin);
+          voronoi.construct();
+          voronoi.filterSet();
+          
+          //std::cout << delone.sizePotential() << "\t";
+          std::list<Cpoint<numberType> > potential;
+          potential = delone.getPotential();
+          
+          voronoi.filterSetPotential(&potential);
+          delone.clearPotential();
+          delone.addPotential(potential);
+          //std::cout << delone.sizePotential() << std::endl;
+          
+          delones.push_back(delone);
+          
+          
+    int count = 100*taskid;
+    for ( std::list<CdeloneSet10<numberType> >::iterator it = delones.begin(); it != delones.end(); ++it )
+    {
+      ++count;
+      
+      it->setColor("#000000", "#000000", "0.1");
+      
+      std::ostringstream oss;
+      oss << "output/tile/tile" << std::setfill('0') << std::setw(3) << count << ".svg";// << " " << it->size();
+      std::ofstream myfile ( oss.str().c_str() );
+      
+      myfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
+      myfile << "<svg width=\"3000\" height=\"3000\" viewBox=\"" << -30/5 << " " << -30/5 << " " << 60/5 << " " << 60/5 << "\">\n" << std::endl;
+      
+      it->svg(myfile);
+      
+      myfile << "</svg>";
+      
+      myfile.close();
+    }
+          
+          
+        }
         
         for (std::list<CdeloneSet10<numberType> >::iterator it = delones.begin(); it != delones.end(); it = delones.begin())
         {
@@ -136,6 +250,8 @@ int main (int argc, char* argv[])
           while (it->isPotential()) 
           {
             Cpoint<numberType> cache = it->popPotential();
+            
+            CdeloneSet10<numberType> delone;
             
             delone = *it;
             delone << cache;
@@ -165,7 +281,6 @@ int main (int argc, char* argv[])
             delone.addPotential(potential);
             //std::cout << delone.sizePotential() << std::endl;
             
-            if ((voronoi.size() <= largestTile) || (cells.size()<1))
             {
               cells.push_back(voronoi);
               //std::cout << "tile!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
@@ -179,11 +294,11 @@ int main (int argc, char* argv[])
           delones.sort();
           delones.unique();
           
+          cells.sort();
+          cells.unique();
+          
           //std::cout << "  node " << taskid << " delones: " << delones.size() << '\t' << "cells: " << cells.size() << std::endl << std::flush;
         }
-        
-        cells.sort();
-        cells.unique();
         
         std::list<std::string> list;
         
@@ -223,7 +338,9 @@ int main (int argc, char* argv[])
     std::string filename = convert.str().c_str();
     
     {
-      std::ofstream output(filename.c_str(), std::ios::app);
+      std::ofstream output(filename.c_str());
+      print(output, winSize);
+      output << std::endl;
       output.close();
     }
     
@@ -307,8 +424,6 @@ int main (int argc, char* argv[])
       // write to file
       std::ofstream output(filename.c_str(), std::ios::app);
       
-      print(output, winSize);
-      output << std::endl;
       for (std::list<std::string>::iterator it = res.begin(); it != res.end(); ++it)
       {
         output << *it << std::endl;
@@ -347,8 +462,6 @@ int main (int argc, char* argv[])
     // write to file
     std::ofstream output(filename.c_str(), std::ios::app);
     
-    print(output, winSize);
-    output << std::endl;
     for (std::list<std::string>::iterator it = res.begin(); it != res.end(); ++it)
     {
       output << *it << std::endl;

@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "betaSet.h"
-#include "geometricObject2.h"
+//#include "geometricObject2.h"
 
 double betaSet::constant = 2 + sqrt(3);
 

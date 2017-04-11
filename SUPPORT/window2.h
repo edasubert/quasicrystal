@@ -1005,11 +1005,18 @@ circle<numberType>::circle( numberType R, numberType x ,numberType y )
 template <typename numberType>
 void circle<numberType>::svg( std::ostream& out )
 {
-  if (intersectionList.size() == 1)
+  if (intersectionList.size() <= 1)
   {
-    out << "<circle cx=\"" << m_x << "\" cy=\"" << m_y << "\" r=\"" << m_R << "\" " << "style=\"fill:none;stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.3;\" />" << std::endl;
+    out << "<circle cx=\"" << m_x << "\" cy=\"" << m_y << "\" r=\"" << m_R << "\" " << "style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1;\" />" << std::endl;
     return;
   }
+  
+  out << "<g>" << std::endl;
+  
+  //for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
+  //{
+    //out << "<circle cx=\"" << it->m_x << "\" cy=\"" << it->m_y << "\" r=\"" << it->m_R << "\" " << "style=\"fill:none;stroke:" << m_fillColor << ";stroke-width:" << 0.01 << ";stroke-opacity:1; \" />" << std::endl;
+  //}
   
   std::list<int>::iterator ot = sweep.begin();
   
@@ -1019,7 +1026,9 @@ void circle<numberType>::svg( std::ostream& out )
     out << " A" << m_R << " " << m_R << ", 0, 0," << *ot++ << ", " << it->getX() << " " << it->getY();
   }
   out << " A" << m_R << " " << m_R << ", 0, 0," << *ot << ", " << polygon.begin()->getX() << " " << polygon.begin()->getY();
-  out << " \" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1; opacity:0.3;\" />" << std::endl; // light blue, green
+  out << " \" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << ";stroke-opacity:1;\" />" << std::endl;
+  
+  out << "</g>" << std::endl;
 
 }
 
@@ -1047,33 +1056,32 @@ bool circle<numberType>::in( Cpoint<numberType> star )
 template <typename numberType>
 void circle<numberType>::intersect( circle* win )
 {
-  //if (m_R == win->m_R)
-  //{
-    //for (typename std::list<circle<numberType> >::iterator it = win->intersectionList.begin(); it != win->intersectionList.end(); ++it)
-    //{
-      //bool flag = true;
-      //for (typename std::list<circle<numberType> >::iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
-      //{
-        //if ((ot->m_x == it->m_x) && (ot->m_y == it->m_y))
-        //{
-          //flag = false;
-        //}
-      //}
-      //if (flag)
-      //{
-        //intersectionList.push_back(*it);
-      //}
-    //}
-  //}
-  //createPolygon();
+  if (m_R == win->m_R)
+  {
+    for (typename std::list<circle<numberType> >::iterator it = win->intersectionList.begin(); it != win->intersectionList.end(); ++it)
+    {
+      bool flag = true;
+      for (typename std::list<circle<numberType> >::iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+      {
+        if ((ot->m_x == it->m_x) && (ot->m_y == it->m_y))
+        {
+          flag = false;
+        }
+      }
+      if (flag)
+      {
+        intersectionList.push_back(*it);
+      }
+    }
+  }
+  createPolygon();
 }
 
 template <typename numberType>
 void circle<numberType>::intersect( Cpoint<numberType> center )
 {
-  circle moving = *this;
-  moving.emptyIntersectionList();
-  moving.center(center);
+  circle moving(this->m_R, center.getX(), center.getY());
+  
   this->intersect(&moving);
 }
 
@@ -1116,12 +1124,19 @@ void circle<numberType>::emptyIntersectionList()
 template <typename numberType>
 bool circle<numberType>::empty() 
 {
-  if (intersectionList.size() == 1)
+  for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
   {
-    return false;
+    for (typename std::list<circle<numberType> >::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+    {
+      if (euklid2(typename Cpoint<numberType>::Cpoint(it->m_x, it->m_y), typename Cpoint<numberType>::Cpoint(ot->m_x, ot->m_y)) >= numberType::get(4,0)*this->m_R*this->m_R)
+      {
+        //std::cout << "EMPTY!" << std::endl;
+        return true;
+      }
+    }
   }
-  
-  return polygon.size() < 2;
+  //std::cout << "NOT!" << std::endl;
+  return false;
 }
 
 template <typename numberType>
@@ -1162,97 +1177,97 @@ double circle<numberType>::centerY()
 template <typename numberType>
 void circle<numberType>::createPolygon()
 {
-  //polygon.clear();
+  polygon.clear();
   
-  //for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
-  //{
-    //double angle01 = 0; //start
-    //double angle02 = 4*M_PI; // interval   <--- deliberately larger 
+  for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
+  {
+    double angle01 = 0; //start
+    double angle02 = 4*M_PI; // interval   <--- deliberately larger 
     
-    //double count = 1;
+    double count = 1;
     
-    //for (typename std::list<circle<numberType> >::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
-    //{
-      //if (it == ot)
-        //continue;
+    for (typename std::list<circle<numberType> >::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+    {
+      if (it == ot)
+        continue;
       
-      //double tmp01 = atan2(ot->m_y-it->m_y, ot->m_x-it->m_x);
-      //double tmp02 = acos(sqrt( (ot->m_x-it->m_x)*(ot->m_x-it->m_x) + (ot->m_y-it->m_y)*(ot->m_y-it->m_y) )/(2*m_R));
+      double tmp01 = atan2(ot->m_y-it->m_y, ot->m_x-it->m_x);
+      double tmp02 = acos(sqrt( (ot->m_x-it->m_x)*(ot->m_x-it->m_x) + (ot->m_y-it->m_y)*(ot->m_y-it->m_y) )/(2*m_R));
       
-      //double new_angle01 = tmp01 - tmp02;
-      //double new_angle02 = 2*tmp02;
+      double new_angle01 = tmp01 - tmp02;
+      double new_angle02 = 2*tmp02;
       
-      //if (new_angle01 < 0)
+      if (new_angle01 < 0)
+      {
+        new_angle01+= 2*M_PI;
+      }
+      
+      // a starts first
+      double a1, a2, b1, b2;
+      if (angle01 < new_angle01)
+      {
+        a1 = angle01;
+        a2 = angle02;
+        b1 = new_angle01;
+        b2 = new_angle02;
+      }
+      else
+      {
+        b1 = angle01;
+        b2 = angle02;
+        a1 = new_angle01;
+        a2 = new_angle02;
+      }
+      
+      //std::cout.precision(3);
+      //std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
+      
+      // solve wrap around
+      if ((a1+a2 < b1) && (b1+b2 > 2*M_PI+a1))
+      {
+        a1+= 2*M_PI;
+      }
+      
+      //std::cout.precision(3);
+      //std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
+      
+      // intersection
+      angle01 = std::max(a1,b1);
+      angle02 = std::min(a1+a2,b1+b2) - angle01;
+      
+      if (angle01 > 2*M_PI)
+      {
+        angle01-= 2*M_PI;
+      }
+      
+      //std::cout.precision(3);
+      //std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << angle01 << " " << angle01+angle02 << std::endl;
+      
+      //if (angle02 > 0)
       //{
-        //new_angle01+= 2*M_PI;
-      //}
-      
-      //// a starts first
-      //double a1, a2, b1, b2;
-      //if (angle01 < new_angle01)
-      //{
-        //a1 = angle01;
-        //a2 = angle02;
-        //b1 = new_angle01;
-        //b2 = new_angle02;
-      //}
-      //else
-      //{
-        //b1 = angle01;
-        //b2 = angle02;
-        //a1 = new_angle01;
-        //a2 = new_angle02;
-      //}
-      
-      ////std::cout.precision(3);
-      ////std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
-      
-      //// solve wrap around
-      //if ((a1+a2 < b1) && (b1+b2 > 2*M_PI+a1))
-      //{
-        //a1+= 2*M_PI;
-      //}
-      
-      ////std::cout.precision(3);
-      ////std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << std::endl << std::flush;
-      
-      //// intersection
-      //angle01 = std::max(a1,b1);
-      //angle02 = std::min(a1+a2,b1+b2) - angle01;
-      
-      //if (angle01 > 2*M_PI)
-      //{
-        //angle01-= 2*M_PI;
-      //}
-      
-      ////std::cout.precision(3);
-      ////std::cout << a1 << " " << a1+a2 << "\t" << b1 << " " << b1+b2 << "\t" << angle01 << " " << angle01+angle02 << std::endl;
-      
-      ////if (angle02 > 0)
-      ////{
-      ////out << "<line x1=\"" << it->m_x << "\" y1=\"" << it->m_y << "\" x2=\"" << cos(tmp01)*m_R + it->m_x << "\" y2=\"" << sin(tmp01)*m_R + it->m_y << "\" stroke=\"#607D8B\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blueGrey
+      //out << "<line x1=\"" << it->m_x << "\" y1=\"" << it->m_y << "\" x2=\"" << cos(tmp01)*m_R + it->m_x << "\" y2=\"" << sin(tmp01)*m_R + it->m_y << "\" stroke=\"#607D8B\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blueGrey
         
-      ////out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
-          ////<< "fill=\"none\" stroke=\"#FF1744\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // red
-      ////out << "<path d=\" M" << cos(a1)*m_R + it->m_x << "," << sin(a1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(a1+a2)*m_R + it->m_x << " " << sin(a1+a2)*m_R + it->m_y << "\" " 
-          ////<< "fill=\"none\" stroke=\"#FFEB3B\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // yellow
-      ////out << "<path d=\" M" << cos(b1)*m_R + it->m_x << "," << sin(b1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(b1+b2)*m_R + it->m_x << " " << sin(b1+b2)*m_R + it->m_y << "\" " 
-          ////<< "fill=\"none\" stroke=\"#0288D1\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blue
-      ////count++;
-      ////}
-    //}
-    ////std::cout << angle01 << " " << angle01+angle02 << std::endl;
-    ////std::cout << std::endl;
-    //if (angle02 > 0)
-    //{
-      ////out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
-          ////<< "fill=\"none\" stroke=\"#3F51B5\" stroke-width=\"" << m_strokeWidth << "\" />" << std::endl; // indigo
-      //polygon << Cpoint<double>(cos(angle01+angle02)*m_R + it->m_x, sin(angle01+angle02)*m_R + it->m_y);
-      //sweep.push_back(1);
-    //}
-  //}
+      //out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
+          //<< "fill=\"none\" stroke=\"#FF1744\" stroke-width=\"" << 8*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // red
+      //out << "<path d=\" M" << cos(a1)*m_R + it->m_x << "," << sin(a1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(a1+a2)*m_R + it->m_x << " " << sin(a1+a2)*m_R + it->m_y << "\" " 
+          //<< "fill=\"none\" stroke=\"#FFEB3B\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // yellow
+      //out << "<path d=\" M" << cos(b1)*m_R + it->m_x << "," << sin(b1)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(b1+b2)*m_R + it->m_x << " " << sin(b1+b2)*m_R + it->m_y << "\" " 
+          //<< "fill=\"none\" stroke=\"#0288D1\" stroke-width=\"" << 4*count/1000 << "\" stroke-opacity=\"0.4\" />" << std::endl; // blue
+      //count++;
+      //}
+    }
+    //std::cout << angle01 << " " << angle01+angle02 << std::endl;
+    //std::cout << std::endl;
+    if (angle02 > 0)
+    {
+      //out << "<path d=\" M" << cos(angle01)*m_R + it->m_x << "," << sin(angle01)*m_R + it->m_y << " A" << m_R << " " << m_R << ", 0, 0,1, " << cos(angle01+angle02)*m_R + it->m_x << " " << sin(angle01+angle02)*m_R + it->m_y << "\" " 
+          //<< "fill=\"none\" stroke=\"#3F51B5\" stroke-width=\"" << m_strokeWidth << "\" />" << std::endl; // indigo
+      polygon << Cpoint<double>(cos(angle01+angle02)*m_R + it->m_x, sin(angle01+angle02)*m_R + it->m_y);
+      sweep.push_back(1);
+    }
+  }
   
-  //polygon.sortClockwise();
+  polygon.sortClockwise();
 }
 
 
@@ -1470,7 +1485,6 @@ void polygon<numberType>::intersect( polygon* win )
       }
     }
   }
-  
   if (new_vert.size() < 3)
   {
     m_vert.clear();
@@ -1567,19 +1581,12 @@ void polygon<numberType>::center( Cpoint<numberType> center )
 template <typename numberType>
 bool polygon<numberType>::empty() 
 {
-  numberType area;
-  
-  if (m_vert.size() < 3)
+  if (m_vert.size() < 2)
   {
     return true;
   }
   
-  for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(), itold = --m_vert.end(); it != m_vert.end(); itold = it++) 
-  {
-    area+= itold->getX()*it->getY() - it->getX()*itold->getY();
-  }
-  
-  return abs(area) == 0;
+  return false;
 }
 
 template <typename numberType>

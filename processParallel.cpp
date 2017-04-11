@@ -20,10 +20,29 @@
 
 int main (int argc, char* argv[])
 { 
+  
+  // INPUT
+  numberType const_winSize;
+  numberType covering;
+  numberType largestTile;
+  std::string filenameSuffix;
+  std::string filenamePrefix;
+  std::string filenameFinite;
+  std::string filenameMore;
+  std::cin >> const_winSize;
+  std::cin >> covering;
+  std::cin >> largestTile;
+  std::cin >> filenamePrefix;
+  std::cin >> filenameSuffix;
+  
+  filenameFinite = filenamePrefix + "finite" + filenameSuffix;
+  filenameMore = filenamePrefix + "more" + filenameSuffix;
+  
+  
   std::cout << "DRAWING TILES AND WINDOW FROM A LIST OF CANDIDATES" << std::endl << std::flush;
   std::cout << "--------------------------------------------------" << std::endl << std::flush;
   
-  std::string fileName = argv[3];
+  std::string fileName = argv[1];
   
   numberType winSize;
   Cpoint<numberType> origin(numberType::get(0,0), numberType::get(0,0));
@@ -33,11 +52,11 @@ int main (int argc, char* argv[])
   std::list<CvoronoiCell<numberType> > cells;
   
   std::string line;
-  std::ifstream myfile(argv[1]);
+  std::ifstream myfile(filenameMore);
   
   myfile >> winSize;
   getline(myfile, line);
-  
+  winSize = const_winSize;
   
   
   // initialize
@@ -54,13 +73,13 @@ int main (int argc, char* argv[])
   numberType S = circ->Xwindow().Small();
   numberType L = insc->Xwindow().Large();
   
-  numberType coveringR = numberType::coveringR()*L;
-  
-  // size of rhumbus circumscribed to covering radius disc
-  numberType lengthToCover = numberType::get(8, 0)*coveringR;
+  numberType coveringR = covering;
   
   CvoronoiCell<numberType>::large = numberType::get(2, 0)*coveringR;
   
+  std::cout << "window size: ";
+  print(std::cout, winSize);
+  std::cout << std::endl;
   
   
   // input finite
@@ -68,7 +87,7 @@ int main (int argc, char* argv[])
   
   std::list<CvoronoiCell<numberType> > cellsFinite;
   
-  std::ifstream myfileFinite(argv[2]);
+  std::ifstream myfileFinite(filenameFinite);
   
   std::list<std::string> inputData; 
   
@@ -86,9 +105,6 @@ int main (int argc, char* argv[])
   else std::cout << "Unable to open file" << std::endl; 
   
   std::cout << "strings read: " << inputData.size() << std::endl << std::flush; 
-  
-  inputData.sort();
-  inputData.unique();
   
   for (std::list<std::string>::iterator it = inputData.begin(); it != inputData.end(); ++it)
   {
@@ -138,12 +154,10 @@ int main (int argc, char* argv[])
   }
   else std::cout << "Unable to open file" << std::endl; 
   
-  std::cout << "strings read: " << inputData.size() << std::endl << std::flush; 
-  
   inputData.sort();
   inputData.unique();
   
-  std::cout << "strings after unique: " << inputData.size() << std::endl << std::flush; 
+  std::cout << "unique strings read: " << inputData.size() << std::endl << std::flush; 
   
   for (std::list<std::string>::iterator it = inputData.begin(); it != inputData.end(); ++it)
   {
@@ -162,20 +176,29 @@ int main (int argc, char* argv[])
     voronoi.construct();
     voronoi.filterSet();
     
-    if (voronoi.size() <= largest+numberType::get(1,0))
+    if (voronoi.size() <= largest)
     {
-      cells.push_back(voronoi);
-      //std::cout << voronoi.size() << std::endl;
+      // CUT WINDOW SECTIONS -----------------------------------------------
+      voronoi.CarrierSet->sortClockwise();
+      windowType intersect = win;
+      for (std::list<Cpoint<numberType> >::iterator ot = voronoi.CarrierSet->begin(); ot != voronoi.CarrierSet->end(); ++ot)
+      {
+        intersect.intersect((origin-*ot).star());
+      }
+      if (!intersect.empty())
+      {
+        cells.push_back(voronoi);
+      }
+      //else
+      //{
+        //std::cout << "EMPTY" << std::endl;
+      //}
     }
   }
   
   std::cout << "cells: " << cells.size() << std::endl << std::flush; 
   
   cells.sort();
-  cells.unique();
-  
-  std::cout << "cells after unique: " << cells.size() << std::endl << std::endl << std::flush; 
-  
   
   std::string fillColor = const_fillColor;
   std::string strokeColor = const_strokeColor;
@@ -218,6 +241,7 @@ int main (int argc, char* argv[])
     {
       windowParts[it->getDescription()] = intersect;
       ++it;
+      //std::cout << "not empty" << std::endl << std::flush;
     }
     else
     {
@@ -273,41 +297,43 @@ int main (int argc, char* argv[])
     //}
   //}
   
-  
-  std::cout << "filter by intersection" << std::endl << std::flush;
-  cells.sort();
-  std::list<CvoronoiCell<numberType> > selection;
-  selection.push_back(*cells.begin());
-  
-  for (std::list<CvoronoiCell<numberType> >::iterator it = ++cells.begin(); it != cells.end(); ++it)
-  {
-    bool flag = true;
-    for (std::list<CvoronoiCell<numberType> >::iterator ot = selection.begin(); ot != selection.end();++ot)
-    {
-      windowType intersect = windowParts[it->getDescription()];
-      intersect.intersect(&windowParts[ot->getDescription()]);
-      
-      if (intersect.size() == windowParts[it->getDescription()].size())
-      {
-        flag = false;        
-        break;
-      }
-    }
+  //if (cells.size() > 0)
+  //{
     
-    if (flag)
-    {
-      selection.push_front(*it);
-    }
+    //std::cout << "filter by intersection" << std::endl << std::flush;
+    //cells.sort();
+    //std::list<CvoronoiCell<numberType> > selection;
+    //selection.push_back(*cells.begin());
+    
+    //for (std::list<CvoronoiCell<numberType> >::iterator it = ++cells.begin(); it != cells.end(); ++it)
+    //{
+      //bool flag = true;
+      //for (std::list<CvoronoiCell<numberType> >::iterator ot = selection.begin(); ot != selection.end();++ot)
+      //{
+        //windowType intersect = windowParts[it->getDescription()];
+        //intersect.intersect(&windowParts[ot->getDescription()]);
+        
+        //if (intersect.size() == windowParts[it->getDescription()].size())
+        //{
+          //flag = false;        
+          //break;
+        //}
+      //}
+      
+      //if (flag)
+      //{
+        //selection.push_front(*it);
+      //}
+    //}
+    
     //std::cout << "selection size: " << selection.size() << std::endl << std::endl << std::flush;
-  }
+    
+    //cells = selection;
+  
+  //}
   
   
   
-  
-  
-  std::cout << "selection size: " << selection.size() << std::endl << std::endl << std::flush;
-  
-  cells = selection;
   
   //std::cout << "Dealing with overlap" << std::endl << std::flush;
   
@@ -419,62 +445,62 @@ int main (int argc, char* argv[])
   //overlayfile << "<g transform=\"scale(17,-17)\">" << std::endl;
   
   count = 0;
-  for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
-  {
-    //for ( std::list<CvoronoiCell<numberType> >::iterator ot = cells.begin(); ot != cells.end(); ++ot )
-    //{
-      //std::cout << ((it!=ot) && (windowParts[it->getDescription()] == windowParts[ot->getDescription()])) << std::endl;
-    //}
-    ++count;
+  //for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
+  //{
+    ////for ( std::list<CvoronoiCell<numberType> >::iterator ot = cells.begin(); ot != cells.end(); ++ot )
+    ////{
+      ////std::cout << ((it!=ot) && (windowParts[it->getDescription()] == windowParts[ot->getDescription()])) << std::endl;
+    ////}
+    //++count;
     
-    // construct tiles
-    it->setColor(fillColor, strokeColor, strokeWidth);
-    it->colorify();
-    it->CarrierSet->setColor(fillColor, strokeColor, strokeWidth);
-    it->Center.setColor(fillColor, strokeColor, strokeWidth);
+    //// construct tiles
+    //it->setColor(fillColor, strokeColor, strokeWidth);
+    //it->colorify();
+    //it->CarrierSet->setColor(fillColor, strokeColor, strokeWidth);
+    //it->Center.setColor(fillColor, strokeColor, strokeWidth);
     
-    Cpoint<numberType> middle = it->middle();
-    Cpoint<numberType> middleDomain = it->middleDomain();
+    //Cpoint<numberType> middle = it->middle();
+    //Cpoint<numberType> middleDomain = it->middleDomain();
     
-    middle.setColor(fillColor, "#FF1744", strokeWidth);
-    middleDomain.setColor(fillColor, "#2979FF", strokeWidth);
+    //middle.setColor(fillColor, "#FF1744", strokeWidth);
+    //middleDomain.setColor(fillColor, "#2979FF", strokeWidth);
     
-    std::ostringstream oss;
-    oss << fileName << std::setfill('0') << std::setw(3) << count << ".svg";// << " " << it->size();
-    std::ofstream myfile ( oss.str().c_str() );
+    //std::ostringstream oss;
+    //oss << fileName << std::setfill('0') << std::setw(3) << count << ".svg";// << " " << it->size();
+    //std::ofstream myfile ( oss.str().c_str() );
     
-    myfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
-    myfile << "<svg width=\"3000\" height=\"3000\" viewBox=\"" << -30*8.4 << " " << -30*8.4 << " " << 60*8.4 << " " << 60*8.4 << "\">\n" << std::endl;
+    //myfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
+    //myfile << "<svg width=\"3000\" height=\"3000\" viewBox=\"" << -30*8.4 << " " << -30*8.4 << " " << 60*8.4 << " " << 60*8.4 << "\">\n" << std::endl;
     
-    myfile << "<!--" << std::endl;
-    //it->var_dump( myfile );
-    myfile << it->Cell->size() << " " << it->size() << " " << atan2(it->middle().getX(), it->middle().getY()) << std::endl;
-    myfile << "-->" << std::endl;
+    //myfile << "<!--" << std::endl;
+    ////it->var_dump( myfile );
+    //myfile << it->Cell->size() << " " << it->size() << " " << atan2(it->middle().getX(), it->middle().getY()) << std::endl;
+    //myfile << "-->" << std::endl;
     
-    //myfile << "<text x=\"" << -30*8.4 + 10 << "\" y=\"" << -30*8.4 + 90<< "\" style=\"font-size:100;font-family:Latin Modern Roman\">" << std::endl;
-    //myfile << count << std::endl;
-    //myfile << "</text>" << std::endl;
+    ////myfile << "<text x=\"" << -30*8.4 + 10 << "\" y=\"" << -30*8.4 + 90<< "\" style=\"font-size:100;font-family:Latin Modern Roman\">" << std::endl;
+    ////myfile << count << std::endl;
+    ////myfile << "</text>" << std::endl;
     
-    myfile << "<g transform=\"scale(17,-17)\">" << std::endl;
+    //myfile << "<g transform=\"scale(17,-17)\">" << std::endl;
     
-    //myfile << "<circle cx=\"0\" cy=\"0\" r=\"" << L << "\" fill=\"#555555\" />\n" << std::endl;
-    //myfile << "<g transform=\"scale(1,-1)\">" << std::endl;
+    ////myfile << "<circle cx=\"0\" cy=\"0\" r=\"" << L << "\" fill=\"#555555\" />\n" << std::endl;
+    ////myfile << "<g transform=\"scale(1,-1)\">" << std::endl;
     
-    it->svg(myfile);
-    it->CarrierSet->svg(myfile);
-    it->Center.svg(myfile);
-    middle.svg(myfile);
-    middleDomain.svg(myfile);
+    //it->svg(myfile);
+    //it->CarrierSet->svg(myfile);
+    //it->Center.svg(myfile);
+    //middle.svg(myfile);
+    //middleDomain.svg(myfile);
     
-    //it->svg(overlayfile);
-    //it->CarrierSet->svg(overlayfile);
-    //it->Center.svg(overlayfile);
+    ////it->svg(overlayfile);
+    ////it->CarrierSet->svg(overlayfile);
+    ////it->Center.svg(overlayfile);
     
-    myfile << "</g>" << std::endl;
-    myfile << "</svg>";
+    //myfile << "</g>" << std::endl;
+    //myfile << "</svg>";
     
-    myfile.close();
-  }
+    //myfile.close();
+  //}
   
   //overlayfile << "</g>" << std::endl;
   //overlayfile << "</svg>";
@@ -485,9 +511,9 @@ int main (int argc, char* argv[])
   
   tmp02.clear();
   tmp02.str(std::string());
-  tmp02 << fileName << "_";
+  tmp02 << fileName << "_" << winSize << "_(";
   printFile(tmp02, winSize);
-  tmp02 << ".svg";
+  tmp02 << ").svg";
   std::ofstream windowfile ( tmp02.str().c_str() );
   
   windowfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
@@ -498,6 +524,26 @@ int main (int argc, char* argv[])
   win.svg(windowfile);
   
   // OUTPUT
+  
+  std::ostringstream tmp03;
+  tmp03 << filenamePrefix << "list" << filenameSuffix;
+  
+  // write to file
+  std::ofstream output(tmp03.str().c_str());
+  cells.sort();
+  cells.unique();
+  cells.reverse();
+  
+  print(output, winSize);
+  output << std::endl;
+  
+  for (std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it)
+  {
+    output << it->save() << std::endl;
+  }
+  output.close();
+  
+  // cells & window
   count = 1;
   {
     for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it )
@@ -542,6 +588,8 @@ int main (int argc, char* argv[])
   windowfile << "</svg>" << std::endl;
   windowfile.close();
   
+  delete circ;
+  delete insc;
   
   return 0;
 }

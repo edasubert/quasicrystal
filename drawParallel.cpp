@@ -205,6 +205,9 @@ int main (int argc, char* argv[])
   //overlayfile.close();
   
   
+  delete circ;
+  delete insc;
+  
   
   return 0;
 }

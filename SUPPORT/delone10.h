@@ -248,16 +248,18 @@ void CdeloneSet10<numberType>::svg( std::ostream& out )
     out << "<!-- " << this->description << " -->" << std::endl;
   }
   out << "<g id=\"" << this->name << "\">" << std::endl;
-  for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); ++it )
-  {
-    it->setColor( this->fillColor, this->strokeColor, this->strokeWidth );
-    it->svg(out);
-    out << "YEA" << std::endl;
-  }
+  
   out << "<!-- POTENTIAL -->" << this->points->size() << std::endl;
   for ( typename std::list<Cpoint<numberType> >::iterator it = this->potential.begin(); it != this->potential.end(); ++it )
   {
     it->setColor( this->fillColor, "#FFEA00", this->strokeWidth );
+    it->svg(out);
+  }
+  
+  out << "<!-- CARRIER SET -->" << this->points->size() << std::endl;
+  for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); ++it )
+  {
+    it->setColor( this->fillColor, this->strokeColor, this->strokeWidth );
     it->svg(out);
   }
   out << "</g>" << std::endl;

@@ -126,16 +126,16 @@ CdeloneSet10<numberType> quasicrystal2D10( window<numberType> win, std::string &
   numberType xAxis = xAxisMove;
   numberType yAxis = yAxisMove;
   
-  for (std::string::iterator it = x.begin(); it != x.end(); ++++it )
+  for (std::string::iterator it = x.begin(), it_next = ++x.begin(); it != x.end(); ++++it, ++++it_next )
   {
     xAxis+= win.char2space(*it);
-    for (std::string::iterator ot = y.begin(); ot != y.end(); ++++ot )
+    for (std::string::iterator ot = y.begin(), ot_next = ++y.begin(); ot != y.end(); ++++ot, ++++ot_next )
     {
       yAxis+= win.char2space(*ot);
       point.setX(xAxis);
       point.setY(yAxis);
       point.setDescription("0");
-      if (*(std::next(it)) == '1' && *(std::next(ot)) == '1')
+      if (*it_next == '1' && *ot_next == '1')
       {
         delone << transformBeta(point);
       }
@@ -214,7 +214,7 @@ std::list<std::string> language(window<numberType> win, int n)
   {
     #ifndef _ERROR_
     std::cout << i << ": " << std::endl;
-    for (typename std::list<numberType>::iterator it = delimiter.begin(); std::next(it,1) != delimiter.end(); ++it )
+    for (typename std::list<numberType>::iterator it = delimiter.begin(); it != --delimiter.end(); ++it )
     {
       std::cout << language[ *it ] << '\t';
     }
@@ -223,10 +223,10 @@ std::list<std::string> language(window<numberType> win, int n)
     std::list<numberType> new_delimiter;
     std::map <numberType, std::string> new_language;
     
-    for (typename std::list<numberType>::iterator it = delimiter.begin(); std::next(it,1) != delimiter.end(); ++it )
+    for (typename std::list<numberType>::iterator it = delimiter.begin(), it_next = ++delimiter.begin(); it != --delimiter.end(); ++it, ++it_next )
     {
       numberType image = win.step( *it );
-      numberType length = *std::next( it, 1 ) - *it;
+      numberType length = *it_next - *it;
       std::string word = language[*it];
       
       #ifndef _IMG_
@@ -301,7 +301,7 @@ std::list<std::string> language(window<numberType> win, int n)
   
   #ifndef _ERROR_
   std::cout << n << ": " << std::endl;
-  for (typename std::list<numberType>::iterator it = delimiter.begin(); std::next(it,1) != delimiter.end(); ++it )
+  for (typename std::list<numberType>::iterator it = delimiter.begin(); it != --delimiter.end(); ++it )
   {
     std::cout << language[ *it ] << '\t';
   }
@@ -314,7 +314,7 @@ std::list<std::string> language(window<numberType> win, int n)
   
   std::list<std::string> languageList;
   
-  for (typename std::list<numberType>::iterator it = delimiter.begin(); std::next(it,1) != delimiter.end(); ++it )
+  for (typename std::list<numberType>::iterator it = delimiter.begin(); it != --delimiter.end(); ++it )
   {
     languageList.push_back( language[ *it ] );
   }
@@ -346,7 +346,7 @@ std::list<std::string> language(window<numberType> hypowin, window<numberType> h
   {
     #ifndef _ERROR_
     std::cout << i << ": " << std::endl;
-    for (typename std::list<numberType>::iterator it = delimiter.begin(); std::next(it,1) != delimiter.end(); ++it )
+    for (typename std::list<numberType>::iterator it = delimiter.begin(); it != --delimiter.end(); ++it )
     {
       std::cout << language[ *it ] << '\t';
     }
@@ -357,10 +357,10 @@ std::list<std::string> language(window<numberType> hypowin, window<numberType> h
     std::list<numberType> new_delimiter;
     std::map <numberType, std::string> new_language;
     
-    for (typename std::list<numberType>::iterator it = delimiter.begin(); std::next(it,1) != delimiter.end(); ++it )
+    for (typename std::list<numberType>::iterator it = delimiter.begin(), it_next = ++delimiter.begin(); it != --delimiter.end(); ++it, ++it_next )
     {
       numberType image = hyperwin.step( *it );
-      numberType length = *std::next( it, 1 ) - *it;
+      numberType length = *it_next - *it;
       std::string word = language[*it];
       
       #ifndef _IMG_
@@ -425,7 +425,7 @@ std::list<std::string> language(window<numberType> hypowin, window<numberType> h
   
   #ifndef _ERROR_
   std::cout << n << ": " << std::endl;
-  for (typename std::list<numberType>::iterator it = delimiter.begin(); std::next(it,1) != delimiter.end(); ++it )
+  for (typename std::list<numberType>::iterator it = delimiter.begin(); it != --delimiter.end(); ++it )
   {
     std::cout << language[ *it ] << '\t';
   }
@@ -438,7 +438,7 @@ std::list<std::string> language(window<numberType> hypowin, window<numberType> h
   
   std::list<std::string> languageList;
   
-  for (typename std::list<numberType>::iterator it = delimiter.begin(); std::next(it,1) != delimiter.end(); ++it )
+  for (typename std::list<numberType>::iterator it = delimiter.begin(); it != --delimiter.end(); ++it )
   {
     languageList.push_back( language[ *it ] );
   }

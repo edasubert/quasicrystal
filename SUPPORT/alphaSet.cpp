@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "alphaSet.h"
-#include "geometricObject2.h"
+//#include "geometricObject2.h"
 
 double alphaSet::constant = 1 + sqrt(2);
 
