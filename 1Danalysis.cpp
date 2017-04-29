@@ -28,10 +28,11 @@ int main( int argc, char ** argv )
 
   //winSize = const_winSize;
   
-  winSize = numberType::get(0,1,4);
+  winSize = (numberType::get(-1,1,2));
   numberType origin(0,0);
   
-  window<numberType> win(winSize*numberType::get(-1,0,2), winSize*numberType::get(1,0,2));
+  window<numberType> win(numberType::get(0,0), winSize);
+  //window<numberType> win(winSize*numberType::get(-1,0,2), winSize*numberType::get(1,0,2));
   
   std::cout << "win size: ";
   print(std::cout, winSize);
@@ -39,13 +40,13 @@ int main( int argc, char ** argv )
   std::cout << "Large: " << win.Large() << std::endl;
   std::cout << "L: " << win.Lchar() << "\t";
   print(std::cout, win.L());
-  std::cout << "\t" << win.L() << std::endl;
+  std::cout << "\t" << win.L() << "\t ' " << win.L().star() << std::endl;
   std::cout << "M: " << win.Mchar() << "\t";
   print(std::cout, win.M());
-  std::cout << "\t" << win.M() << std::endl;
+  std::cout << "\t" << win.M() << "\t ' " << win.M().star() << std::endl;
   std::cout << "S: " << win.Schar() << "\t";
   print(std::cout, win.S());
-  std::cout << "\t" << win.S() << std::endl << std::endl;
+  std::cout << "\t" << win.S() << "\t ' " << win.S().star() << std::endl << std::endl;
   
   std::cout << "c: ";
   print(std::cout, win.c());
@@ -70,6 +71,11 @@ int main( int argc, char ** argv )
   int wordLength = 2;
   
   std::list<std::string> lang = language(win, wordLength);
+  //print(std::cout, minWord(lang, win));
+  //std::cout << "\t" << (minWord(lang, win)<=numberType::get(2,4)) << std::endl;
+  
+  //lang.push_back("NN");
+  //lang.push_back("ML");
   
   std::list<std::list<numberType> > cells;
   

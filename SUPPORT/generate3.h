@@ -68,25 +68,44 @@ CdeloneSet<numberType> quasicrystal2D( window<numberType> win, std::string &x, s
   numberType xAxisMove(0,0);
   std::string::iterator it = x.begin();
   
-  for (int i = 0; i < ceil(x.size()/2); ++i)
+  for (int i = 0; i < ceil(x.size()/2.0); ++i)
   {
-    xAxisMove-= win.char2space(*(it++++));
+    xAxisMove-= win.char2space(*(it++));
   }
   
   numberType yAxisMove(0,0);
   it = y.begin();
   
-  for (int i = 0; i < ceil(y.size()/2); ++i)
+  for (int i = 0; i < ceil(y.size()/2.0); ++i)
   {
-    yAxisMove-= win.char2space(*(it++++));
+    yAxisMove-= win.char2space(*(it++));
   }
   
   numberType xAxis = xAxisMove;
   numberType yAxis = yAxisMove;
   
+  point.setX(xAxis);
+  point.setY(yAxis);
+  delone << transformBeta( point );
+  
+  
+  for (std::string::iterator ot = y.begin(); ot != y.end(); ++ot )
+  {
+    yAxis+= win.char2space(*ot);
+    point.setX(xAxis);
+    point.setY(yAxis);
+    delone << transformBeta( point );
+  }
+  
   for (std::string::iterator it = x.begin(); it != x.end(); ++it )
   {
+    yAxis = yAxisMove;
     xAxis+= win.char2space(*it);
+    
+    point.setX(xAxis);
+    point.setY(yAxis);
+    delone << transformBeta( point );
+    
     for (std::string::iterator ot = y.begin(); ot != y.end(); ++ot )
     {
       yAxis+= win.char2space(*ot);
@@ -94,9 +113,8 @@ CdeloneSet<numberType> quasicrystal2D( window<numberType> win, std::string &x, s
       point.setY(yAxis);
       delone << transformBeta( point );
     }
-    yAxis = yAxisMove;
   }
-  
+    
   return delone;
 }
 

@@ -201,7 +201,6 @@ int main (int argc, char* argv[])
     delone << *it;
     delone.addPotential(tmp.getPoints());
     
-    delone.setPackingR();
     delone.setCoveringR(CvoronoiCell<numberType>::large);
     
     delone.sortPotentialByDistance();
@@ -220,7 +219,6 @@ int main (int argc, char* argv[])
     voronoi.CarrierSet->unique();
     
     voronoi.CarrierSet->sortByDistance();
-    voronoi.CarrierSet->setPackingR();
     voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
     voronoi.setCenter(origin);
     voronoi.construct();
@@ -297,7 +295,6 @@ int main (int argc, char* argv[])
         voronoi.CarrierSet->unique();
         
         voronoi.CarrierSet->sortByDistance();
-        voronoi.CarrierSet->setPackingR();
         voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
         voronoi.setCenter(origin);
         voronoi.construct();

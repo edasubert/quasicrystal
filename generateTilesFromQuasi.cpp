@@ -47,7 +47,7 @@ int main( int argc, char ** argv )
   
   // interval of the quasicrystal
   //numberType x = numberType::get(60,0)*(numberType::get(22,0,4)-winSize); //polygon
-  numberType x = numberType::get(20,0)*(numberType::get(22,0,4)-winSize); //circle8
+  numberType x = numberType::get(20,0)*(numberType::get(22,0,5)-winSize); //circle8
   
   //rhombus win( winSize, winSize );
   //windowType win( winSize );
@@ -92,7 +92,6 @@ int main( int argc, char ** argv )
   
   CvoronoiCell<numberType>::large = numberType::get(2,0)*coveringR;
   
-  delone.setPackingR();
   delone.setCoveringR(CvoronoiCell<numberType>::large);
   
   std::cout << "points of quasicrystal (including edge): " << delone.size() << std::endl << std::flush;

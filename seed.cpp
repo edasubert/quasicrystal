@@ -27,9 +27,9 @@ int main( int argc, char ** argv )
   
   windowType win = getWindow(numberType::get(1,0));
   
-  for (int i = 0; i != steps+1; ++i)
+  //for (int i = 0; i != steps+1; ++i)
   {
-    numberType winSize = numberType::get(1,0,1)/numberType::get(0,1,1) + (numberType::get(1,0,1)-numberType::get(1,0,1)/numberType::get(0,1,1))*numberType::get(i,0,steps);
+    numberType winSize = numberType::get(0,1,2);//numberType::get(1,0,1)/numberType::get(0,1,1) + (numberType::get(1,0,1)-numberType::get(1,0,1)/numberType::get(0,1,1))*numberType::get(i,0,steps);
     numberType placeholder(0, 0);
     
     // write to file properties

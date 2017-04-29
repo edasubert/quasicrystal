@@ -160,6 +160,7 @@ class circle : public window2D<numberType>
     void emptyIntersectionList();
     
     bool empty();
+    bool zeroDensity();
     
     double  centerX();
     double  centerY();
@@ -200,6 +201,7 @@ class polygon : public window2D<numberType>
     void center( Cpoint<numberType> center );
     
     bool empty();
+    bool zeroDensity();
     
     double  centerX();
     double  centerY();
@@ -1140,6 +1142,26 @@ bool circle<numberType>::empty()
 }
 
 template <typename numberType>
+bool circle<numberType>::zeroDensity() 
+{
+  numberType maxDistance;
+  for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
+  {
+    for (typename std::list<circle<numberType> >::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+    {
+      //print(std::cout, euklid2(typename Cpoint<numberType>::Cpoint(it->m_x, it->m_y), typename Cpoint<numberType>::Cpoint(ot->m_x, ot->m_y)));
+      //std::cout << std::endl;
+      maxDistance = max(maxDistance, euklid2(typename Cpoint<numberType>::Cpoint(it->m_x, it->m_y), typename Cpoint<numberType>::Cpoint(ot->m_x, ot->m_y)));
+    }
+  }
+  print(std::cout, maxDistance);
+  std::cout << "\t" << (maxDistance - numberType::get(4,0)*this->m_R*this->m_R) << "\t";
+  print(std::cout, numberType::get(4,0)*this->m_R*this->m_R);
+  std::cout << std::endl;
+  return maxDistance == numberType::get(4,0)*this->m_R*this->m_R;
+}
+
+template <typename numberType>
 double circle<numberType>::centerX()
 {
   if (intersectionList.size() == 1)
@@ -1425,7 +1447,6 @@ bool polygon<numberType>::inClose( Cpoint<numberType> star )
       c = !c;
     }
   }
-  
   return c;
 }
 
@@ -1590,6 +1611,12 @@ bool polygon<numberType>::empty()
 }
 
 template <typename numberType>
+bool polygon<numberType>::zeroDensity() 
+{
+  return ((m_vert.size() > 0) && (this->size() == numberType::get(0,0)));
+}
+
+template <typename numberType>
 double polygon<numberType>::centerX()
 {
   return m_center.getX();
@@ -1609,8 +1636,13 @@ numberType polygon<numberType>::size()
   
   for ( typename std::list<Cpoint<numberType> >::iterator it = m_vert.begin(), itold = --m_vert.end(); it != m_vert.end(); itold = it++ )
   {
+    print(std::cout, itold->getX()*it->getY() - it->getX()*itold->getY());
+    std::cout << std::endl;
     area+= itold->getX()*it->getY() - it->getX()*itold->getY();
   }
+  
+  print(std::cout, area.abs()*numberType::get(1,0,2));
+  std::cout << std::endl << "******************************************************************" << std::endl;
   
   return area.abs()*numberType::get(1,0,2);
 }

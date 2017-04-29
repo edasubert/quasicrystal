@@ -51,26 +51,26 @@ int main( int argc, char ** argv )
 	
 	division cache;
   
-  bool beta = true;
-  bool alpha = false;
+  //bool beta = true;
+  //bool alpha = false;
 	
   window<numberType> G0;
   window<numberType> G1;
   window<numberType> G2;
   window<numberType> G3;
   
-  if (beta)
+  if (numberType::rotateN() == 12)
   {
     G0 = window<numberType>(numberType::get( 4, -1));
     G1 = window<numberType>(numberType::get(-7,  2));
     G2 = window<numberType>(numberType::get(-3,  1));
     G3 = window<numberType>(numberType::get( 1,  0));
   }
-  if (alpha)
+  if (numberType::rotateN() == 8)
   {
-    G0 = window<numberType>(numberType::get( 1,  0));
-    G1 = window<numberType>(numberType::get(-1,  1));
-    G2 = window<numberType>(numberType::get( 0,  1));
+    G0 = window<numberType>(numberType::get(1, 0));
+    G1 = window<numberType>(numberType::get(3,-1)*numberType::get(0,1));
+    G2 = window<numberType>(numberType::get(0, 1));
   }
 	
 	cache.x  = G0.l();
@@ -93,7 +93,7 @@ int main( int argc, char ** argv )
 	cache.b0  = G2.b();
 	D.push_back(cache);
 	
-  if (beta)
+  if (numberType::rotateN() == 12)
   {
     cache.x  = G2.l();
     cache.y  = G3.l();

@@ -188,8 +188,8 @@ template <typename numberType>
 class CdeloneSet : public CpointSet<numberType>, public virtual Cfigure<numberType>
 {
   protected:
-    double PackingR;
-    double CoveringR;
+    numberType PackingR;
+    numberType CoveringR;
   public:
     CdeloneSet();
     CdeloneSet( const CdeloneSet<numberType>& I_PointSet );
@@ -198,14 +198,11 @@ class CdeloneSet : public CpointSet<numberType>, public virtual Cfigure<numberTy
     
     CdeloneSet<numberType>& operator = ( const CdeloneSet<numberType>& I_DeloneSet );
     
-    void setPackingR( double I_PackingR );
-    void setCoveringR( double I_CoveringR );
+    void setPackingR(numberType I_PackingR );
+    void setCoveringR(numberType I_CoveringR );
     
-    double getPackingR();
-    double getCoveringR();
-    
-    void setPackingR();
-    void setCoveringR();
+    numberType getPackingR();
+    numberType getCoveringR();
     
     void svg( std::ostream& out ) const;
     void svg( std::ostream& out, double a, double b, double c, double d ) const;
@@ -292,8 +289,11 @@ class CvoronoiCell : public virtual Cfigure<numberType>
 template <typename numberType>
 double euklid( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
 
+//template <typename numberType>
+//double euklid2( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
+
 template <typename numberType>
-double euklid2( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
+numberType euklid2( const Cpoint<numberType>& a, const Cpoint<numberType>& b );
 
 template <typename numberType>
 double euklid2( const Cpoint<numberType>& a );
@@ -1222,79 +1222,29 @@ void CdeloneSet<numberType>::var_dump( std::ostream& out ) const
 }
 
 template <typename numberType>
-void CdeloneSet<numberType>::setPackingR( double I_PackingR )
+void CdeloneSet<numberType>::setPackingR(numberType I_PackingR )
 {
   PackingR = I_PackingR;
 }
 
 template <typename numberType>
-void CdeloneSet<numberType>::setCoveringR( double I_CoveringR )
+void CdeloneSet<numberType>::setCoveringR(numberType I_CoveringR )
 {
   CoveringR = I_CoveringR;
 }
 
 template <typename numberType>
-double CdeloneSet<numberType>::getPackingR()
+numberType CdeloneSet<numberType>::getPackingR()
 {
   return PackingR;
 }
 
 template <typename numberType>
-double CdeloneSet<numberType>::getCoveringR()
+numberType CdeloneSet<numberType>::getCoveringR()
 {
   return CoveringR;
 }
 
-template <typename numberType>
-void CdeloneSet<numberType>::setPackingR()
-{
-  typename std::list<Cpoint<numberType> >::iterator tmp = this->points->begin();
-  
-  double radius = euklid2( *(++tmp), *tmp );
-  double swap;
-  
-  for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); ++it )
-  {
-    tmp = it;
-    ++tmp;
-    
-    for ( typename std::list<Cpoint<numberType> >::iterator ot = tmp; ot != this->points->end(); ++ot )
-    {
-      swap = euklid2( *it, *ot );
-      radius = (radius > swap) ? swap : radius;
-    }
-  }
-  
-  PackingR = sqrt(radius)/2;
-}
-
-template <typename numberType>
-void CdeloneSet<numberType>::setCoveringR()
-{
-  typename std::list<Cpoint<numberType> >::iterator tmp;
-  
-  double radius = 0;
-  double swap;
-  double closest;
-  
-  for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); ++it )
-  {
-    tmp = it;
-    ++tmp;
-    
-    closest = euklid2( *it, *tmp );
-    
-    for ( typename std::list<Cpoint<numberType> >::iterator ot = tmp; ot != this->points->end(); ++ot )
-    {
-      swap = euklid2( *it, *ot );
-      closest = (closest > swap) ? swap : closest;
-    }
-    
-    radius = (radius < closest) ? closest : radius;
-  }
-  
-  CoveringR = sqrt(radius);
-}
 
 template <typename numberType>
 void CdeloneSet<numberType>::svg( std::ostream& out ) const
@@ -2170,13 +2120,21 @@ void CvoronoiCell<numberType>::colorify()
   unsigned int hash = str_hash(min.save());
   
   double h = hash % 2147483647;
+  //double h = ((this->Cell->size()-2)%(numberType::rotateN())/2)/static_cast<double>((numberType::rotateN())/2) + (hash % 2147483647)/21474836470.;
   double s = (((hash & 0x00FF00) >> 8) % 124 + 128);
+  //double s = 128 + floor(3./static_cast<double>(this->Cell->size())*64.);
   double v = ((hash & 0x0000FF) % 16 + 240);
+  //double v = 191 + floor(3./static_cast<double>(this->Cell->size())*64.); // more vertices => higher value
   
   h/=2147483647.;
   h*=6.;
   s/=256.;
   v/=256.;
+  
+  if (h>6)
+  {
+    std::cout << h << std::endl;
+  }
   
   double fract = h - floor(h);
   double P = v*(1. - s);
@@ -2368,8 +2326,14 @@ double euklid( const Cpoint<numberType>& a, const Cpoint<numberType>& b )
   return sqrt( (a.getX()-b.getX())*(a.getX()-b.getX()) + (a.getY()-b.getY())*(a.getY()-b.getY()) );
 }
 
+//template <typename numberType>
+//double euklid2( const Cpoint<numberType>& a, const Cpoint<numberType>& b )
+//{
+  //return (a.getX()-b.getX())*(a.getX()-b.getX()) + (a.getY()-b.getY())*(a.getY()-b.getY());
+//}
+
 template <typename numberType>
-double euklid2( const Cpoint<numberType>& a, const Cpoint<numberType>& b )
+numberType euklid2( const Cpoint<numberType>& a, const Cpoint<numberType>& b )
 {
   return (a.getX()-b.getX())*(a.getX()-b.getX()) + (a.getY()-b.getY())*(a.getY()-b.getY());
 }

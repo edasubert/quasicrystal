@@ -18,6 +18,12 @@
 #include <list>
 #include <string>
 
+struct bookmark
+{
+	windowType intersection;
+  std::list<windowType>::iterator last;
+};
+
 int main (int argc, char* argv[])
 { 
   
@@ -117,7 +123,6 @@ int main (int argc, char* argv[])
     }
     
     voronoi.setDescription(*it);
-    voronoi.CarrierSet->setPackingR();
     voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
     voronoi.setCenter(origin);
     voronoi.construct();
@@ -170,7 +175,6 @@ int main (int argc, char* argv[])
     }
     
     voronoi.setDescription(*it);
-    voronoi.CarrierSet->setPackingR();
     voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
     voronoi.setCenter(origin);
     voronoi.construct();
@@ -332,93 +336,108 @@ int main (int argc, char* argv[])
   
   //}
   
+  if (win.getName() != "circle")
+  {
   
+  // dealing with overlap - inclusion-exclusion principle
+  std::cout << "Dealing with overlap" << std::endl << std::flush;
   
-  
-  //std::cout << "Dealing with overlap" << std::endl << std::flush;
-  
-  ////// deal with overlap
-  //cells.sort();
-  //selection.clear();
-  
-  //selection.push_back(*cells.begin());
-  
-  //count = 0;
-  //int printCount = 0;
-  //bool check;
-  
-  //for (std::list<CvoronoiCell<numberType> >::iterator ot = ++cells.begin(); ot != cells.end(); ++ot)
-  //{
-    //selection.sort();
-    //selection.reverse();
+  for (std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end();)
+  {
+    std::list<windowType> intersecting;
+    std::list<bookmark> working;
+    std::list<bookmark> working_next;
     
-    //std::list<windowType> toCut;
-    //// gather cutting material
-    //for ( std::list<CvoronoiCell<numberType> >::iterator it = selection.begin(); it != selection.end(); ++it )
-    //{
-      //windowType intersection = windowParts[it->getDescription()];
-      //intersection.intersect(&windowParts[ot->getDescription()]);
+    bookmark cache;
+    
+    // first inclusion
+    for (std::list<CvoronoiCell<numberType> >::iterator ot = cells.begin(); ot != cells.end(); ++ot)
+    {
+      if (it->size() > ot->size())
+      {
+        windowType intersect = windowParts[it->getDescription()];
+        intersect.intersect(&windowParts[ot->getDescription()]);
+        
+        if (!intersect.empty())
+        {
+          // check if it is not already present
+          bool unique = true;
+          for (std::list<windowType>::iterator ut = intersecting.begin(); ut != intersecting.end(); ++ut)
+          {
+            windowType intersect02 = intersect;
+            intersect02.intersect(&*ut);
+            
+            if (intersect02.size() == intersect.size())
+            {
+              unique = false;
+              break;
+            }
+          }
+          if (unique)
+          {
+            intersecting.push_back(intersect);
+            cache.intersection = intersect;
+            cache.last = --intersecting.end();
+            working.push_back(cache);
+          }
+        }
+      }
+    }
+    
+    numberType area;
+    numberType sign(1,0);
+    
+    //calculate area of union of working
+    while (working.size() > 0)
+    {
+      //std::cout << working.size() << std::endl;
       
-      //if ((!intersection.empty()) && (ot->size() > it->size()))
-      //{
-        //toCut.push_back(windowParts[it->getDescription()]);
-        ////std::cout << "CUT cut cut" << std::endl << std::flush;
-      //}
-    //}
+      // inclusion/exclusion
+      for (std::list<bookmark>::iterator ot = working.begin(); ot != working.end(); ++ot)
+      {
+        area+= sign*ot->intersection.size();
+      }
+      
+      // prepair intersection for next run
+      for (std::list<bookmark>::iterator ot = working.begin(); ot != working.end(); ++ot)
+      {
+        for (std::list<windowType>::iterator ut = ++ot->last; ut != intersecting.end(); ++ut)
+        {
+          windowType intersect = ot->intersection;
+          intersect.intersect(&*ut);
+          if (!intersect.empty())
+          {
+            cache.intersection = intersect;
+            cache.last = ut;
+            working_next.push_back(cache);
+          }
+        }
+      }
+      
+      sign = sign*numberType::get(-1,0);
+      working = working_next;
+      working_next.clear();
+    }
     
-    //toCut.sort();
+    if (area > windowParts[it->getDescription()].size())
+    {
+      std::cout << "size comparison: " << area << " " << windowParts[it->getDescription()].size() << std::endl;
+    }
     
-    //// do some cutting
-    ////std::cout << windowParts[ot->getDescription()].width() << " " << windowParts[ot->getDescription()].height() << std::endl;
-    //bool didItCut;
-    //do
-    //{
-      //didItCut = false;
-      //for ( std::list<windowType>::iterator it = toCut.begin(); it != toCut.end(); ++it )
-      //{
-        //windowType intersection = *it;
-        //intersection.intersect(&windowParts[ot->getDescription()]);
-        
-        //if (intersection.empty())
-        //{
-          //continue;
-        //}
-        
-        //numberType size = windowParts[ot->getDescription()].size();
-        //diff(windowParts[ot->getDescription()], intersection);
-        
-        //if (size > windowParts[ot->getDescription()].size())
-        //{
-          //didItCut = true;
-        //}
-        
-        //if (windowParts[ot->getDescription()].empty())
-          //break;
-      //}
-    //} while(didItCut && !windowParts[ot->getDescription()].empty());
-    
-    ////std::cout << windowParts[ot->getDescription()].width() << " " << windowParts[ot->getDescription()].height() << std::endl;
-    
-    //// decide
-    //if (!windowParts[ot->getDescription()].empty())
-    //{
-      //std::cout << "added" << std::endl;
-      //selection.push_back(*ot);
-    //}
-    
-    //// print progress
-    //++count;
-    //++printCount;
-    //if (20*printCount > cells.size())
-    //{
-      //std::cout << "processed " << count << "/" << cells.size() << " <=> " << 100*count/cells.size() << "%" << "\t| " << "selection size: " << selection.size() << std::endl << std::flush;
-      //printCount = 0;
-    //}
-  //}
+    if (area == windowParts[it->getDescription()].size())
+    {
+      it = cells.erase(it);
+    }
+    else
+    {
+      ++it;
+      //std::cout << "keep, cells size: " << cells.size() << std::endl;
+    }
+  }
   
-  //std::cout << "selection size: " << selection.size() << std::endl << std::endl << std::flush;
+  std::cout << "cells size: " << cells.size() << std::endl << std::endl << std::flush;
   
-  //cells = selection;
+  }
   
   std::cout << "Output" << std::endl << std::flush; 
   
