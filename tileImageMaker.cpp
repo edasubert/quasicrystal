@@ -75,7 +75,8 @@ int main (int argc, char* argv[])
   //std::string cell = "(-1+0*alpha)/1,(-1+0*alpha)/1 (-1+1*alpha)/2,(-1-1*alpha)/2 (-1+1*alpha)/1,(0+0*alpha)/1 (-1+1*alpha)/2,(-1+1*alpha)/2 (-1+0*alpha)/1,(0+0*alpha)/1 ";
   //std::string cell = "(-1+1*alpha)/2,(-1-1*alpha)/2 (-1+1*alpha)/2,(-1+1*alpha)/2 (-1+0*alpha)/1,(0+0*alpha)/1 ";
   
-  std::string cell = "(-1-1*alpha)/2,(-1-1*alpha)/2 (1+1*alpha)/2,(-1-1*alpha)/2 (1+3*alpha)/2,(1+1*alpha)/2 (0+0*alpha)/1,(0+1*alpha)/1 (-1-3*alpha)/2,(1+1*alpha)/2 ";
+  //std::string cell = "(-1-1*alpha)/2,(-1-1*alpha)/2 (1+1*alpha)/2,(-1-1*alpha)/2 (1+3*alpha)/2,(1+1*alpha)/2 (0+0*alpha)/1,(0+1*alpha)/1 (-1-3*alpha)/2,(1+1*alpha)/2 ";
+  std::string cell = "(2-1*beta)/2,(-1+0*beta)/2 (-1+0*beta)/2,(2-1*beta)/2 (0+0*beta)/1,(-1+0*beta)/1 (1+0*beta)/2,(2-1*beta)/2 (-2+1*beta)/2,(-1+0*beta)/2 (1+0*beta)/1,(0+0*beta)/1 (-2+1*beta)/2,(1+0*beta)/2 (1+0*beta)/2,(-2+1*beta)/2 (0+0*beta)/1,(1+0*beta)/1 (-1+0*beta)/2,(-2+1*beta)/2 (2-1*beta)/2,(1+0*beta)/2 (-1+0*beta)/1,(0+0*beta)/1 ";
   
   CvoronoiCell<numberType> voronoi;
   voronoi.load(cell);

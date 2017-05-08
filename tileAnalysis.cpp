@@ -49,6 +49,29 @@ int main (int argc, char* argv[])
   filenameList = filenamePrefix + "list" + filenameSuffix;
   
   
+  std::string line;
+  numberType input;
+  
+  // singular file
+  std::string singularFilename = "closed/singular";
+  std::ifstream singularFile(singularFilename);
+  std::list<numberType> singularSizes;
+  std::list<numberType> singularSizesUsed;
+  if (singularFile.is_open())
+  {
+    while (singularFile)
+    {
+      singularFile >> input;
+      singularSizes.push_back(input);
+    }
+    singularFile.close();
+  }
+  else std::cout << "Unable to open file" << std::endl; 
+  
+  singularSizes.sort();
+  singularSizes.unique();
+  std::cout << "singular sizes size: " << singularSizes.size() << std::endl;
+  
   std::cout << "ANALYZE TILE BEGINNING AND ENDING" << std::endl << std::flush;
   std::cout << "--------------------------------------------------" << std::endl << std::flush;
   
@@ -60,11 +83,10 @@ int main (int argc, char* argv[])
   
   // input
   std::list<CvoronoiCell<numberType> > cells;
-  //std::list<CvoronoiCell<numberType> > cellsFull;
+  std::list<CvoronoiCell<numberType> > cellsFull;
   
-  std::string line;
   std::ifstream myfile(filenameList);
-  //std::ifstream fileFull(filenamePrefix + "list_concat");
+  std::ifstream fileFull(filenamePrefix + "list_concat");
   
   myfile >> winSize;
   getline(myfile, line);
@@ -117,11 +139,11 @@ int main (int argc, char* argv[])
   inputData.sort();
   inputData.unique();
   
-  inputData.clear();
+  //inputData.clear();
   //std::string cell = "(-1-1*alpha)/2,(-1-1*alpha)/2 (1+1*alpha)/2,(-1-1*alpha)/2 (1+3*alpha)/2,(1+1*alpha)/2 (0+0*alpha)/1,(0+1*alpha)/1 (-1-3*alpha)/2,(1+1*alpha)/2 ";
   //std::string cell = "(0-1*alpha)/1,(0+0*alpha)/1 (1+1*alpha)/2,(-1-1*alpha)/2 (1+1*alpha)/1,(0+0*alpha)/1 (1+1*alpha)/2,(1+3*alpha)/2 (0-1*alpha)/1,(0+1*alpha)/1";
-  std::string cell = "(-1+0*alpha)/1,(0+0*alpha)/1 (-3+1*alpha)/2,(1-1*alpha)/2 (-1+1*alpha)/2,(-3+1*alpha)/2 (-1+1*alpha)/2,(-1+1*alpha)/2 (-3+1*alpha)/2,(-1+1*alpha)/2 ";
-  inputData.push_back(cell);
+  //std::string cell = "(-1+0*alpha)/1,(0+0*alpha)/1 (-3+1*alpha)/2,(1-1*alpha)/2 (-1+1*alpha)/2,(-3+1*alpha)/2 (-1+1*alpha)/2,(-1+1*alpha)/2 (-3+1*alpha)/2,(-1+1*alpha)/2 ";
+  //inputData.push_back(cell);
   
   std::cout << "unique strings read: " << inputData.size() << std::endl << std::flush; 
   
@@ -152,49 +174,49 @@ int main (int argc, char* argv[])
   
   
   
-  //inputData.clear();
+  inputData.clear();
   
-  //if (fileFull.is_open())
-  //{
-    //while ( getline(fileFull, line) )
-    //{
-      //if ((line.size() > 0) && (line[0] != '#'))
-      //{
-        //inputData.push_back(line);
-      //}
-    //}
-    //fileFull.close();
-  //}
-  //else std::cout << "Unable to open file" << std::endl; 
+  if (fileFull.is_open())
+  {
+    while ( getline(fileFull, line) )
+    {
+      if ((line.size() > 0) && (line[0] != '#'))
+      {
+        inputData.push_back(line);
+      }
+    }
+    fileFull.close();
+  }
+  else std::cout << "Unable to open file" << std::endl; 
   
-  //inputData.sort();
-  //inputData.unique();
+  inputData.sort();
+  inputData.unique();
   
-  //std::cout << "unique strings read: " << inputData.size() << std::endl << std::flush; 
+  std::cout << "unique strings read: " << inputData.size() << std::endl << std::flush; 
   
-  //for (std::list<std::string>::iterator it = inputData.begin(); it != inputData.end(); ++it)
-  //{
-    //CvoronoiCell<numberType> voronoi;
-    //voronoi.load(*it);
+  for (std::list<std::string>::iterator it = inputData.begin(); it != inputData.end(); ++it)
+  {
+    CvoronoiCell<numberType> voronoi;
+    voronoi.load(*it);
     
-    //if (voronoi.CarrierSet->size() < 3)
-    //{
-      //continue;
-    //}
+    if (voronoi.CarrierSet->size() < 3)
+    {
+      continue;
+    }
      
-    //voronoi.setDescription(*it);
-    //voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
-    ////*voronoi.CarrierSet = *voronoi.CarrierSet * (numberType::get(1,0)/numberType::get(0,1));
-    //voronoi.setCenter(origin);
-    //voronoi.construct();
-    //voronoi.filterSet();
+    voronoi.setDescription(*it);
+    voronoi.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
+    //*voronoi.CarrierSet = *voronoi.CarrierSet * (numberType::get(1,0)/numberType::get(0,1));
+    voronoi.setCenter(origin);
+    voronoi.construct();
+    voronoi.filterSet();
     
-    //cellsFull.push_back(voronoi); 
-  //}
+    cellsFull.push_back(voronoi); 
+  }
   
-  //std::cout << "cells full: " << cellsFull.size() << std::endl << std::flush; 
+  std::cout << "cells full: " << cellsFull.size() << std::endl << std::flush; 
   
-  //cellsFull.sort();
+  cellsFull.sort();
   
   
   std::list<std::string> failed;
@@ -219,10 +241,67 @@ int main (int argc, char* argv[])
   
   for ( std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end(); ++it)
   {
+    // check for zero density in the given window
+    {
+      windowType intersect = getWindow(winSize);
+      for (std::list<Cpoint<numberType> >::iterator ot = it->CarrierSet->begin(); ot != it->CarrierSet->end(); ++ot)
+      {
+        intersect.intersect((origin-*ot).star());
+      }
+      if (intersect.zeroDensity())
+      {
+        singularSizes.push_back(winSize);
+        singularSizes.sort();
+        singularSizes.unique();
+        singularSizesUsed.push_back(winSize);
+        singularSizesUsed.sort();
+        singularSizesUsed.unique();
+        //std::cout << "zero density --------------------------------------------------------------------------------------------------------------------------" << std::endl;
+        continue;
+      }
+    }
+    //check for zero density in already gathered windows
+    {
+      bool check = false;
+      for (std::list<numberType>::iterator ut = singularSizes.begin(); ut != singularSizes.end(); ++ut)
+      {
+        windowType intersect = getWindow(*ut);
+        for (std::list<Cpoint<numberType> >::iterator ot = it->CarrierSet->begin(); ot != it->CarrierSet->end(); ++ot)
+        {
+          intersect.intersect((origin-*ot).star());
+        }
+        if (intersect.zeroDensity())
+        {
+          //std::cout << "present for duty" << std::endl;
+          check = true;
+          singularSizesUsed.push_back(*ut);
+          singularSizesUsed.sort();
+          singularSizesUsed.unique();
+        }
+      }
+      if (check)
+      {
+        continue;
+      }
+    }
     
+    // check whether tile starts in (1,beta]
+    {
+      windowType intersect = getWindow(numberType::get(1,0));
+      for (std::list<Cpoint<numberType> >::iterator ot = it->CarrierSet->begin(); ot != it->CarrierSet->end(); ++ot)
+      {
+        intersect.intersect((origin-*ot).star());
+      }
+      if (intersect.size() > numberType::get(0,0))
+      {
+        continue;
+      }
+    }
+    
+    //std::cout << std::endl << std::endl << std::endl << it->save() << std::endl;
     // omega_1
     numberType L = numberType::get(1,0);
-    numberType R = numberType::get(0,1)*numberType::get(0,1);
+    numberType R = numberType::get(0,1);
     
     numberType y3;
     numberType x3;
@@ -230,23 +309,25 @@ int main (int argc, char* argv[])
     numberType x2;
     numberType y1;
     numberType x1;
-    numberType parts = numberType::get(2,10);
+    numberType parts = numberType::get(40,0);
     numberType a;
     numberType d;
-    numberType c;
-    numberType cplusd;
-    numberType ctimesd;
+    numberType k;
     
-    //do 
+    bool check;
+    
+    //do
     {
+    
       int count = 0;
       
-      for (numberType ut = numberType::get(0,0); ut <= parts; ut+= numberType::get(1,0)/numberType::get(0,3))
+      for (numberType ut = numberType::get(0,0); ut <= parts; ut+= numberType::get(0,1).star().abs())
       {
         x1 = L+(R-L)*ut/parts;
         
-        std::cout << x1 << "\t" << std::flush;
-        print(std::cout, x1);
+        //std::cout << x1 << "\t" << std::flush;
+        //print(std::cout, x1);
+        //std::cout << std::endl;
         
         windowType intersect = getWindow(x1);
         
@@ -263,7 +344,7 @@ int main (int argc, char* argv[])
         y1 = intersect.size();
         
         
-        if (count > 3)
+        if (count > 4)
           break;
         
         x3 = x2;
@@ -275,82 +356,72 @@ int main (int argc, char* argv[])
       }
       
       a = ((y1-y2)/(x1-x2)-(y1-y3)/(x1-x3))/(x2-x3);
-        
-      cplusd = (y1-y2)/((x1-x2)*a)-(x1+x2);
-      ctimesd = y1/a - x1*x1-x1*cplusd;
-      
       d = numberType::get(1,0,2)*((y1-y2)/((x1-x2)*a)-(x1+x2));
+      k = y1-a*(x1+d)*(x1+d);
       
+      parts+= numberType::get(1,0,3);
+      //std::cout << parts << std::endl << std::flush;
+      check = false;
       
-      parts+= numberType::get(1,0)/numberType::get(0,1);
-      print(std::cout, parts);
-      std::cout << std::endl << std::flush;
-      
-    } //while (cplusd*cplusd-numberType::get(4,0)*ctimesd != numberType::get(0,0));
+      if (k == numberType::get(0,0))
+      {
+        //std::cout << "pass" << std::endl;
+        //std::cout << "******************************* MAGIC ***************************************" << std::endl;
+        //print(std::cout, d*numberType::get(-1,0));
+        //std::cout << std::endl << d*numberType::get(-1,0) << std::endl;
+        singularSizes.push_back(d*numberType::get(-1,0));
+        singularSizes.sort();
+        singularSizes.unique();
+        singularSizesUsed.push_back(d*numberType::get(-1,0));
+        singularSizesUsed.sort();
+        singularSizesUsed.unique();
+      }
+      else
+      {
+        for (std::list<numberType>::iterator ot = singularSizes.begin(); ot != singularSizes.end(); ++ot)
+        {
+          if ((*ot+d)*(*ot+d)+(k/a)==numberType::get(0,0))
+          {
+            check = true;
+            singularSizesUsed.push_back(*ot);
+            singularSizesUsed.sort();
+            singularSizesUsed.unique();
+          }
+        }
+        if (!check)
+        {
+          std::cout << "TROUBLE!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl << std::flush;
+          std::cout << "sqrt(";
+          print(std::cout, k*numberType::get(-1,0)/a);
+          std::cout << ")+";
+          print(std::cout, d*numberType::get(-1,0));
+          std::cout << std::endl;
+          std::cout << sqrt(-1.0*k/(1.0*a))-1.0*d << std::endl;
+        }
+        else
+        {
+          //std::cout << "pass" << std::endl;
+        }
+      }
     
-    std::cout << "\t";
-    std::cout << y1 << "\t";
-    print(std::cout, y1);
-    std::cout << "\t";
-    std::cout << x1 << "\t";
-    print(std::cout, x2);
-    std::cout << "\t";
-    std::cout << y1 << "\t";
-    print(std::cout, y2);
-    std::cout << "\t";
-    std::cout << x1 << "\t";
-    print(std::cout, x3);
-    std::cout << "\t";
-    std::cout << y1 << "\t";
-    print(std::cout, y3);
-    std::cout << "\t";
-    std::cout << std::endl;
-    print(std::cout, a);
-    std::cout << "\t";
-    print(std::cout, cplusd);
-    std::cout << "\t";
-    print(std::cout, ctimesd);
-    std::cout << std::endl;
-    std::cout << "\t x1:";
-    print(std::cout, a*(x1*x1+x1*cplusd+ctimesd)-y1);
-    print(std::cout, a*(x1+d)*(x1+d)-y1);
-    std::cout << std::endl;
-    std::cout << "\t x2:";
-    print(std::cout, a*(x2*x2+x2*cplusd+ctimesd)-y2);
-    print(std::cout, a*(x2+d)*(x2+d)-y2);
-    std::cout << std::endl;
-    std::cout << "\t x3:";
-    print(std::cout, a*(x3*x3+x3*cplusd+ctimesd)-y3);
-    print(std::cout, a*(x3+d)*(x3+d)-y3);
-    std::cout << std::endl;
+    } //while ((k != numberType::get(0,0)) && !check);
     
-    if (cplusd*cplusd-numberType::get(4,0)*ctimesd == numberType::get(0,0))
-    {
-      std::cout << "******************************* MAGIC ***************************************" << std::endl;
-      print(std::cout, cplusd/numberType::get(-2,0));
-      std::cout << std::endl << cplusd/numberType::get(-2,0) << std::endl;
-      success.push_back(cplusd/numberType::get(-2,0));
-    }
-    else
-    {
-      std::cout << -(1.0*cplusd+sqrt(1.0*cplusd*cplusd-4.0*ctimesd))/2.0 << std::endl;
-      std::cout << -(1.0*cplusd-sqrt(1.0*cplusd*cplusd-4.0*ctimesd))/2.0 << std::endl;
-      failed.push_back(it->save());
-    }
-    
-    it->colorify();
-    std::cout << it->getFillColor() << std::endl;
-    std::cout << "----------------------------------------------------------------------------" << std::endl;
+    //it->colorify();
+    //std::cout << it->getFillColor() << std::endl;
+    //std::cout << "----------------------------------------------------------------------------" << std::endl;
   
   
-    
+    //std::cout << "omega_2 *****************************************************************" << std::endl;
     //// omega_2 **************************************************************************************************************************************
     
-    //L = numberType::get(1,0)/numberType::get(0,1);
+    //L = numberType::get(1,0);
     //R = numberType::get(0,1)*numberType::get(0,1);
-    //parts = numberType::get(101,0);
+    //parts = numberType::get(80,0);
     
-    //do 
+    //a = numberType::get(0,0);
+    //d = numberType::get(0,0);
+    //k = numberType::get(0,0);
+    ////do 
     //{
       //int count = 1;
       //for (numberType ut = numberType::get(0,0); ut <= parts; ut+= numberType::get(3,-1))
@@ -397,6 +468,7 @@ int main (int argc, char* argv[])
         //// first inclusion
         //for (std::list<CvoronoiCell<numberType> >::iterator ot = cellsFull.begin(); ot != cellsFull.end(); ++ot)
         //{
+          ////std::cout << it->size() << " > " << ot->size() << std::endl;
           //if (it->size() > ot->size())
           //{
             //windowType intersect = intersection;
@@ -463,7 +535,7 @@ int main (int argc, char* argv[])
           //working_next.clear();
         //}
         
-        //std::cout << x << "\t" << intersection.size() << "\t" << area << "\t" << intersection.size()-area << "\t" << a*(x1*x1+x1*cplusd+ctimesd) << std::endl;
+        ////std::cout << x << "\t" << intersection.size() << "\t" << area << "\t" << intersection.size()-area << std::endl;
         
         //if (area == numberType::get(0,0))
           //continue;
@@ -486,50 +558,79 @@ int main (int argc, char* argv[])
       //}
       
       //a = ((y1-y2)/(x1-x2)-(y1-y3)/(x1-x3))/(x2-x3);
-      
-      //cplusd = (y1-y2)/((x1-x2)*a)-(x1+x2);
-      //ctimesd = y1/a - x1*x1-x1*cplusd;
-      
       //d = numberType::get(1,0,2)*((y1-y2)/((x1-x2)*a)-(x1+x2));
+      //k = y1-a*(x1+d)*(x1+d);
       
       //std::cout << a << " ";
       //parts+= numberType::get(1,0);
       //print(std::cout, parts);
       //std::cout << std::endl << std::flush;
       
-    //} while (cplusd*cplusd-numberType::get(4,0)*ctimesd != numberType::get(0,0));
+    //} //while (cplusd*cplusd-numberType::get(4,0)*ctimesd != numberType::get(0,0));
     
     
     
     
     
-    //if (cplusd*cplusd-numberType::get(4,0)*ctimesd == numberType::get(0,0))
+    //if (k == numberType::get(0,0))
     //{
-      //std::cout << "******************************* MAGIC ***************************************" << std::endl;
-      //print(std::cout, cplusd/numberType::get(-2,0)/numberType::get(0,1));
-      //std::cout << std::endl << cplusd/numberType::get(-2,0)/numberType::get(0,1) << std::endl;
+      //singularSizes.push_back(d*numberType::get(-1,0));
+      //singularSizes.sort();
+      //singularSizes.unique();
     //}
     //else
     //{
-      //std::cout << -(1.0*cplusd+sqrt(1.0*cplusd*cplusd-4.0*ctimesd))/2.0 << std::endl;
-      //std::cout << -(1.0*cplusd-sqrt(1.0*cplusd*cplusd-4.0*ctimesd))/2.0 << std::endl;
+      //bool check = false;
+      //for (std::list<numberType>::iterator ot = singularSizes.begin(); ot != singularSizes.end(); ++ot)
+      //{
+        //if ((*ot+d)*(*ot+d)+(k/a)==numberType::get(0,0))
+        //{
+          //check = true;
+        //}
+      //}
+      //if (!check)
+      //{
+        //std::cout << "TROUBLE!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl << std::flush;
+        //std::cout << "sqrt(";
+        //print(std::cout, k*numberType::get(-1,0)/a);
+        //std::cout << ")+";
+        //print(std::cout, d*numberType::get(-1,0));
+        //std::cout << std::endl;
+        //std::cout << sqrt(-1.0*k/(1.0*a))-1.0*d << std::endl;
+        //std::cout << "sqrt(";
+        //print(std::cout, k*numberType::get(1,0)/a);
+        //std::cout << ")+";
+        //print(std::cout, d*numberType::get(-1,0));
+        //std::cout << std::endl;
+        //std::cout << sqrt(1.0*k/(1.0*a))-1.0*d << std::endl;
+      //}
+      //else
+      //{
+        //std::cout << "WE GOT IT :-D" << std::endl;
+      //}
     //}
     
   }
   
-  success.sort();
-  success.unique();
+  std::cout << "singular sizes size: " << singularSizes.size() << std::endl;
   
-  for (std::list<numberType>::iterator it = success.begin(); it != success.end(); ++it)
+  std::ofstream output(singularFilename);
+  
+  for (std::list<numberType>::iterator it = singularSizes.begin(); it != singularSizes.end(); ++it)
+  {
+    print(output, *it);
+    output << std::endl;
+  }
+  
+  output.close();
+  
+  for (std::list<numberType>::iterator it = singularSizesUsed.begin(); it != singularSizesUsed.end(); ++it)
   {
     print(std::cout, *it);
     std::cout << std::endl;
+    
   }
   
-  for (std::list<std::string>::iterator it = failed.begin(); it != failed.end(); ++it)
-  {
-    std::cout << *it << std::endl;
-  }
   
   delete circ;
   delete insc;

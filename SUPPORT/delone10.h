@@ -89,7 +89,7 @@ void CdeloneSet10<numberType>::filterDistanceOrigin(const numberType dist)
   Cpoint<numberType> origin(0, 0);
   for ( typename std::list<Cpoint<numberType> >::iterator it = this->points->begin(); it != this->points->end(); )
   {
-    if (euklid2(origin,*it) > dist*dist)
+    if (euklid2(origin,*it) >= dist*dist)
     {
       it = this->removePoint( it );
     }
@@ -101,7 +101,7 @@ void CdeloneSet10<numberType>::filterDistanceOrigin(const numberType dist)
   
   for ( typename std::list<Cpoint<numberType> >::iterator it = this->potential.begin(); it != this->potential.end(); )
   {
-    if (euklid2(origin,*it) > dist*dist)
+    if (euklid2(origin,*it) >= dist*dist)
     {
       it = this->potential.erase(it);
     }
@@ -187,7 +187,7 @@ void CdeloneSet10<numberType>::filterPotentialByWindow(windowType win)
     
     if (!fitToWindow(&windowCheck, delone))
     {
-      std::cout << "\t not fit" << std::endl << std::flush;
+      //std::cout << "\t not fit" << std::endl << std::flush;
       it = potential.erase(it);
     }
     else

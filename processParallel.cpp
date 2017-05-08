@@ -344,6 +344,36 @@ int main (int argc, char* argv[])
   
   for (std::list<CvoronoiCell<numberType> >::iterator it = cells.begin(); it != cells.end();)
   {
+    //std::cout << it->save() << std::endl;
+    if (windowParts[it->getDescription()].zeroDensity())
+    {
+      bool check = false;
+      for (std::list<CvoronoiCell<numberType> >::iterator ot = cells.begin(); ot != cells.end(); ++ot)
+      {
+        if (it->size() > ot->size())
+        {
+          windowType intersect = windowParts[it->getDescription()];
+          intersect.intersect(&windowParts[ot->getDescription()]);
+          
+          if (!intersect.empty() && (intersect.zeroDensitySize() == windowParts[it->getDescription()].zeroDensitySize()))
+          {
+            check = true;
+          }
+        }
+      }
+      if (check)
+      {
+        it = cells.erase(it);
+        continue;
+      }
+      else
+      {
+        ++it;
+        continue;
+      }
+      
+    }
+    
     std::list<windowType> intersecting;
     std::list<bookmark> working;
     std::list<bookmark> working_next;
@@ -578,7 +608,7 @@ int main (int argc, char* argv[])
       // window parts
       windowType intersect = windowParts[it->getDescription()];
       windowfile << "<!--";
-      windowfile << it->CarrierSet->getDescription();
+      windowfile << it->save();
       windowfile << "-->" << std::endl;
       intersect.setColor(it->getFillColor(), windowstrokeColor, windowstrokeWidth);
       //intersect.intersect(&windowParts[cells.begin()->getDescription()]);
@@ -606,6 +636,77 @@ int main (int argc, char* argv[])
   //windowfile << "</g>" << std::endl;
   windowfile << "</svg>" << std::endl;
   windowfile.close();
+  
+  
+  // OUTPUT FINITE
+  if (win.getName() == "circle")
+  {
+    tmp02.clear();
+    tmp02.str(std::string());
+    tmp02 << fileName << "_" << winSize << "_(";
+    printFile(tmp02, winSize);
+    tmp02 << ")_finite.svg";
+    windowfile.open( tmp02.str().c_str() );
+    
+    windowfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
+    windowfile << "<svg width=\"" << 5000 << "\" height=\"" << 5000 << "\" viewBox=\"" << -1.1*winSize << " " << -1.1*winSize << " " << 2.2*winSize << " " << 2.2*winSize << "\">\n" << std::endl;
+    windowfile << "<rect x=\"-50%\" y=\"-50%\" width=\"100%\" height=\"100%\" fill=\"white\" />" << std::endl;
+    //windowfile << "<g transform=\"scale(1,-1)\">" << std::endl;
+    win.setColor(windowfillColor, windowstrokeColor, windowstrokeWidth);
+    win.svg(windowfile);
+    
+    
+    cellsFinite.sort();
+    cellsFinite.reverse();
+    
+    // cells & window
+    count = 1;
+    {
+      for ( std::list<CvoronoiCell<numberType> >::iterator it = cellsFinite.begin(); it != cellsFinite.end(); ++it )
+      {
+        ++count;
+        
+        
+        it->setColor(fillColor, "#ffffff", borderstrokeWidth);
+        it->colorify();
+        it->CarrierSet->setColor(fillColor, "#ffffff", borderstrokeWidth);
+        
+        windowfile << "<g>" << std::endl;
+        // window parts
+        windowType intersect = windowParts[it->getDescription()];
+        windowfile << "<!--";
+        windowfile << it->CarrierSet->getDescription();
+        windowfile << "-->" << std::endl;
+        intersect.setColor(it->getFillColor(), windowstrokeColor, windowstrokeWidth);
+        //intersect.intersect(&windowParts[cells.begin()->getDescription()]);
+        intersect.svg(windowfile);
+        
+        // tiles
+        //windowfile << "<svg x=\"" << static_cast<double>(intersect.centerX())-0.03*winSize << "\" y=\"" << static_cast<double>(intersect.centerY())-0.03*winSize << "\" width=\"" << 0.06*winSize << "\" height=\"" << 0.06*winSize << "\" viewBox=\"" << -2*coveringR << " " << -2*coveringR << " " << 4*coveringR << " " << 4*coveringR << "\">\n" << std::endl;
+        
+        
+        //it->svg(windowfile);
+        //it->CarrierSet->svg(windowfile);
+        
+        //it->setColor(fillColor, strokeColor, strokeWidth);
+        //it->colorify();
+        //it->CarrierSet->setColor(fillColor, strokeColor, strokeWidth);
+        //it->Center.setColor(fillColor, strokeColor, strokeWidth);
+        //it->svg(windowfile);
+        //it->CarrierSet->svg(windowfile);
+        //it->Center.svg(windowfile);
+        
+        //windowfile << "</svg>" << std::endl;
+        windowfile << "</g>" << std::endl;
+      }
+    }
+    //windowfile << "</g>" << std::endl;
+    windowfile << "</svg>" << std::endl;
+    windowfile.close();
+    
+  }
+  
+  
   
   delete circ;
   delete insc;

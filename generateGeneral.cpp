@@ -30,8 +30,8 @@ int main( int argc, char ** argv )
   std::cout << "------------------------------" << std::endl << std::flush;
   
   // intervel of the quasicrystal
-  numberType x = numberType::get(160,0,1)*numberType::get(6,0,8);
-  numberType y = numberType::get( 90,0,1)*numberType::get(6,0,8);
+  numberType x = numberType::get(210,0,1)*numberType::get(1,0,8);
+  numberType y = numberType::get(297,0,1)*numberType::get(1,0,8);
   
   numberType x1 = numberType::get(-3,0,4)*x;
   numberType x2 = numberType::get( 3,0,4)*x;
@@ -44,7 +44,7 @@ int main( int argc, char ** argv )
 
   winSize = const_winSize;
   Cpoint<numberType> origin(numberType::get(0,0), numberType::get(0,0));
-  Cpoint<numberType> translation(numberType::get(500,0), numberType::get(0,0));
+  Cpoint<numberType> translation(numberType::get(2,-1,2), numberType::get(0,0));
   
   //rhombus win( winSize, winSize );
   //windowType win( winSize );
@@ -52,7 +52,7 @@ int main( int argc, char ** argv )
   
   windowType win = getWindow(winSize);
   win.center(origin);
-  //win.center(translation);
+  win.center(translation);
   
   // control with hyperquasicrystal
   rhombus<numberType> *circ = dynamic_cast<rhombus<numberType>*> ( win.circumscribed() );

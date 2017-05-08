@@ -11,15 +11,15 @@
 typedef alphaSet numberType;
 //typedef betaSet numberType;
 //typedef rhombus<numberType> windowType;
-//typedef circle<numberType> windowType;
-typedef polygon<numberType> windowType;
+typedef circle<numberType> windowType;
+//typedef polygon<numberType> windowType;
 
 windowType getWindow(numberType winSize)
 {
   //return polygon<numberType>::rhombic(winSize);
-  return polygon<numberType>::octagon(winSize);
+  //return polygon<numberType>::octagon(winSize);
   //return polygon<numberType>::dodecagon(winSize);
-  //return windowType(winSize);
+  return windowType(winSize);
 }
 
 //numberType const const_winSize = numberType::get(1,0,1)/numberType::get(0,1,1) + (numberType::get(1,0,1)-numberType::get(1,0,1)/numberType::get(0,1,1))*numberType::get(2,0,10);
@@ -35,7 +35,7 @@ std::string const const_strokeColor = "#263238";
 std::string const_strokeWidth(numberType winSize)
 {
   std::ostringstream convert;
-  convert << (0.5)*winSize;
+  convert << (0.07)*winSize;
   return convert.str();
 }
   

@@ -74,7 +74,7 @@ int main (int argc, char* argv[])
   {
     ++wordLength;
   } while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
-  --wordLength;
+  //--wordLength;
   //wordLength = 4;
   
   /* Obtain number of tasks and task ID */

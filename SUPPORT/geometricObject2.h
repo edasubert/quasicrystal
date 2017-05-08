@@ -274,6 +274,7 @@ class CvoronoiCell : public virtual Cfigure<numberType>
     numberType size() const;
     numberType radius() const;
     Cpoint<numberType> middle() const;
+    Cpoint<numberType> middleABS() const;
     Cpoint<numberType> middleDomain() const;
     void colorify();
     
@@ -281,7 +282,7 @@ class CvoronoiCell : public virtual Cfigure<numberType>
     CvoronoiCell<numberType> flip() const;
     CvoronoiCell<numberType> flop() const;
     
-    std::string dna() const;
+    CvoronoiCell<numberType> dna() const;
     
     CvoronoiCell<numberType> star()const;
 };
@@ -1766,7 +1767,7 @@ bool CvoronoiCell<numberType>::filterPointAny( Cpoint<numberType> add )
       
       if ((t==numberType::get(1,0)) || (t==numberType::get(0,0)))
       {
-        return true;
+        continue;
       }
       return false;
     }
@@ -1779,12 +1780,11 @@ bool CvoronoiCell<numberType>::filterPointAny( Cpoint<numberType> add )
 template <typename numberType>
 void CvoronoiCell<numberType>::filterSetPotential( std::list<Cpoint<numberType> >* potentialSet )
 {
-  typename std::list<Cpoint<numberType> >::iterator ot = potentialSet->begin();
-  while ( ot != potentialSet->end() )
+  for (typename std::list<Cpoint<numberType> >::iterator ot = potentialSet->begin(); ot != potentialSet->end();)
   {
-    if ( filterPointAny( *ot ) )
+    if (filterPointAny( *ot ))
     {
-      ot = potentialSet->erase( ot );
+      ot = potentialSet->erase(ot);
     }
     else
     {
@@ -1995,6 +1995,28 @@ bool CvoronoiCell<numberType>::operator < ( const CvoronoiCell<numberType> &comp
     return true;
   }
   
+  
+  // distance of absolute mean of cell verteces from origin
+  if ((size() == compare.size()) && (Cell->size() == compare.Cell->size()) && (euklid2(middle()) == euklid2(compare.middle())) \
+                                 && (euklid2(middleDomain()) == euklid2(compare.middleDomain())) \
+                                 && (atan2(middle().getX(), middle().getY()) == atan2(compare.middle().getX(), compare.middle().getY())) \
+                                 && (atan2(middleDomain().getX(), middleDomain().getY()) == atan2(compare.middleDomain().getX(), compare.middleDomain().getY())) \
+                                 && (euklid2(middleABS()) < euklid2(compare.middleABS())) )
+  {
+    return true;
+  }
+  
+  // angle of absolute mean of cell verteces
+  if ((size() == compare.size()) && (Cell->size() == compare.Cell->size()) && (euklid2(middle()) == euklid2(compare.middle())) \
+                                 && (euklid2(middleDomain()) == euklid2(compare.middleDomain())) \
+                                 && (atan2(middle().getX(), middle().getY()) == atan2(compare.middle().getX(), compare.middle().getY())) \
+                                 && (atan2(middleDomain().getX(), middleDomain().getY()) == atan2(compare.middleDomain().getX(), compare.middleDomain().getY())) \
+                                 && (euklid2(middleABS()) == euklid2(compare.middleABS())) \
+                                 && (atan2(middleABS().getX(), middle().getY()) < atan2(compare.middleABS().getX(), compare.middle().getY())))
+  {
+    return true;
+  }
+  
   return false;
   
 }
@@ -2049,6 +2071,20 @@ Cpoint<numberType> CvoronoiCell<numberType>::middle() const
   {
     middle.setX( middle.getX() + it->getX() );
     middle.setY( middle.getY() + it->getY() );
+  }
+  
+  return middle;
+}
+
+template <typename numberType>
+Cpoint<numberType> CvoronoiCell<numberType>::middleABS() const
+{
+  Cpoint<numberType> middle;
+  
+  for ( typename std::list<Cpoint<numberType> >::iterator it = Cell->begin(); it != Cell->end(); ++it )
+  {
+    middle.setX( middle.getX() + it->getX().abs() );
+    middle.setY( middle.getY() + it->getY().abs() );
   }
   
   return middle;
@@ -2276,7 +2312,7 @@ CvoronoiCell<numberType> CvoronoiCell<numberType>::star() const
 
 
 template <typename numberType>
-std::string CvoronoiCell<numberType>::dna() const
+CvoronoiCell<numberType> CvoronoiCell<numberType>::dna() const
 {
   CvoronoiCell<numberType> rot = *this;
   
@@ -2314,7 +2350,7 @@ std::string CvoronoiCell<numberType>::dna() const
   
   min.CarrierSet->sortClockwise();
   
-  return min.save();
+  return min;
 }
 
 template<typename numberType> numberType CvoronoiCell<numberType>::large = 0;

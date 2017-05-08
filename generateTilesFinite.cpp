@@ -66,8 +66,8 @@ int main (int argc, char* argv[])
   {
     ++wordLength;
   } while ( minWord(language(circ->Xwindow(), wordLength), circ->Xwindow()) < lengthToCover );
-  --wordLength;
-  //wordLength = 4;
+  ++wordLength;
+  //wordLength+= 10;
   
   
   std::cout << "window size: ";
@@ -84,30 +84,13 @@ int main (int argc, char* argv[])
   
   output.close();
   
-  // create data -----------------------------------------------------
-  std::cout << "Load data" << std::endl;
-  
-  std::list<std::string> res;
-  std::list<std::string> data;
-  
-  std::list<std::string> lang = language(circ->Xwindow(), wordLength);
-  for ( std::list<std::string>::iterator it = lang.begin(); it != lang.end(); ++it )
-  {
-    for ( std::list<std::string>::iterator ot = lang.begin(); ot != lang.end(); ++ot )
-    {
-      data.push_back(*it+*ot);
-    }
-  }
-  
-  std::cout << "tasks: " << data.size() << std::endl;
-  std::cout << "word length: " << wordLength << std::endl;
-  
   // input finite
   std::string line;
   
   std::cout << "Loading \"finite\" data" << std::endl;
 
   std::list<CdeloneSet<numberType> > delonesFinite;
+  std::list<CvoronoiCell<numberType> > voronoiFinite;
 
   std::ifstream myfileFinite(filenameFinite.c_str());
 
@@ -139,20 +122,30 @@ int main (int argc, char* argv[])
     }
     
     delonesFinite.push_back(*(voronoi.CarrierSet));
+    voronoiFinite.push_back(voronoi);
   }
 
-  std::cout << "finite cells: " << delonesFinite.size() << std::endl << std::flush; 
+  std::cout << "finite cells: " << voronoiFinite.size() << std::endl << std::flush; 
   
-  // language to delone set
+  
+  // create data -----------------------------------------------------
+  std::cout << "Load data" << std::endl;
+  
+  std::list<std::string> res;
+  
   std::list<CdeloneSet<numberType> > potentialSet;
   
-  for (std::list<std::string>::iterator it = data.begin(); it != data.end(); ++it)
+  std::list<std::string> lang = language(circ->Xwindow(), wordLength);
+  for ( std::list<std::string>::iterator it = lang.begin(); it != lang.end(); ++it )
   {
-    std::string word1 = it->substr(0, it->length()/2);
-    std::string word2 = it->substr(it->length()/2);
-    
-    potentialSet.push_back(quasicrystal2D(circ->Xwindow(), word1, word2));
+    for ( std::list<std::string>::iterator ot = lang.begin(); ot != lang.end(); ++ot )
+    {
+      potentialSet.push_back(quasicrystal2D(circ->Xwindow(), *it, *ot));
+    }
   }
+  
+  std::cout << "tasks: " << potentialSet.size() << std::endl;
+  std::cout << "word length: " << wordLength << std::endl;
   
   // computation
 
@@ -161,9 +154,10 @@ int main (int argc, char* argv[])
   std::list<std::string> cellsFinite;
   
   
-  delonesFinite.sort();
+  voronoiFinite.sort();
+  voronoiFinite.reverse();
   
-  for (std::list<CdeloneSet<numberType> >::iterator it = delonesFinite.begin(); it != delonesFinite.end(); ++it)
+  for (std::list<CvoronoiCell<numberType> >::iterator it = voronoiFinite.begin(); it != voronoiFinite.end(); ++it)
   {
     // add finite to result
     cells.push_back(it->save());
@@ -176,8 +170,10 @@ int main (int argc, char* argv[])
   int countFinite = 0;
   
   // append finite delones by potential ---------------------------------------------
-  for (std::list<CdeloneSet<numberType> >::iterator it = delonesFinite.begin(); it != delonesFinite.end(); ++it)
+  for (std::list<CvoronoiCell<numberType> >::iterator it = voronoiFinite.begin(); it != voronoiFinite.end(); ++it)
   {
+    std::cout << "loop: " << count << "\t" << "delones: " << delones.size() << '\t' << "cells: " << cells.size() << std::endl << std::flush;
+    //std::cout << it->save() << std::endl;
     // merge tasks
     CdeloneSet<numberType> tmp;
     
@@ -186,7 +182,7 @@ int main (int argc, char* argv[])
       // test whether finite's carrier set is among potential
       CdeloneSet<numberType> testSet;
       testSet << *ot;
-      testSet << *it;
+      testSet << *(it->CarrierSet);
       
       if (!(testSet.size() > ot->size()))
       {
@@ -198,7 +194,7 @@ int main (int argc, char* argv[])
     
     CdeloneSet10<numberType> delone;
     
-    delone << *it;
+    delone << *(it->CarrierSet);
     delone.addPotential(tmp.getPoints());
     
     delone.setCoveringR(CvoronoiCell<numberType>::large);
@@ -224,20 +220,20 @@ int main (int argc, char* argv[])
     voronoi.construct();
     voronoi.filterSet();
     
-    //std::cout << delone.sizePotential() << "\t";
+    std::cout << delone.sizePotential() << "\t";
     std::list<Cpoint<numberType> > potential;
     potential = delone.getPotential();
     
     voronoi.filterSetPotential(&potential);
     delone.clearPotential();
     delone.addPotential(potential);
-    //std::cout << delone.sizePotential() << std::endl;
+    std::cout << delone.sizePotential() << std::endl;
     
     
     
-    std::cout << ++countFinite << "/" << delonesFinite.size() << " finite cell \t" << "potential: " << delone.sizePotential() << std::endl;
+    std::cout << ++countFinite << "/" << voronoiFinite.size() << " finite cell \t" << "potential: " << delone.sizePotential() << std::endl;
     
-    delones.push_back(delone);
+    delones.push_front(delone);
     
     
                       //origin.setColor("#000000", "#0000F0", "0.1");
@@ -271,6 +267,18 @@ int main (int argc, char* argv[])
       {
         std::cout << "loop: " << count << "\t" << "delones: " << delones.size() << '\t' << "cells: " << cells.size() << std::endl << std::flush;
       }
+      
+      CvoronoiCell<numberType> voronoiBase;
+        
+      *(voronoiBase.CarrierSet) = *it;
+      voronoiBase.CarrierSet->sortByDistance();
+      voronoiBase.CarrierSet->setCoveringR(CvoronoiCell<numberType>::large);
+      voronoiBase.setCenter(origin);
+      voronoiBase.construct();
+      voronoiBase.filterSet();
+      
+      
+      
       //std::cout << "SIZE POTENTIAL: " << it->sizePotential() << std::endl;
       
       it->sortPotentialByDistance();
@@ -303,13 +311,14 @@ int main (int argc, char* argv[])
         std::list<std::string>::iterator ot;
         for (ot = cellsFinite.begin(); ot != cellsFinite.end(); ++ot)
         {
-          if (voronoi.save() == *ot)
+          if (voronoi.save().compare(*ot) == 0)
           {
             break;
           }
         }
         if (ot != cellsFinite.end()) // this cell was or will be cut
         {
+          //std::cout << voronoi.save() << std::endl << "||" << *ot << "||" << std::endl << voronoiBase.save() << std::endl << std::endl;
           continue;
         }
         
@@ -329,62 +338,50 @@ int main (int argc, char* argv[])
         cells.push_back(voronoi.save());
         
         delones.push_back(delone);
-        
-                      //origin.setColor("#000000", "#0000F0", "0.1");
-                      //delone.setColor("#000000", "#000000", "0.1");
-                      //voronoi.setColor("#4CAF50", "#546E7A", "0.1");
-                      //voronoi.CarrierSet->setColor("#F4511E", "#F4511E", "0.16");
-                      //it->setColor("#00E676", "#00E676", "0.05");
-                      //voronoi.colorify();
-                      
-                      //std::ostringstream oss;
-                      //oss << "output/tile/tilePot" << std::setfill('0') << std::setw(3) << countFinite << std::setfill('0') << std::setw(3) << count << ".svg";// << " " << delone.size();
-                      //std::ofstream myfile ( oss.str().c_str() );
-                      
-                      //myfile << "<?xml version=\"1.0\" standalone=\"no\"?>\n" << std::endl;
-                      //myfile << "<svg width=\"3000\" height=\"3000\" viewBox=\"" << -30/5 << " " << -30/5 << " " << 60/5 << " " << 60/5 << "\">\n" << std::endl;
-                      
-                      //voronoi.svg(myfile);
-                      //voronoi.CarrierSet->svg(myfile);
-                      //delone.svg(myfile);
-                      //origin.svg(myfile);
-                      ////it->svg(myfile);
-                      
-                      //myfile << "</svg>";
-                      
-                      //myfile.close();
       }
       
       delones.erase(it);
       
-      //std::cout << "delones: " << delones.size() << '\t';
-      //delones.sort();
-      //delones.unique();
-      //std::cout << "delones: " << delones.size() << std::endl;
-      
-      //if (countPrint%50000 == 0)
-      //{
-        //cells.sort();
-        //cells.unique();
-      //}
+      if (cells.size() > 1000000)
+      {
+        cells.sort();
+        cells.unique();
+        
+        std::cout << "cells after unique: " << cells.size() << std::endl << std::flush;
+        
+        // write to file
+        std::ofstream output(filenameMore.c_str(), std::ios::app);
+        
+        for (std::list<std::string>::iterator it = cells.begin(); it != cells.end(); ++it)
+        {
+          output << *it << std::endl;
+        }
+        output.close();
+        
+        cells.clear();
+        cells = cellsFinite;
+      }
     }
-    
-    cells.sort();
-    cells.unique();
-    
-    std::cout << "cells after unique: " << cells.size() << std::endl << std::flush;
-    
-    // write to file
-    std::ofstream output(filenameMore.c_str(), std::ios::app);
-    
-    for (std::list<std::string>::iterator it = cells.begin(); it != cells.end(); ++it)
+  }
+    if (cells.size() > 0)
     {
-      output << *it << std::endl;
+      cells.sort();
+      cells.unique();
+      
+      std::cout << "cells after unique: " << cells.size() << std::endl << std::flush;
+      
+      // write to file
+      std::ofstream output(filenameMore.c_str(), std::ios::app);
+      
+      for (std::list<std::string>::iterator it = cells.begin(); it != cells.end(); ++it)
+      {
+        output << *it << std::endl;
+      }
+      output.close();
+      
+      cells.clear();
     }
-    output.close();
-    
-    cells.clear();
-  }  
+  
   
   delete circ;
   

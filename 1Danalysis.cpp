@@ -28,7 +28,7 @@ int main( int argc, char ** argv )
 
   //winSize = const_winSize;
   
-  winSize = (numberType::get(-1,1,2));
+  winSize = (numberType::get(0,2,3));
   numberType origin(0,0);
   
   window<numberType> win(numberType::get(0,0), winSize);

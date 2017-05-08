@@ -165,6 +165,9 @@ class circle : public window2D<numberType>
     double  centerX();
     double  centerY();
     
+    numberType size();
+    numberType zeroDensitySize();
+    
     void createPolygon();
     
     template <typename number>
@@ -207,6 +210,7 @@ class polygon : public window2D<numberType>
     double  centerY();
     
     numberType size();
+    numberType zeroDensitySize();
     bool operator < (polygon<numberType> &compare);
     
     template <typename number>
@@ -1013,6 +1017,12 @@ void circle<numberType>::svg( std::ostream& out )
     return;
   }
   
+  if (zeroDensity())
+  {
+    out << "<circle cx=\"" << centerX() << "\" cy=\"" << centerY() << "\" r=\"" << m_strokeWidth << "\" stroke=\"" << m_fillColor << "\" stroke-width=\"" << 0 << "\" fill=\"" << m_fillColor << "\" />" << std::endl;
+    return;
+  }
+  
   out << "<g>" << std::endl;
   
   //for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
@@ -1047,7 +1057,7 @@ bool circle<numberType>::in( Cpoint<numberType> star )
 {
   for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it )
   {
-    if ( euklid2( star, Cpoint<numberType>( it->m_x, it->m_y ) ) >= m_R*m_R )
+    if ( euklid2( star, Cpoint<numberType>( it->m_x, it->m_y ) ) > m_R*m_R )
     {
       return false;
     }
@@ -1100,7 +1110,7 @@ rhombus<numberType>* circle<numberType>::inscribed()
 template <typename numberType>
 rhombus<numberType>* circle<numberType>::circumscribed()
 {
-  numberType size = m_R*numberType::circumscribedRhombusToCircle();
+  numberType size = numberType::get(101,0,100)*m_R*numberType::circumscribedRhombusToCircle();
   
   rhombus<numberType>* circ = new rhombus<numberType>( size, size, m_x, m_y );
   circ->center( Cpoint<numberType>( m_x, m_y ) );
@@ -1130,7 +1140,7 @@ bool circle<numberType>::empty()
   {
     for (typename std::list<circle<numberType> >::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
     {
-      if (euklid2(typename Cpoint<numberType>::Cpoint(it->m_x, it->m_y), typename Cpoint<numberType>::Cpoint(ot->m_x, ot->m_y)) >= numberType::get(4,0)*this->m_R*this->m_R)
+      if (euklid2(typename Cpoint<numberType>::Cpoint(it->m_x, it->m_y), typename Cpoint<numberType>::Cpoint(ot->m_x, ot->m_y)) > numberType::get(4,0)*this->m_R*this->m_R)
       {
         //std::cout << "EMPTY!" << std::endl;
         return true;
@@ -1154,10 +1164,10 @@ bool circle<numberType>::zeroDensity()
       maxDistance = max(maxDistance, euklid2(typename Cpoint<numberType>::Cpoint(it->m_x, it->m_y), typename Cpoint<numberType>::Cpoint(ot->m_x, ot->m_y)));
     }
   }
-  print(std::cout, maxDistance);
-  std::cout << "\t" << (maxDistance - numberType::get(4,0)*this->m_R*this->m_R) << "\t";
-  print(std::cout, numberType::get(4,0)*this->m_R*this->m_R);
-  std::cout << std::endl;
+  //print(std::cout, maxDistance);
+  //std::cout << "\t" << (maxDistance - numberType::get(4,0)*this->m_R*this->m_R) << "\t";
+  //print(std::cout, numberType::get(4,0)*this->m_R*this->m_R);
+  //std::cout << std::endl;
   return maxDistance == numberType::get(4,0)*this->m_R*this->m_R;
 }
 
@@ -1167,6 +1177,20 @@ double circle<numberType>::centerX()
   if (intersectionList.size() == 1)
   {
     return m_x;
+  }
+  
+  if (zeroDensity())
+  {
+    for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
+    {
+      for (typename std::list<circle<numberType> >::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+      {
+        if (euklid2(typename Cpoint<numberType>::Cpoint(it->m_x, it->m_y), typename Cpoint<numberType>::Cpoint(ot->m_x, ot->m_y)) == numberType::get(4,0)*this->m_R*this->m_R)
+        {
+          return (it->m_x+ot->m_x)*numberType::get(1,0,2);
+        }
+      }
+    }
   }
   
   double x = 0;
@@ -1186,6 +1210,20 @@ double circle<numberType>::centerY()
     return m_y;
   }
   
+  if (zeroDensity())
+  {
+    for (typename std::list<circle<numberType> >::const_iterator it = intersectionList.begin(); it != intersectionList.end(); ++it)
+    {
+      for (typename std::list<circle<numberType> >::const_iterator ot = intersectionList.begin(); ot != intersectionList.end(); ++ot)
+      {
+        if (euklid2(typename Cpoint<numberType>::Cpoint(it->m_x, it->m_y), typename Cpoint<numberType>::Cpoint(ot->m_x, ot->m_y)) == numberType::get(4,0)*this->m_R*this->m_R)
+        {
+          return (it->m_y+ot->m_y)*numberType::get(1,0,2);
+        }
+      }
+    }
+  }
+  
   double y = 0;
   for (std::list<Cpoint<double> >::iterator it = polygon.begin(); it != polygon.end(); ++it)
   {
@@ -1193,6 +1231,19 @@ double circle<numberType>::centerY()
   }
   
   return y/polygon.size();
+}
+
+template <typename numberType>
+numberType circle<numberType>::size()
+{
+  // DUMMY!!!! DO NOT USE
+  return numberType::get(0,0);
+}
+
+template <typename numberType>
+numberType circle<numberType>::zeroDensitySize()
+{
+  return numberType::get(0,0);
 }
 
 
@@ -1382,12 +1433,30 @@ void polygon<numberType>::operator = (const polygon<numberType> &polygon)
 template <typename numberType>
 void polygon<numberType>::svg( std::ostream& out )
 {
-  out << "<polygon points=\"";
-  for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(); it != m_vert.end(); ++it)
+  if (m_vert.size() == 1)
   {
-    out << it->getX() << "," << it->getY() << " ";
+    out << "<circle cx=\"" << m_vert.begin()->getX() << "\" cy=\"" << m_vert.begin()->getY() << "\" r=\"" << m_strokeWidth << "\" stroke=\"" << m_fillColor << "\" stroke-width=\"" << 0 << "\" fill=\"" << m_fillColor << "\" />" << std::endl;
   }
-  out << "\" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\" fill-opacity=\"1\" />" << std::endl;
+  else if (m_vert.size() == 2)
+  {
+    out << "<line x1=\"" << m_vert.begin()->getX() << "\" y1=\"" << m_vert.begin()->getY() << "\" x2=\"" << m_vert.rbegin()->getX() << "\" y2=\"" << m_vert.rbegin()->getY() << "\" stroke=\"" << m_fillColor << "\" stroke-width=\"" << m_strokeWidth << "\" />" << std::endl;
+  }
+  else
+  {
+    out << "<polygon points=\"";
+    for (typename std::list<Cpoint<numberType> >::const_iterator it = m_vert.begin(); it != m_vert.end(); ++it)
+    {
+      out << it->getX() << "," << it->getY() << " ";
+    }
+    if (this->zeroDensity())
+    {
+      out << "\" style=\"fill:" << "none" << ";stroke:" << m_fillColor << ";stroke-width:" << m_strokeWidth << "\" fill-opacity=\"1\" />" << std::endl;
+    }
+    else
+    {
+      out << "\" style=\"fill:" << m_fillColor << ";stroke:" << m_strokeColor << ";stroke-width:" << m_strokeWidth << "\" fill-opacity=\"1\" stroke-linejoin=\"round\" />" << std::endl;
+    }
+  }
 }
 
 template <typename numberType>
@@ -1410,7 +1479,7 @@ bool polygon<numberType>::in( Cpoint<numberType> star )
       && ( (ot->getX() - it->getX()) * (star.getY() - it->getY()) == (star.getX() - it->getX()) * (ot->getY() - it->getY()) ) \
        )
     {
-      return false;
+      return true;
     }
     
     if ( ((it->getY() > star.getY()) != (ot->getY() > star.getY()) ) \
@@ -1506,11 +1575,11 @@ void polygon<numberType>::intersect( polygon* win )
       }
     }
   }
-  if (new_vert.size() < 3)
-  {
-    m_vert.clear();
-    return;
-  }
+  //if (new_vert.size() < 3)
+  //{
+  //  m_vert.clear();
+  //  return;
+  //}
   
   new_vert.sort();
   new_vert.unique();
@@ -1581,7 +1650,7 @@ rhombus<numberType>* polygon<numberType>::circumscribed()
       //std::cout << (numberType::windowA()/tmp*(it->getY()-m_center.getY()) - numberType::windowC()/tmp*(it->getX()-m_center.getX())).abs() << std::endl << std::endl;
   }
   
-  size = size*numberType::get(2,0)*numberType::get(11,0,10);
+  size = size*numberType::get(2,0)*numberType::get(101,0,100);
   
   rhombus<numberType>* circ = new rhombus<numberType>(size, size);
   circ->center(m_center);
@@ -1602,7 +1671,7 @@ void polygon<numberType>::center( Cpoint<numberType> center )
 template <typename numberType>
 bool polygon<numberType>::empty() 
 {
-  if (m_vert.size() < 2)
+  if ((m_vert.size() < 2) && (!zeroDensity()))
   {
     return true;
   }
@@ -1636,15 +1705,25 @@ numberType polygon<numberType>::size()
   
   for ( typename std::list<Cpoint<numberType> >::iterator it = m_vert.begin(), itold = --m_vert.end(); it != m_vert.end(); itold = it++ )
   {
-    print(std::cout, itold->getX()*it->getY() - it->getX()*itold->getY());
-    std::cout << std::endl;
+    //print(std::cout, itold->getX()*it->getY() - it->getX()*itold->getY());
+    //std::cout << std::endl;
     area+= itold->getX()*it->getY() - it->getX()*itold->getY();
   }
   
-  print(std::cout, area.abs()*numberType::get(1,0,2));
-  std::cout << std::endl << "******************************************************************" << std::endl;
+  //print(std::cout, area.abs()*numberType::get(1,0,2));
+  //std::cout << std::endl << "******************************************************************" << std::endl;
   
   return area.abs()*numberType::get(1,0,2);
+}
+
+template <typename numberType>
+numberType polygon<numberType>::zeroDensitySize()
+{
+  if (m_vert.size() == 1)
+  {
+    return numberType::get(0,0);
+  }
+  return (m_vert.begin()->getX()-m_vert.rbegin()->getX()).abs()+(m_vert.begin()->getY()-m_vert.rbegin()->getY()).abs();
 }
 
 template <typename numberType>

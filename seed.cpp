@@ -21,15 +21,43 @@
 // creates seed files for generateTilesFromQuasi
 int main( int argc, char ** argv )
 {
+  numberType input;
+  
+  // singular file
+  std::string singularFilename = "closed/singular";
+  std::ifstream singularFile(singularFilename);
+  std::list<numberType> singularSizes;
+  if (singularFile.is_open())
+  {
+    while (singularFile)
+    {
+      singularFile >> input;
+      singularSizes.push_back(input);
+    }
+    singularFile.close();
+  }
+  else std::cout << "Unable to open file" << std::endl; 
+  
+  singularSizes.sort();
+  singularSizes.unique();
+  std::cout << "singular sizes size: " << singularSizes.size() << std::endl;
+  
+  windowType win = getWindow(numberType::get(1,0));
+  
   std::string fileName = argv[1];
   
   int steps = 20;
   
-  windowType win = getWindow(numberType::get(1,0));
   
-  //for (int i = 0; i != steps+1; ++i)
+  
+  for (std::list<numberType>::iterator it = ++singularSizes.begin(), itold = singularSizes.begin(); it != singularSizes.end(); ++it, ++itold)
+  //for (std::list<numberType>::iterator it = singularSizes.begin(); it != singularSizes.end(); ++it)
+  //for (numberType it = numberType::get(1,0); it <= numberType::get(0,1); it+= (numberType::get(0,1)-numberType::get(1,0))/numberType::get(10,0))
   {
-    numberType winSize = numberType::get(0,1,2);//numberType::get(1,0,1)/numberType::get(0,1,1) + (numberType::get(1,0,1)-numberType::get(1,0,1)/numberType::get(0,1,1))*numberType::get(i,0,steps);
+    //numberType winSize = numberType::get(-1,2,3);//numberType::get(1,0,1)/numberType::get(0,1,1) + (numberType::get(1,0,1)-numberType::get(1,0,1)/numberType::get(0,1,1))*numberType::get(i,0,steps);
+    numberType winSize = (*it+*itold)/numberType::get(2,0);
+    //numberType winSize = *it;
+    //numberType winSize = it;
     numberType placeholder(0, 0);
     
     // write to file properties

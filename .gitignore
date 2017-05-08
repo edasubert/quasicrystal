@@ -7,5 +7,6 @@
 !/SUPPORT/*.cpp
 !/SUPPORT/*.h
 !/shell/*
+!/RESULTS/
 /presentation/*
 /test*
